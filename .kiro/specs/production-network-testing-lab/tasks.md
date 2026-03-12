@@ -853,7 +853,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 15.1_
 
 
-- [-] 43. Set up continuous integration
+- [x] 43. Set up continuous integration
   - [~] 43.1 Create GitHub Actions workflow
     - Create .github/workflows/test.yml
     - Configure unit test job
