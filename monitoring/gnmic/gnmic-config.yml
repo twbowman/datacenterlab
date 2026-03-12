@@ -61,10 +61,10 @@ subscriptions:
     sample-interval: 60s
 
 processors:
-  # Normalize SR Linux interface metrics to network_interface_* format
+  # Normalize interface metrics to network_interface_* format (SR Linux + Arista)
   normalize_interface_metrics:
     event-processors:
-      # Transform /interface/statistics/in-octets to network_interface_in_octets
+      # Transform /interface/statistics/in-octets to network_interface_in_octets (SR Linux)
       - event-convert:
           value-names:
             - "^/srl_nokia/interface/statistics/in-octets$"
@@ -79,7 +79,17 @@ processors:
                 old: "/interface/statistics/in-octets"
                 new: "network_interface_in_octets"
       
-      # Transform /interface/statistics/out-octets to network_interface_out_octets
+      # Transform OpenConfig interface counters to network_interface_in_octets (Arista)
+      - event-convert:
+          value-names:
+            - "^/interfaces/interface/state/counters/in-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/interfaces/interface/state/counters/in-octets"
+                new: "network_interface_in_octets"
+      
+      # Transform /interface/statistics/out-octets to network_interface_out_octets (SR Linux)
       - event-convert:
           value-names:
             - "^/srl_nokia/interface/statistics/out-octets$"
@@ -94,7 +104,17 @@ processors:
                 old: "/interface/statistics/out-octets"
                 new: "network_interface_out_octets"
       
-      # Transform /interface/statistics/in-packets to network_interface_in_packets
+      # Transform OpenConfig interface counters to network_interface_out_octets (Arista)
+      - event-convert:
+          value-names:
+            - "^/interfaces/interface/state/counters/out-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/interfaces/interface/state/counters/out-octets"
+                new: "network_interface_out_octets"
+      
+      # Transform /interface/statistics/in-packets to network_interface_in_packets (SR Linux)
       - event-convert:
           value-names:
             - "^/srl_nokia/interface/statistics/in-packets$"
@@ -109,7 +129,17 @@ processors:
                 old: "/interface/statistics/in-packets"
                 new: "network_interface_in_packets"
       
-      # Transform /interface/statistics/out-packets to network_interface_out_packets
+      # Transform OpenConfig interface counters to network_interface_in_packets (Arista)
+      - event-convert:
+          value-names:
+            - "^/interfaces/interface/state/counters/in-pkts$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/interfaces/interface/state/counters/in-pkts"
+                new: "network_interface_in_packets"
+      
+      # Transform /interface/statistics/out-packets to network_interface_out_packets (SR Linux)
       - event-convert:
           value-names:
             - "^/srl_nokia/interface/statistics/out-packets$"
@@ -124,7 +154,17 @@ processors:
                 old: "/interface/statistics/out-packets"
                 new: "network_interface_out_packets"
       
-      # Transform /interface/statistics/in-errors to network_interface_in_errors
+      # Transform OpenConfig interface counters to network_interface_out_packets (Arista)
+      - event-convert:
+          value-names:
+            - "^/interfaces/interface/state/counters/out-pkts$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/interfaces/interface/state/counters/out-pkts"
+                new: "network_interface_out_packets"
+      
+      # Transform /interface/statistics/in-errors to network_interface_in_errors (SR Linux)
       - event-convert:
           value-names:
             - "^/srl_nokia/interface/statistics/in-errors$"
@@ -139,7 +179,17 @@ processors:
                 old: "/interface/statistics/in-errors"
                 new: "network_interface_in_errors"
       
-      # Transform /interface/statistics/out-errors to network_interface_out_errors
+      # Transform OpenConfig interface counters to network_interface_in_errors (Arista)
+      - event-convert:
+          value-names:
+            - "^/interfaces/interface/state/counters/in-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/interfaces/interface/state/counters/in-errors"
+                new: "network_interface_in_errors"
+      
+      # Transform /interface/statistics/out-errors to network_interface_out_errors (SR Linux)
       - event-convert:
           value-names:
             - "^/srl_nokia/interface/statistics/out-errors$"
@@ -154,21 +204,179 @@ processors:
                 old: "/interface/statistics/out-errors"
                 new: "network_interface_out_errors"
       
-      # Normalize interface name labels: ethernet-1/1 -> eth1_1
+      # Transform OpenConfig interface counters to network_interface_out_errors (Arista)
+      - event-convert:
+          value-names:
+            - "^/interfaces/interface/state/counters/out-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/interfaces/interface/state/counters/out-errors"
+                new: "network_interface_out_errors"
+      
+      # SONiC interface counters (OpenConfig paths)
+      # SONiC uses the same OpenConfig paths as Arista, so these are already covered above
+      # But we add explicit SONiC native path support for completeness
+      
+      # Transform SONiC native interface counters to network_interface_in_octets
+      - event-convert:
+          value-names:
+            - "^/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-octets"
+                new: "network_interface_in_octets"
+      
+      # Transform SONiC native interface counters to network_interface_out_octets
+      - event-convert:
+          value-names:
+            - "^/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-octets"
+                new: "network_interface_out_octets"
+      
+      # Transform SONiC native interface counters to network_interface_in_packets
+      - event-convert:
+          value-names:
+            - "^/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-pkts$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-pkts"
+                new: "network_interface_in_packets"
+      
+      # Transform SONiC native interface counters to network_interface_out_packets
+      - event-convert:
+          value-names:
+            - "^/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-pkts$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-pkts"
+                new: "network_interface_out_packets"
+      
+      # Transform SONiC native interface counters to network_interface_in_errors
+      - event-convert:
+          value-names:
+            - "^/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-errors"
+                new: "network_interface_in_errors"
+      
+      # Transform SONiC native interface counters to network_interface_out_errors
+      - event-convert:
+          value-names:
+            - "^/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-errors"
+                new: "network_interface_out_errors"
+      
+      # Juniper interface counters (OpenConfig and native paths)
+      # Juniper uses OpenConfig paths which are already covered above
+      # Add Juniper native path support for completeness
+      
+      # Transform Juniper native interface counters to network_interface_in_octets
+      - event-convert:
+          value-names:
+            - "^/junos/system/linecard/interface/logical/usage/in-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/system/linecard/interface/logical/usage/in-octets"
+                new: "network_interface_in_octets"
+      
+      # Transform Juniper native interface counters to network_interface_out_octets
+      - event-convert:
+          value-names:
+            - "^/junos/system/linecard/interface/logical/usage/out-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/system/linecard/interface/logical/usage/out-octets"
+                new: "network_interface_out_octets"
+      
+      # Transform Juniper native interface counters to network_interface_in_packets
+      - event-convert:
+          value-names:
+            - "^/junos/system/linecard/interface/logical/usage/in-pkts$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/system/linecard/interface/logical/usage/in-pkts"
+                new: "network_interface_in_packets"
+      
+      # Transform Juniper native interface counters to network_interface_out_packets
+      - event-convert:
+          value-names:
+            - "^/junos/system/linecard/interface/logical/usage/out-pkts$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/system/linecard/interface/logical/usage/out-pkts"
+                new: "network_interface_out_packets"
+      
+      # Transform Juniper native interface counters to network_interface_in_errors
+      - event-convert:
+          value-names:
+            - "^/junos/system/linecard/interface/logical/usage/in-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/system/linecard/interface/logical/usage/in-errors"
+                new: "network_interface_in_errors"
+      
+      # Transform Juniper native interface counters to network_interface_out_errors
+      - event-convert:
+          value-names:
+            - "^/junos/system/linecard/interface/logical/usage/out-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/system/linecard/interface/logical/usage/out-errors"
+                new: "network_interface_out_errors"
+      
+      # Normalize interface name labels: ethernet-1/1 -> eth1_1 (SR Linux)
+      # Normalize interface name labels: Ethernet1/1 -> eth1_1 (Arista)
+      # Normalize interface name labels: Ethernet1 -> eth1_0 (Arista single port)
+      # Normalize interface name labels: Ethernet0 -> eth0_0 (SONiC)
+      # Normalize interface name labels: ge-0/0/0 -> eth0_0_0 (Juniper)
       - event-convert:
           tag-names:
             - "interface_name"
             - "interface"
           transforms:
+            # Juniper: ge-0/0/0 -> eth0_0_0 (must come first to avoid partial matches)
+            - replace:
+                apply-on: "value"
+                old: "^ge-(\\d+)/(\\d+)/(\\d+)$"
+                new: "eth${1}_${2}_${3}"
+            # SR Linux: ethernet-1/1 -> eth1_1
             - replace:
                 apply-on: "value"
                 old: "^ethernet-(\\d+)/(\\d+)$"
                 new: "eth${1}_${2}"
+            # Arista: Ethernet1/1 -> eth1_1
+            - replace:
+                apply-on: "value"
+                old: "^Ethernet(\\d+)/(\\d+)$"
+                new: "eth${1}_${2}"
+            # Arista & SONiC: Ethernet1 or Ethernet0 -> eth1_0 or eth0_0
+            - replace:
+                apply-on: "value"
+                old: "^Ethernet(\\d+)$"
+                new: "eth${1}_0"
   
-  # Normalize SR Linux BGP metrics to network_bgp_* format
+  # Normalize BGP metrics to network_bgp_* format (SR Linux + Arista)
   normalize_bgp_metrics:
     event-processors:
-      # Transform BGP session state
+      # Transform BGP session state (SR Linux native)
       - event-convert:
           value-names:
             - "^/network-instance/protocols/bgp/neighbor/session-state$"
@@ -178,7 +386,17 @@ processors:
                 old: "/network-instance/protocols/bgp/neighbor/session-state"
                 new: "network_bgp_session_state"
       
-      # Transform BGP peer AS
+      # Transform BGP session state (OpenConfig - Arista, SONiC, Juniper)
+      - event-convert:
+          value-names:
+            - "^/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state"
+                new: "network_bgp_session_state"
+      
+      # Transform BGP peer AS (SR Linux native)
       - event-convert:
           value-names:
             - "^/network-instance/protocols/bgp/neighbor/peer-as$"
@@ -188,7 +406,17 @@ processors:
                 old: "/network-instance/protocols/bgp/neighbor/peer-as"
                 new: "network_bgp_peer_as"
       
-      # Transform BGP received routes
+      # Transform BGP peer AS (OpenConfig - Arista)
+      - event-convert:
+          value-names:
+            - "^/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/peer-as$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/peer-as"
+                new: "network_bgp_peer_as"
+      
+      # Transform BGP received routes (SR Linux native)
       - event-convert:
           value-names:
             - "^/network-instance/protocols/bgp/neighbor/received-routes$"
@@ -198,7 +426,17 @@ processors:
                 old: "/network-instance/protocols/bgp/neighbor/received-routes"
                 new: "network_bgp_received_routes"
       
-      # Transform BGP sent routes
+      # Transform BGP received routes (OpenConfig - Arista)
+      - event-convert:
+          value-names:
+            - "^/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/received$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/received"
+                new: "network_bgp_received_routes"
+      
+      # Transform BGP sent routes (SR Linux native)
       - event-convert:
           value-names:
             - "^/network-instance/protocols/bgp/neighbor/sent-routes$"
@@ -206,6 +444,104 @@ processors:
             - replace:
                 apply-on: "name"
                 old: "/network-instance/protocols/bgp/neighbor/sent-routes"
+                new: "network_bgp_sent_routes"
+      
+      # Transform BGP sent routes (OpenConfig - Arista)
+      - event-convert:
+          value-names:
+            - "^/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/sent$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/sent"
+                new: "network_bgp_sent_routes"
+      
+      # SONiC BGP metrics (OpenConfig and native paths)
+      # SONiC uses OpenConfig paths which are already covered above
+      # Add SONiC native path support for completeness
+      
+      # Transform SONiC native BGP session state
+      - event-convert:
+          value-names:
+            - "^/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/session-state$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/session-state"
+                new: "network_bgp_session_state"
+      
+      # Transform SONiC native BGP established transitions
+      - event-convert:
+          value-names:
+            - "^/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/established-transitions$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/established-transitions"
+                new: "network_bgp_established_transitions"
+      
+      # Transform SONiC native BGP received routes
+      - event-convert:
+          value-names:
+            - "^/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/received-routes$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/received-routes"
+                new: "network_bgp_received_routes"
+      
+      # Transform SONiC native BGP sent routes
+      - event-convert:
+          value-names:
+            - "^/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/sent-routes$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/sent-routes"
+                new: "network_bgp_sent_routes"
+      
+      # Juniper BGP metrics (OpenConfig and native paths)
+      # Juniper uses OpenConfig paths which are already covered above
+      # Add Juniper native path support for completeness
+      
+      # Transform Juniper native BGP session state
+      - event-convert:
+          value-names:
+            - "^/junos/routing/bgp/neighbor/state$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/routing/bgp/neighbor/state"
+                new: "network_bgp_session_state"
+      
+      # Transform Juniper native BGP established transitions (flap-count)
+      - event-convert:
+          value-names:
+            - "^/junos/routing/bgp/neighbor/flap-count$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/routing/bgp/neighbor/flap-count"
+                new: "network_bgp_established_transitions"
+      
+      # Transform Juniper native BGP received routes
+      - event-convert:
+          value-names:
+            - "^/junos/routing/bgp/neighbor/received-routes$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/routing/bgp/neighbor/received-routes"
+                new: "network_bgp_received_routes"
+      
+      # Transform Juniper native BGP sent routes (advertised-routes)
+      - event-convert:
+          value-names:
+            - "^/junos/routing/bgp/neighbor/advertised-routes$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/junos/routing/bgp/neighbor/advertised-routes"
                 new: "network_bgp_sent_routes"
       
       # Normalize BGP state values to uppercase
@@ -231,18 +567,52 @@ processors:
                 old: "active"
                 new: "ACTIVE"
   
-  # Add vendor label to all metrics
+  # Add vendor labels to all metrics (detects SR Linux and Arista)
   add_vendor_tags:
     event-processors:
-      # Add vendor=nokia tag to all metrics
+      # Detect and tag SR Linux devices
       - event-add-tag:
           tag-name: vendor
           value: "nokia"
+          condition: 'contains(source, "spine") || contains(source, "leaf")'
       
-      # Add os=srlinux tag to all metrics
       - event-add-tag:
           tag-name: os
           value: "srlinux"
+          condition: 'contains(source, "spine") || contains(source, "leaf")'
+      
+      # Detect and tag Arista devices (when added to topology)
+      - event-add-tag:
+          tag-name: vendor
+          value: "arista"
+          condition: 'contains(source, "arista") || contains(source, "eos")'
+      
+      - event-add-tag:
+          tag-name: os
+          value: "eos"
+          condition: 'contains(source, "arista") || contains(source, "eos")'
+      
+      # Detect and tag SONiC devices (Dell EMC)
+      - event-add-tag:
+          tag-name: vendor
+          value: "dellemc"
+          condition: 'contains(source, "sonic") || contains(source, "dell")'
+      
+      - event-add-tag:
+          tag-name: os
+          value: "sonic"
+          condition: 'contains(source, "sonic") || contains(source, "dell")'
+      
+      # Detect and tag Juniper devices
+      - event-add-tag:
+          tag-name: vendor
+          value: "juniper"
+          condition: 'contains(source, "juniper") || contains(source, "junos") || contains(source, "vmx") || contains(source, "crpd")'
+      
+      - event-add-tag:
+          tag-name: os
+          value: "junos"
+          condition: 'contains(source, "juniper") || contains(source, "junos") || contains(source, "vmx") || contains(source, "crpd")'
       
       # Mark universal metrics
       - event-add-tag:
