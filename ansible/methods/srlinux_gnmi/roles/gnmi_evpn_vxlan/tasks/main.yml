@@ -1,0 +1,258 @@
+---
+# EVPN-VXLAN Configuration for SR Linux
+# Data-driven configuration using evpn_vxlan variables from group_vars
+# Supports multiple VLAN-to-VNI mappings and L3 VNI for inter-subnet routing
+
+# ============================================================================
+# BGP EVPN Address Family Configuration (All Devices)
+# ============================================================================
+
+- name: Enable EVPN address family in BGP
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state \
+      --update-value enable \
+      --update-path /network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/evpn/rapid-update \
+      --update-value true
+  delegate_to: localhost
+  register: evpn_bgp_result
+  changed_when: "'UPDATE' in evpn_bgp_result.stdout"
+  failed_when: evpn_bgp_result.rc != 0
+  when: evpn_vxlan.bgp_evpn.enabled | default(false)
+
+- name: Enable EVPN in BGP group
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/afi-safi[afi-safi-name=evpn]/admin-state \
+      --update-value enable
+  delegate_to: localhost
+  register: evpn_group_result
+  changed_when: "'UPDATE' in evpn_group_result.stdout"
+  failed_when: evpn_group_result.rc != 0
+  when: evpn_vxlan.bgp_evpn.enabled | default(false)
+
+# ============================================================================
+# Route Reflector Configuration (Spines Only)
+# ============================================================================
+
+- name: Configure BGP route reflector for EVPN (spines)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/afi-safi[afi-safi-name=evpn]/route-reflector/cluster-id \
+      --update-value {{ cluster_id }}
+  delegate_to: localhost
+  register: rr_evpn_result
+  changed_when: "'UPDATE' in rr_evpn_result.stdout"
+  failed_when: rr_evpn_result.rc != 0
+  when: 
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - evpn_vxlan.bgp_evpn.route_reflector | default(false)
+    - bgp_role is defined
+    - bgp_role == 'route_reflector'
+
+# ============================================================================
+# VXLAN Tunnel Interface Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure VXLAN tunnel interfaces for each VNI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /tunnel-interface[name=vxlan1]/vxlan-interface[index={{ item.vni }}] \
+      --update-value '{"type": "bridged", "ingress": {"vni": {{ item.vni }}}}'
+  delegate_to: localhost
+  register: vxlan_result
+  changed_when: "'UPDATE' in vxlan_result.stdout"
+  failed_when: vxlan_result.rc != 0
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure VXLAN tunnel source (VTEP) via CLI
+  ansible.builtin.shell: |
+    printf "enter candidate\n{% for mapping in evpn_vxlan.vlan_vni_mappings %}/tunnel-interface vxlan1 vxlan-interface {{ mapping.vni }} egress source-ip use-system-ipv4-address\n{% endfor %}commit now\n" | \
+    docker exec -i clab-gnmi-clos-{{ inventory_hostname }} sr_cli
+  delegate_to: localhost
+  register: vtep_result
+  changed_when: "'Commit complete' in vtep_result.stdout or 'commit' in vtep_result.stdout"
+  failed_when: vtep_result.rc != 0
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# MAC-VRF Network Instance Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create MAC-VRF network instances for each VLAN
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/type \
+      --update-value mac-vrf \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/description \
+      --update-value "{{ item.description | default(item.name) }}" \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/admin-state \
+      --update-value enable
+  delegate_to: localhost
+  register: macvrf_result
+  changed_when: "'UPDATE' in macvrf_result.stdout"
+  failed_when: macvrf_result.rc != 0
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Associate VXLAN interfaces with MAC-VRFs
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/vxlan-interface[name=vxlan1.{{ item.vni }}] \
+      --update-value '{}'
+  delegate_to: localhost
+  register: vxlan_assoc_result
+  changed_when: "'UPDATE' in vxlan_assoc_result.stdout"
+  failed_when: vxlan_assoc_result.rc != 0
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# BGP-EVPN Instance Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure EVPN instances in MAC-VRFs
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/protocols/bgp-evpn/bgp-instance[id=1]/admin-state \
+      --update-value enable \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/protocols/bgp-evpn/bgp-instance[id=1]/vxlan-interface \
+      --update-value vxlan1.{{ item.vni }} \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/protocols/bgp-evpn/bgp-instance[id=1]/evi \
+      --update-value {{ item.vni }} \
+      --update-path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/protocols/bgp-evpn/bgp-instance[id=1]/ecmp \
+      --update-value 2
+  delegate_to: localhost
+  register: evpn_instance_result
+  changed_when: "'UPDATE' in evpn_instance_result.stdout"
+  failed_when: evpn_instance_result.rc != 0
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure BGP-VPN instances in MAC-VRFs via CLI
+  ansible.builtin.shell: |
+    printf "enter candidate\n{% for mapping in evpn_vxlan.vlan_vni_mappings %}/network-instance mac-vrf-{{ mapping.vlan_id }} protocols bgp-vpn bgp-instance 1\n{% endfor %}commit now\n" | \
+    docker exec -i clab-gnmi-clos-{{ inventory_hostname }} sr_cli
+  delegate_to: localhost
+  register: bgp_vpn_result
+  changed_when: "'Commit complete' in bgp_vpn_result.stdout or 'All changes have been committed' in bgp_vpn_result.stdout"
+  failed_when: bgp_vpn_result.rc != 0
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# EVPN Route Advertisement Configuration (Leafs Only)
+# ============================================================================
+
+- name: Enable EVPN route advertisement via CLI
+  ansible.builtin.shell: |
+    printf "enter candidate\n{% for mapping in evpn_vxlan.vlan_vni_mappings %}/network-instance mac-vrf-{{ mapping.vlan_id }} protocols bgp-evpn bgp-instance 1 routes bridge-table mac-ip advertise true\n/network-instance mac-vrf-{{ mapping.vlan_id }} protocols bgp-evpn bgp-instance 1 routes bridge-table inclusive-mcast advertise true\n{% endfor %}commit now\n" | \
+    docker exec -i clab-gnmi-clos-{{ inventory_hostname }} sr_cli
+  delegate_to: localhost
+  register: evpn_routes_result
+  changed_when: "'Commit complete' in evpn_routes_result.stdout or 'All changes have been committed' in evpn_routes_result.stdout"
+  failed_when: evpn_routes_result.rc != 0
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# L3 VNI Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure L3 VNI VXLAN interfaces
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /tunnel-interface[name=vxlan1]/vxlan-interface[index={{ item.vni }}] \
+      --update-value '{"type": "routed", "ingress": {"vni": {{ item.vni }}}}'
+  delegate_to: localhost
+  register: l3vni_vxlan_result
+  changed_when: "'UPDATE' in l3vni_vxlan_result.stdout"
+  failed_when: l3vni_vxlan_result.rc != 0
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure L3 VNI VTEP source via CLI
+  ansible.builtin.shell: |
+    printf "enter candidate\n{% for l3vni in evpn_vxlan.l3vni | default([]) %}/tunnel-interface vxlan1 vxlan-interface {{ l3vni.vni }} egress source-ip use-system-ipv4-address\n{% endfor %}commit now\n" | \
+    docker exec -i clab-gnmi-clos-{{ inventory_hostname }} sr_cli
+  delegate_to: localhost
+  register: l3vni_vtep_result
+  changed_when: "'Commit complete' in l3vni_vtep_result.stdout or 'commit' in l3vni_vtep_result.stdout"
+  failed_when: l3vni_vtep_result.rc != 0
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.l3vni is defined
+    - evpn_vxlan.l3vni | length > 0
+
+- name: Create IP-VRF network instances for L3 VNI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name={{ item.vrf_name }}]/type \
+      --update-value ip-vrf \
+      --update-path /network-instance[name={{ item.vrf_name }}]/admin-state \
+      --update-value enable \
+      --update-path /network-instance[name={{ item.vrf_name }}]/vxlan-interface[name=vxlan1.{{ item.vni }}] \
+      --update-value '{}'
+  delegate_to: localhost
+  register: ipvrf_result
+  changed_when: "'UPDATE' in ipvrf_result.stdout"
+  failed_when: ipvrf_result.rc != 0
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"

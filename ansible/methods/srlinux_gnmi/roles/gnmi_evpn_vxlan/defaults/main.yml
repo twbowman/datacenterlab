@@ -1,0 +1,6 @@
+---
+# Default variables for EVPN-VXLAN configuration
+vxlan_vni: 100
+vlan_id: 100
+mac_vrf_name: "mac-vrf-100"
+evi: 100

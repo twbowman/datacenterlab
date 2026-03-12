@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  author: Network Automation Team
+  description: Arista EOS EVPN/VXLAN configuration role
+  company: Production Network Testing Lab
+  
+  license: MIT
+  
+  min_ansible_version: "2.9"
+  
+  platforms:
+    - name: EOS
+      versions:
+        - all
+  
+  galaxy_tags:
+    - networking
+    - arista
+    - eos
+    - evpn
+    - vxlan
+    - datacenter
+
+dependencies:
+  - role: eos_bgp
+    when: evpn_vxlan.bgp_evpn.enabled | default(false)

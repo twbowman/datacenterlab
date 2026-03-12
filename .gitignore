@@ -1,0 +1,38 @@
+# ContainerLab artifacts
+clab-*/
+*.log
+
+# Monitoring data directories (persistent storage)
+monitoring/grafana/data/
+monitoring/prometheus/data/
+
+# Ansible artifacts
+*.retry
+__pycache__/
+*.pyc
+.ansible/
+
+# Python
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# Backup files
+*.bak
+*~
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/

@@ -1,0 +1,9 @@
+---
+# Rollback handlers triggered on configuration failure
+
+- name: Execute rollback
+  include_tasks: "../tasks/rollback_{{ normalized_os }}.yml"
+  when: 
+    - rollback_available | default(false)
+    - normalized_os is defined
+

@@ -1,0 +1,271 @@
+username: admin
+password: NokiaSrl1!
+skip-verify: true
+encoding: json_ietf
+
+targets:
+  spine1:
+    address: clab-gnmi-clos-spine1:57400
+  spine2:
+    address: clab-gnmi-clos-spine2:57400
+  leaf1:
+    address: clab-gnmi-clos-leaf1:57400
+  leaf2:
+    address: clab-gnmi-clos-leaf2:57400
+  leaf3:
+    address: clab-gnmi-clos-leaf3:57400
+  leaf4:
+    address: clab-gnmi-clos-leaf4:57400
+
+subscriptions:
+  # OpenConfig interface stats - works across vendors
+  oc_interface_stats:
+    paths:
+      - /interfaces/interface/state/counters
+      - /interfaces/interface/state/oper-status
+      - /interfaces/interface/state/admin-status
+    mode: stream
+    stream-mode: sample
+    sample-interval: 10s
+  
+  # OpenConfig BGP basic state - vendor agnostic
+  oc_bgp_neighbors:
+    paths:
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+  
+  # SR Linux native for OSPF (poor OpenConfig support)
+  srl_ospf_state:
+    paths:
+      - /network-instance[name=default]/protocols/ospf
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+  
+  # SR Linux native for detailed BGP (includes EVPN)
+  srl_bgp_detailed:
+    paths:
+      - /network-instance[name=default]/protocols/bgp
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+  
+  # OpenConfig LLDP - good cross-vendor support
+  oc_lldp:
+    paths:
+      - /lldp/interfaces/interface/neighbors/neighbor/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 60s
+
+processors:
+  # Normalize SR Linux interface metrics to network_interface_* format
+  normalize_interface_metrics:
+    event-processors:
+      # Transform /interface/statistics/in-octets to network_interface_in_octets
+      - event-convert:
+          value-names:
+            - "^/srl_nokia/interface/statistics/in-octets$"
+            - "^/interface/statistics/in-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/srl_nokia/interface/statistics/in-octets"
+                new: "network_interface_in_octets"
+            - replace:
+                apply-on: "name"
+                old: "/interface/statistics/in-octets"
+                new: "network_interface_in_octets"
+      
+      # Transform /interface/statistics/out-octets to network_interface_out_octets
+      - event-convert:
+          value-names:
+            - "^/srl_nokia/interface/statistics/out-octets$"
+            - "^/interface/statistics/out-octets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/srl_nokia/interface/statistics/out-octets"
+                new: "network_interface_out_octets"
+            - replace:
+                apply-on: "name"
+                old: "/interface/statistics/out-octets"
+                new: "network_interface_out_octets"
+      
+      # Transform /interface/statistics/in-packets to network_interface_in_packets
+      - event-convert:
+          value-names:
+            - "^/srl_nokia/interface/statistics/in-packets$"
+            - "^/interface/statistics/in-packets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/srl_nokia/interface/statistics/in-packets"
+                new: "network_interface_in_packets"
+            - replace:
+                apply-on: "name"
+                old: "/interface/statistics/in-packets"
+                new: "network_interface_in_packets"
+      
+      # Transform /interface/statistics/out-packets to network_interface_out_packets
+      - event-convert:
+          value-names:
+            - "^/srl_nokia/interface/statistics/out-packets$"
+            - "^/interface/statistics/out-packets$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/srl_nokia/interface/statistics/out-packets"
+                new: "network_interface_out_packets"
+            - replace:
+                apply-on: "name"
+                old: "/interface/statistics/out-packets"
+                new: "network_interface_out_packets"
+      
+      # Transform /interface/statistics/in-errors to network_interface_in_errors
+      - event-convert:
+          value-names:
+            - "^/srl_nokia/interface/statistics/in-errors$"
+            - "^/interface/statistics/in-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/srl_nokia/interface/statistics/in-errors"
+                new: "network_interface_in_errors"
+            - replace:
+                apply-on: "name"
+                old: "/interface/statistics/in-errors"
+                new: "network_interface_in_errors"
+      
+      # Transform /interface/statistics/out-errors to network_interface_out_errors
+      - event-convert:
+          value-names:
+            - "^/srl_nokia/interface/statistics/out-errors$"
+            - "^/interface/statistics/out-errors$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/srl_nokia/interface/statistics/out-errors"
+                new: "network_interface_out_errors"
+            - replace:
+                apply-on: "name"
+                old: "/interface/statistics/out-errors"
+                new: "network_interface_out_errors"
+      
+      # Normalize interface name labels: ethernet-1/1 -> eth1_1
+      - event-convert:
+          tag-names:
+            - "interface_name"
+            - "interface"
+          transforms:
+            - replace:
+                apply-on: "value"
+                old: "^ethernet-(\\d+)/(\\d+)$"
+                new: "eth${1}_${2}"
+  
+  # Normalize SR Linux BGP metrics to network_bgp_* format
+  normalize_bgp_metrics:
+    event-processors:
+      # Transform BGP session state
+      - event-convert:
+          value-names:
+            - "^/network-instance/protocols/bgp/neighbor/session-state$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instance/protocols/bgp/neighbor/session-state"
+                new: "network_bgp_session_state"
+      
+      # Transform BGP peer AS
+      - event-convert:
+          value-names:
+            - "^/network-instance/protocols/bgp/neighbor/peer-as$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instance/protocols/bgp/neighbor/peer-as"
+                new: "network_bgp_peer_as"
+      
+      # Transform BGP received routes
+      - event-convert:
+          value-names:
+            - "^/network-instance/protocols/bgp/neighbor/received-routes$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instance/protocols/bgp/neighbor/received-routes"
+                new: "network_bgp_received_routes"
+      
+      # Transform BGP sent routes
+      - event-convert:
+          value-names:
+            - "^/network-instance/protocols/bgp/neighbor/sent-routes$"
+          transforms:
+            - replace:
+                apply-on: "name"
+                old: "/network-instance/protocols/bgp/neighbor/sent-routes"
+                new: "network_bgp_sent_routes"
+      
+      # Normalize BGP state values to uppercase
+      - event-convert:
+          tag-names:
+            - "session_state"
+            - "state"
+          transforms:
+            - replace:
+                apply-on: "value"
+                old: "established"
+                new: "ESTABLISHED"
+            - replace:
+                apply-on: "value"
+                old: "idle"
+                new: "IDLE"
+            - replace:
+                apply-on: "value"
+                old: "connect"
+                new: "CONNECT"
+            - replace:
+                apply-on: "value"
+                old: "active"
+                new: "ACTIVE"
+  
+  # Add vendor label to all metrics
+  add_vendor_tags:
+    event-processors:
+      # Add vendor=nokia tag to all metrics
+      - event-add-tag:
+          tag-name: vendor
+          value: "nokia"
+      
+      # Add os=srlinux tag to all metrics
+      - event-add-tag:
+          tag-name: os
+          value: "srlinux"
+      
+      # Mark universal metrics
+      - event-add-tag:
+          tag-name: universal_metric
+          value: "true"
+          condition: "contains(name, 'network_')"
+      
+      # Mark vendor-specific metrics
+      - event-add-tag:
+          tag-name: vendor_metric
+          value: "true"
+          condition: "!contains(name, 'network_')"
+
+outputs:
+  prom:
+    type: prometheus
+    listen: :9273
+    path: /metrics
+    metric-prefix: gnmic
+    append-subscription-name: true
+    export-timestamps: true
+    strings-as-labels: true
+    event-processors:
+      - normalize_interface_metrics
+      - normalize_bgp_metrics
+      - add_vendor_tags

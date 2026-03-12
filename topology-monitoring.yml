@@ -1,0 +1,42 @@
+name: monitoring
+
+topology:
+  nodes:
+    # === Monitoring Stack ===
+    grafana:
+      kind: linux
+      image: grafana/grafana:latest
+      mgmt-ipv4: 172.20.20.2
+      ports:
+        - 3000:3000
+      binds:
+        - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      env:
+        GF_SECURITY_ADMIN_PASSWORD: admin
+        GF_SECURITY_ADMIN_USER: admin
+        GF_INSTALL_PLUGINS: ""
+    
+    prometheus:
+      kind: linux
+      image: prom/prometheus:latest
+      mgmt-ipv4: 172.20.20.3
+      ports:
+        - 9090:9090
+      binds:
+        - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      cmd: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d
+    
+    gnmic:
+      kind: linux
+      image: ghcr.io/openconfig/gnmic:latest
+      mgmt-ipv4: 172.20.20.5
+      ports:
+        - 9273:9273
+      binds:
+        - ./monitoring/gnmic/gnmic-config.yml:/gnmic-config.yml:ro
+      cmd: --config /gnmic-config.yml subscribe
+
+mgmt:
+  network: gnmi-mgmt
+  ipv4-subnet: 172.20.20.0/24

@@ -1,0 +1,29 @@
+---
+- name: Configure SR Linux using gNMI
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Create configuration file for {{ inventory_hostname }}
+      ansible.builtin.template:
+        src: templates/srlinux-config.j2
+        dest: "/tmp/{{ inventory_hostname }}-config.json"
+      delegate_to: localhost
+
+    - name: Apply configuration via gnmic
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          --username {{ gnmi_username }} \
+          --password {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          set \
+          --update-path / \
+          --update-file /tmp/{{ inventory_hostname }}-config.json
+      delegate_to: localhost
+      register: gnmic_result
+      failed_when: false
+
+    - name: Display result
+      ansible.builtin.debug:
+        var: gnmic_result.stdout_lines
+      when: gnmic_result.stdout_lines is defined

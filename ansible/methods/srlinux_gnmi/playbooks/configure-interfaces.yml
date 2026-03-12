@@ -1,0 +1,7 @@
+---
+- name: Configure interfaces using CLI
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: srlinux_interfaces
+      tags: [interfaces, config]

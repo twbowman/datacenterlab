@@ -1,0 +1,181 @@
+name: gnmi-clos
+
+topology:
+  nodes:
+    # Grafana - Visualization
+    grafana:
+      kind: linux
+      image: grafana/grafana:latest
+      mgmt-ipv4: 172.20.20.2
+      ports:
+        - 3000:3000
+      binds:
+        - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      env:
+        GF_SECURITY_ADMIN_PASSWORD: admin
+        GF_SECURITY_ADMIN_USER: admin
+        GF_INSTALL_PLUGINS: ""
+    
+    # Prometheus - Metrics storage
+    prometheus:
+      kind: linux
+      image: prom/prometheus:latest
+      mgmt-ipv4: 172.20.20.3
+      ports:
+        - 9090:9090
+      binds:
+        - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      cmd: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
+    
+    # Telegraf - gNMI collector
+    telegraf:
+      kind: linux
+      image: telegraf:latest
+      mgmt-ipv4: 172.20.20.4
+      ports:
+        - 8888:8888
+      binds:
+        - ./monitoring/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf
+    
+    # Spine Routers
+    spine1:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.10
+      binds:
+        - ./frr/spine1:/etc/frr
+    
+    spine2:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.11
+      binds:
+        - ./frr/spine2:/etc/frr
+    
+    # Leaf Routers
+    leaf1:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.21
+      binds:
+        - ./frr/leaf1:/etc/frr
+    
+    leaf2:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.22
+      binds:
+        - ./frr/leaf2:/etc/frr
+    
+    leaf3:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.23
+      binds:
+        - ./frr/leaf3:/etc/frr
+    
+    leaf4:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.20.24
+      binds:
+        - ./frr/leaf4:/etc/frr
+    
+    # Client nodes
+    client1:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.31
+      exec:
+        - ip addr add 10.10.1.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.1.1
+    
+    client2:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.32
+      exec:
+        - ip addr add 10.10.1.20/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.1.1
+    
+    client3:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.33
+      exec:
+        - ip addr add 10.10.2.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.2.1
+    
+    client4:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.34
+      exec:
+        - ip addr add 10.10.2.20/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.2.1
+    
+    client5:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.35
+      exec:
+        - ip addr add 10.10.3.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.3.1
+    
+    client6:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.36
+      exec:
+        - ip addr add 10.10.3.20/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.3.1
+    
+    client7:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.37
+      exec:
+        - ip addr add 10.10.4.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.4.1
+    
+    client8:
+      kind: linux
+      image: alpine:latest
+      mgmt-ipv4: 172.20.20.38
+      exec:
+        - ip addr add 10.10.4.20/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.4.1
+
+  links:
+    # Spine1 to all Leafs
+    - endpoints: ["spine1:eth1", "leaf1:eth1"]
+    - endpoints: ["spine1:eth2", "leaf2:eth1"]
+    - endpoints: ["spine1:eth3", "leaf3:eth1"]
+    - endpoints: ["spine1:eth4", "leaf4:eth1"]
+    
+    # Spine2 to all Leafs
+    - endpoints: ["spine2:eth1", "leaf1:eth2"]
+    - endpoints: ["spine2:eth2", "leaf2:eth2"]
+    - endpoints: ["spine2:eth3", "leaf3:eth2"]
+    - endpoints: ["spine2:eth4", "leaf4:eth2"]
+    
+    # Clients to Leaf1
+    - endpoints: ["leaf1:eth3", "client1:eth1"]
+    - endpoints: ["leaf1:eth4", "client2:eth1"]
+    
+    # Clients to Leaf2
+    - endpoints: ["leaf2:eth3", "client3:eth1"]
+    - endpoints: ["leaf2:eth4", "client4:eth1"]
+    
+    # Clients to Leaf3
+    - endpoints: ["leaf3:eth3", "client5:eth1"]
+    - endpoints: ["leaf3:eth4", "client6:eth1"]
+    
+    # Clients to Leaf4
+    - endpoints: ["leaf4:eth3", "client7:eth1"]
+    - endpoints: ["leaf4:eth4", "client8:eth1"]
+
+mgmt:
+  network: gnmi-mgmt
+  ipv4-subnet: 172.20.20.0/24

@@ -1,0 +1,32 @@
+---
+# tasks file for gnmi_lldp
+- name: Enable LLDP globally via gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /system/lldp/admin-state \
+      --update-value enable
+  delegate_to: localhost
+  register: lldp_global_result
+  changed_when: "'success' in lldp_global_result.stdout or 'ok' in lldp_global_result.stdout"
+  failed_when: lldp_global_result.rc != 0
+
+- name: Enable LLDP on interfaces via gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /interface[name={{ item.name }}]/admin-state \
+      --update-value enable \
+      --update-path /system/lldp/interface[name={{ item.name }}]/admin-state \
+      --update-value enable
+  loop: "{{ interfaces }}"
+  delegate_to: localhost
+  register: lldp_interface_result
+  changed_when: "'success' in lldp_interface_result.stdout or 'ok' in lldp_interface_result.stdout"
+  failed_when: lldp_interface_result.rc != 0

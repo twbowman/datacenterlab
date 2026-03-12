@@ -1,0 +1,142 @@
+---
+inclusion: auto
+---
+
+# Project Context and Standards
+
+## Lab Architecture
+
+### Current Configuration
+- **Topology**: Spine-Leaf CLOS fabric
+- **Underlay**: OSPF (area 0.0.0.0)
+- **Overlay**: iBGP with EVPN-VXLAN
+- **AS Number**: 65000 (all devices)
+- **Route Reflectors**: spine1 (10.0.0.1), spine2 (10.0.0.2)
+
+### Device Addressing
+- **Spine Loopbacks**: 10.0.0.x/32
+  - spine1: 10.0.0.1
+  - spine2: 10.0.0.2
+- **Leaf Loopbacks**: 10.0.1.x/32
+  - leaf1: 10.0.1.1
+  - leaf2: 10.0.1.2
+  - leaf3: 10.0.1.3
+  - leaf4: 10.0.1.4
+- **Point-to-Point Links**: 10.1.x.0/31 (spine1), 10.2.x.0/31 (spine2)
+- **Client Network**: 10.10.100.0/24 (EVPN-VXLAN)
+  - client1: 10.10.100.1
+  - client2: 10.10.100.2
+  - client3: 10.10.100.3
+  - client4: 10.10.100.4
+
+### Key Design Decisions
+1. **iBGP with Loopback Peering**: BGP neighbors use loopback IPs, not interface IPs
+2. **OSPF Advertises Loopbacks**: All system0 interfaces in OSPF for BGP next-hop reachability
+3. **EVPN Route Reflectors**: Spines reflect EVPN routes between leafs
+4. **Layer 2 EVPN**: MAC-VRF with VXLAN (VNI 100)
+
+## Ansible Structure
+
+### Inventory Location
+- Main inventory: `ansible/inventory.yml`
+- Uses `bgp_neighbors` list for iBGP peering
+- All devices have `loopback_ip` defined
+
+### Playbook Locations
+- Main site playbook: `ansible/methods/srlinux_gnmi/site.yml`
+- EVPN configuration: `ansible/methods/srlinux_gnmi/playbooks/configure-evpn.yml`
+- Verification: `ansible/methods/srlinux_gnmi/playbooks/verify.yml`
+
+### Running Playbooks
+Always use `orb -m clab` prefix:
+```bash
+orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+```
+
+## Monitoring Stack
+
+### Services
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **gNMI Collector**: Port 9273
+
+### Dashboards
+- BGP Stability: `monitoring/grafana/provisioning/dashboards/bgp-stability.json`
+- OSPF Stability: `monitoring/grafana/provisioning/dashboards/ospf-stability.json`
+
+### Telemetry Paths
+- Interface statistics: `/interface/statistics` (10s interval)
+- OSPF state: `/network-instance[name=default]/protocols/ospf` (30s interval)
+- BGP state: `/network-instance[name=default]/protocols/bgp` (30s interval)
+
+## Common Tasks
+
+### Lab Management
+```bash
+# Deploy lab
+orb -m clab sudo containerlab deploy -t topology.yml
+
+# Destroy lab
+orb -m clab sudo containerlab destroy -t topology.yml
+
+# Check status
+orb -m clab sudo containerlab inspect
+```
+
+### Configuration
+```bash
+# Deploy full configuration
+orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+
+# Configure EVPN
+orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/configure-evpn.yml
+
+# Verify configuration
+orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
+```
+
+### Verification
+```bash
+# Check BGP sessions
+orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show network-instance default protocols bgp neighbor"
+
+# Check EVPN routes
+orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show network-instance default protocols bgp routes evpn route-type summary"
+
+# Check MAC table
+orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show network-instance mac-vrf-100 bridge-table mac-table all"
+
+# Test connectivity
+orb -m clab docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.2
+```
+
+### Traffic Generation
+```bash
+# Generate test traffic
+orb -m clab ./generate-traffic.sh
+```
+
+## Important Notes
+
+1. **Always use `orb -m clab`** for any containerlab-related commands
+2. **BGP uses loopback peering** - don't use interface IPs for neighbors
+3. **OSPF is required** - provides reachability for BGP next-hops
+4. **Clients must be in same subnet** - 10.10.100.0/24 for Layer 2 EVPN
+5. **Grafana dashboards auto-reload** - restart Grafana after JSON changes
+
+## Troubleshooting
+
+### BGP Not Establishing
+- Check OSPF neighbors: `show network-instance default protocols ospf neighbor`
+- Verify loopback reachability: `ping network-instance default 10.0.0.1`
+- Check BGP configuration: `info network-instance default protocols bgp`
+
+### EVPN Routes Not Advertising
+- Verify BGP-EVPN enabled: `info network-instance default protocols bgp afi-safi evpn`
+- Check MAC-VRF: `info network-instance mac-vrf-100`
+- Verify route advertisement: `info network-instance mac-vrf-100 protocols bgp-evpn`
+
+### Clients Can't Communicate
+- Verify same subnet: All clients must be in 10.10.100.0/24
+- Check MAC learning: `show network-instance mac-vrf-100 bridge-table mac-table all`
+- Verify VXLAN tunnels: `show tunnel-interface vxlan1`

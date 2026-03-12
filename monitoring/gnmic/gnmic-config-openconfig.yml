@@ -1,0 +1,168 @@
+# Multi-vendor gNMIc configuration using OpenConfig models
+# This config collects telemetry from SR Linux, Arista EOS, and SONiC using OpenConfig paths
+
+username: admin
+skip-verify: true
+encoding: json_ietf
+log: true
+log-file: /tmp/gnmic.log
+
+# Target definitions - mix of vendors
+targets:
+  # SR Linux devices
+  spine1:
+    address: clab-gnmi-clos-spine1:57400
+    username: admin
+    password: NokiaSrl1!
+    tags:
+      vendor: nokia
+      device_type: spine
+      os: srlinux
+  
+  leaf1:
+    address: clab-gnmi-clos-leaf1:57400
+    username: admin
+    password: NokiaSrl1!
+    tags:
+      vendor: nokia
+      device_type: leaf
+      os: srlinux
+
+  # Arista EOS devices (if added)
+  # spine2:
+  #   address: 172.20.20.11:6030
+  #   username: admin
+  #   password: admin
+  #   tags:
+  #     vendor: arista
+  #     device_type: spine
+  #     os: eos
+
+  # SONiC devices (if added)
+  # leaf3:
+  #   address: 172.20.20.23:8080
+  #   username: admin
+  #   password: admin
+  #   tags:
+  #     vendor: dellemc
+  #     device_type: leaf
+  #     os: sonic
+
+# OpenConfig subscriptions - vendor agnostic
+subscriptions:
+  # OpenConfig interfaces - widely supported
+  oc_interfaces:
+    paths:
+      - /interfaces/interface/state/counters
+      - /interfaces/interface/state/oper-status
+      - /interfaces/interface/state/admin-status
+    mode: stream
+    stream-mode: sample
+    sample-interval: 10s
+    encoding: json_ietf
+
+  # OpenConfig interface details
+  oc_interface_details:
+    paths:
+      - /interfaces/interface/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+    encoding: json_ietf
+
+  # OpenConfig BGP - standard across vendors
+  oc_bgp_neighbors:
+    paths:
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+    encoding: json_ietf
+
+  # OpenConfig BGP global state
+  oc_bgp_global:
+    paths:
+      - /network-instances/network-instance/protocols/protocol/bgp/global/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+    encoding: json_ietf
+
+  # OpenConfig LLDP - good cross-vendor support
+  oc_lldp:
+    paths:
+      - /lldp/interfaces/interface/neighbors/neighbor/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 60s
+    encoding: json_ietf
+
+  # OpenConfig system info
+  oc_system:
+    paths:
+      - /system/state/hostname
+      - /system/state/boot-time
+      - /system/state/current-datetime
+    mode: stream
+    stream-mode: sample
+    sample-interval: 60s
+    encoding: json_ietf
+
+  # OpenConfig components (hardware)
+  oc_components:
+    paths:
+      - /components/component/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 60s
+    encoding: json_ietf
+
+# Outputs
+outputs:
+  # Prometheus for Grafana
+  prom:
+    type: prometheus
+    listen: :9273
+    path: /metrics
+    metric-prefix: gnmic
+    append-subscription-name: true
+    export-timestamps: true
+    strings-as-labels: true
+    # Add vendor tags to metrics
+    add-target-labels: true
+
+  # InfluxDB output (optional)
+  # influxdb:
+  #   type: influxdb
+  #   url: http://influxdb:8086
+  #   bucket: telemetry
+  #   org: myorg
+  #   token: mytoken
+  #   batch-size: 1000
+  #   flush-timer: 10s
+
+  # File output for debugging
+  file_output:
+    type: file
+    file-type: stdout
+    format: json
+    # Uncomment to write to file instead
+    # filename: /tmp/gnmic-output.json
+
+# Processors for data transformation
+processors:
+  # Add custom tags
+  add_tags:
+    event-processors:
+      - add-tag:
+          tag-name: source
+          value: gnmic
+      - add-tag:
+          tag-name: collector
+          value: openconfig
+
+# Clustering (optional for HA)
+# clustering:
+#   cluster-name: gnmic-cluster
+#   instance-name: gnmic-1
+#   targets-watch-timer: 5s

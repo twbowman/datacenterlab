@@ -1,0 +1,35 @@
+---
+# Configuration validation dispatcher
+# Validates configuration syntax before deployment
+
+- name: Display validation information
+  debug:
+    msg: "Validating configuration for {{ ansible_network_os | default('unknown') }} on {{ inventory_hostname }}"
+
+- name: Normalize network OS name for validation
+  set_fact:
+    normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
+
+- name: Validate SR Linux configuration
+  include_tasks: validate_srlinux.yml
+  when: normalized_os == 'srlinux'
+
+- name: Validate Arista EOS configuration
+  include_tasks: validate_arista.yml
+  when: normalized_os == 'eos'
+
+- name: Validate SONiC configuration
+  include_tasks: validate_sonic.yml
+  when: normalized_os == 'sonic'
+
+- name: Validate Juniper configuration
+  include_tasks: validate_junos.yml
+  when: normalized_os == 'junos'
+
+- name: Fail if network OS is not supported
+  fail:
+    msg: |
+      Network OS '{{ ansible_network_os | default('undefined') }}' is not supported for validation.
+      Supported vendors: SR Linux, Arista EOS, SONiC, Juniper
+  when: normalized_os not in ['srlinux', 'eos', 'sonic', 'junos']
+

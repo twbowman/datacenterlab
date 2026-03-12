@@ -1,0 +1,7 @@
+---
+- name: Configure LLDP using CLI
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: srlinux_lldp
+      tags: [lldp, config]

@@ -1,0 +1,11 @@
+---
+# Configure EVPN-VXLAN overlay
+# Creates Layer 2 connectivity using EVPN with VXLAN encapsulation
+# Data-driven configuration from group_vars (supports multiple VLANs/VNIs)
+
+- name: Configure EVPN-VXLAN overlay
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: ../roles/gnmi_evpn_vxlan
+      tags: evpn

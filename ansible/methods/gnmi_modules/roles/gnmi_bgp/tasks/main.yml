@@ -1,0 +1,39 @@
+---
+# tasks file for gnmi_bgp
+- name: Configure BGP global settings via gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/admin-state \
+      --update-value enable \
+      --update-path /network-instance[name=default]/protocols/bgp/autonomous-system \
+      --update-value {{ asn }} \
+      --update-path /network-instance[name=default]/protocols/bgp/router-id \
+      --update-value {{ router_id }}
+  delegate_to: localhost
+  register: bgp_global_result
+  changed_when: "'success' in bgp_global_result.stdout or 'ok' in bgp_global_result.stdout"
+  failed_when: bgp_global_result.rc != 0
+
+- name: Configure BGP neighbors via gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.neighbor_ip }}]/peer-as \
+      --update-value {{ item.neighbor_asn }} \
+      --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.neighbor_ip }}]/peer-group \
+      --update-value ebgp \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ebgp]/ipv4-unicast/admin-state \
+      --update-value enable
+  loop: "{{ interfaces }}"
+  when: item.neighbor_ip is defined
+  delegate_to: localhost
+  register: bgp_neighbor_result
+  changed_when: "'success' in bgp_neighbor_result.stdout or 'ok' in bgp_neighbor_result.stdout"
+  failed_when: bgp_neighbor_result.rc != 0

@@ -1,0 +1,239 @@
+---
+# tasks file for sonic_evpn_vxlan
+# SONiC EVPN/VXLAN configuration using dellemc.enterprise_sonic collection
+# Data-driven configuration using evpn_vxlan variables from group_vars
+
+# ============================================================================
+# BGP EVPN Address Family Configuration (All Devices)
+# ============================================================================
+
+- name: Enable EVPN address family in BGP
+  dellemc.enterprise_sonic.sonic_bgp_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        address_family:
+          afis:
+            - afi: l2vpn
+              safi: evpn
+              advertise_all_vni: "{{ evpn_vxlan.bgp_evpn.advertise_all_vni | default(true) }}"
+              advertise_default_gw: "{{ evpn_vxlan.bgp_evpn.advertise_default_gw | default(true) }}"
+    state: merged
+  when: evpn_vxlan.bgp_evpn.enabled | default(false)
+
+- name: Activate BGP neighbors for EVPN
+  dellemc.enterprise_sonic.sonic_bgp_neighbors_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        neighbors:
+          - neighbor: "{{ item.peer_address }}"
+            address_family:
+              afis:
+                - afi: l2vpn
+                  safi: evpn
+                  activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: 
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - bgp_neighbors is defined
+
+# ============================================================================
+# Route Reflector Configuration (Spines Only)
+# ============================================================================
+
+- name: Configure route reflector for EVPN (spines)
+  dellemc.enterprise_sonic.sonic_bgp_neighbors:
+    config:
+      - bgp_as: "{{ asn }}"
+        neighbors:
+          - neighbor: "{{ item.peer_address }}"
+            route_reflector_client: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: 
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - evpn_vxlan.bgp_evpn.route_reflector | default(false)
+    - bgp_role is defined
+    - bgp_role == 'route_reflector'
+    - bgp_neighbors is defined
+
+# ============================================================================
+# VXLAN Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure VXLAN source interface
+  dellemc.enterprise_sonic.sonic_vxlans:
+    config:
+      - name: vtep1
+        source_ip: "{{ router_id }}"
+        evpn_nvo: nvo1
+    state: merged
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# VLAN Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create VLANs for VXLAN
+  dellemc.enterprise_sonic.sonic_vlans:
+    config:
+      - vlan_id: "{{ item.vlan_id }}"
+        name: "{{ item.name }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# VNI Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure VNI mappings
+  dellemc.enterprise_sonic.sonic_vxlans:
+    config:
+      - name: vtep1
+        vlan_map:
+          - vlan: "{{ item.vlan_id }}"
+            vni: "{{ item.vni }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# EVPN Instance Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure EVPN instances for VNIs
+  dellemc.enterprise_sonic.sonic_vxlans:
+    config:
+      - name: vtep1
+        evpn_nvo: nvo1
+    state: merged
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# L3 VNI Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create VRFs for L3 VNI
+  dellemc.enterprise_sonic.sonic_vrfs:
+    config:
+      - name: "{{ item.vrf_name }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Create L3 VNI VLANs
+  dellemc.enterprise_sonic.sonic_vlans:
+    config:
+      - vlan_id: "{{ item.vlan_id }}"
+        name: "L3VNI-{{ item.vrf_name }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure L3 VNI to VRF mapping
+  dellemc.enterprise_sonic.sonic_vxlans:
+    config:
+      - name: vtep1
+        vlan_map:
+          - vlan: "{{ item.vlan_id }}"
+            vni: "{{ item.vni }}"
+        vrf_map:
+          - vrf: "{{ item.vrf_name }}"
+            vni: "{{ item.vni }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure BGP in VRF for L3 VNI
+  dellemc.enterprise_sonic.sonic_bgp:
+    config:
+      - bgp_as: "{{ asn }}"
+        vrf_name: "{{ item.vrf_name }}"
+        router_id: "{{ router_id }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure BGP address family in VRF
+  dellemc.enterprise_sonic.sonic_bgp_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        vrf_name: "{{ item.vrf_name }}"
+        address_family:
+          afis:
+            - afi: ipv4
+              safi: unicast
+              redistribute:
+                - protocol: connected
+            - afi: l2vpn
+              safi: evpn
+              route_advertise_list:
+                - advertise_afi: ipv4
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# Anycast Gateway Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure anycast gateway MAC
+  dellemc.enterprise_sonic.sonic_system:
+    config:
+      anycast_address: "{{ evpn_vxlan.anycast_gateway.virtual_mac }}"
+    state: merged
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - evpn_vxlan.anycast_gateway.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# ARP Suppression Configuration (Leafs Only)
+# ============================================================================
+
+- name: Enable ARP suppression on VXLANs
+  dellemc.enterprise_sonic.sonic_vxlans:
+    config:
+      - name: vtep1
+        vlan_map:
+          - vlan: "{{ item.vlan_id }}"
+            vni: "{{ item.vni }}"
+        suppress_arp: "{{ evpn_vxlan.arp_suppression.enabled | default(true) }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when: 
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# Display Configuration Results
+# ============================================================================
+
+- name: Display EVPN/VXLAN configuration results
+  ansible.builtin.debug:
+    msg: "EVPN/VXLAN configured on {{ inventory_hostname }} - {{ evpn_vxlan.vlan_vni_mappings | length }} VLANs mapped to VNIs"
+  when: 
+    - sonic_evpn_debug | default(false)
+    - evpn_vxlan.vlan_vni_mappings is defined

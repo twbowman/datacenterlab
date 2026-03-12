@@ -1,0 +1,36 @@
+---
+# tasks file for gnmi_interfaces
+- name: Configure interfaces via gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /interface[name={{ item.name }}]/admin-state \
+      --update-value enable \
+      --update-path /interface[name={{ item.name }}]/subinterface[index=0]/ipv4/address[ip-prefix={{ item.ip }}] \
+      --update-value '{}'
+  loop: "{{ interfaces }}"
+  when: item.ip is defined
+  delegate_to: localhost
+  register: interface_result
+  changed_when: "'success' in interface_result.stdout or 'ok' in interface_result.stdout"
+  failed_when: interface_result.rc != 0
+
+- name: Configure system0 loopback via gNMI (leafs only)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /interface[name=system0]/admin-state \
+      --update-value enable \
+      --update-path /interface[name=system0]/subinterface[index=0]/ipv4/address[ip-prefix={{ loopback_ip }}] \
+      --update-value '{}'
+  when: loopback_ip is defined
+  delegate_to: localhost
+  register: loopback_result
+  changed_when: "'success' in loopback_result.stdout or 'ok' in loopback_result.stdout"
+  failed_when: loopback_result.rc != 0

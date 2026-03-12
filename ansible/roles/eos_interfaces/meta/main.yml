@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Network Automation Team
+  description: Configure Arista EOS interfaces
+  company: Production Network Testing Lab
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EOS
+      versions:
+        - all
+  galaxy_tags:
+    - networking
+    - arista
+    - eos
+
+dependencies: []

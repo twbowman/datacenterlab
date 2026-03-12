@@ -1,0 +1,62 @@
+---
+- name: Verify end-to-end connectivity
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Get all interface IPs
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          --username {{ gnmi_username }} \
+          --password {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get --path '/interface[name=*]/subinterface[index=0]/ipv4/address' \
+          --format flat
+      delegate_to: localhost
+      register: all_ips
+      failed_when: false
+
+    - name: Display interface IPs
+      ansible.builtin.debug:
+        msg:
+          - "{{ inventory_hostname }} Interface IPs:"
+          - "{{ all_ips.stdout_lines }}"
+      when: all_ips.stdout_lines is defined and all_ips.stdout_lines | length > 0
+
+    - name: Get routing table entries
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          --username {{ gnmi_username }} \
+          --password {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get --path /network-instance[name=default]/route-table/ipv4-unicast/route \
+          --format flat | head -30
+      delegate_to: localhost
+      register: routes
+      failed_when: false
+
+    - name: Display routing table
+      ansible.builtin.debug:
+        msg:
+          - "{{ inventory_hostname }} Routing Table (first 30 entries):"
+          - "{{ routes.stdout_lines }}"
+      when: routes.stdout_lines is defined and routes.stdout_lines | length > 0
+
+    - name: Get route count
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          --username {{ gnmi_username }} \
+          --password {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get --path /network-instance[name=default]/route-table/ipv4-unicast/statistics/active-routes \
+          --format flat
+      delegate_to: localhost
+      register: route_count
+      failed_when: false
+
+    - name: Display route statistics
+      ansible.builtin.debug:
+        msg: "{{ route_count.stdout_lines }}"
+      when: route_count.stdout_lines is defined and route_count.stdout_lines | length > 0

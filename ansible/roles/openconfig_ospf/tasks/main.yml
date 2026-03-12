@@ -1,0 +1,138 @@
+---
+# tasks file for openconfig_ospf
+# Production datacenter OSPF underlay using OpenConfig models
+
+- name: Check if OSPF is configured
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      get \
+      --path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/global/config/router-id" \
+      --format json 2>/dev/null || echo "null"
+  register: ospf_check
+  changed_when: false
+  failed_when: false
+  delegate_to: localhost
+
+- name: Configure OSPF global settings using OpenConfig gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      set \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/config" \
+      --update-value '{"identifier":"OSPF","name":"ospf","enabled":true}' \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/global/config" \
+      --update-value '{"router-id":"{{ router_id }}"}'
+  when: ospf_check.stdout == "null" or router_id not in ospf_check.stdout
+  delegate_to: localhost
+  register: ospf_global_result
+  changed_when: ospf_global_result.rc == 0
+
+- name: Check OSPF area 0 configuration
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      get \
+      --path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/areas/area[identifier=0.0.0.0]/config/identifier" \
+      --format json 2>/dev/null || echo "null"
+  register: ospf_area_check
+  changed_when: false
+  failed_when: false
+  delegate_to: localhost
+
+- name: Configure OSPF area 0 using OpenConfig gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      set \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/areas/area[identifier=0.0.0.0]/config" \
+      --update-value '{"identifier":"0.0.0.0"}'
+  when: ospf_area_check.stdout == "null"
+  delegate_to: localhost
+  register: ospf_area_result
+  changed_when: ospf_area_result.rc == 0
+
+- name: Check OSPF interface configuration
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      get \
+      --path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/areas/area[identifier=0.0.0.0]/interfaces/interface[id={{ item.name }}.0]/config/id" \
+      --format json 2>/dev/null || echo "null"
+  register: ospf_interface_check
+  changed_when: false
+  failed_when: false
+  loop: "{{ interfaces }}"
+  when: item.ip is defined
+  delegate_to: localhost
+
+- name: Configure OSPF on point-to-point interfaces using OpenConfig gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      set \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/areas/area[identifier=0.0.0.0]/interfaces/interface[id={{ item.item.name }}.0]/config" \
+      --update-value '{"id":"{{ item.item.name }}.0","network-type":"POINT_TO_POINT","enabled":true}'
+  loop: "{{ ospf_interface_check.results }}"
+  when:
+    - item.item.ip is defined
+    - item.stdout == "null"
+  delegate_to: localhost
+  register: ospf_interface_result
+  changed_when: ospf_interface_result.rc == 0
+
+- name: Check OSPF loopback configuration (leafs only)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      get \
+      --path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/areas/area[identifier=0.0.0.0]/interfaces/interface[id=system0.0]/config/id" \
+      --format json 2>/dev/null || echo "null"
+  register: ospf_loopback_check
+  changed_when: false
+  failed_when: false
+  when: loopback_ip is defined
+  delegate_to: localhost
+
+- name: Configure OSPF on loopback (passive, leafs only) using OpenConfig gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      set \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=OSPF][name=ospf]/ospf/areas/area[identifier=0.0.0.0]/interfaces/interface[id=system0.0]/config" \
+      --update-value '{"id":"system0.0","passive":true,"enabled":true}'
+  when:
+    - loopback_ip is defined
+    - ospf_loopback_check.stdout == "null"
+  delegate_to: localhost
+  register: ospf_loopback_result
+  changed_when: ospf_loopback_result.rc == 0
+
+- name: Display OSPF configuration results
+  ansible.builtin.debug:
+    msg: "OSPF configured on {{ inventory_hostname }} using OpenConfig gNMI"
+  when: openconfig_ospf_debug | default(false)

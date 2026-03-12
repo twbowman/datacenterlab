@@ -1,0 +1,7 @@
+---
+- name: Configure BGP using gNMI
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: gnmi_bgp
+      tags: [bgp, config]

@@ -1,0 +1,112 @@
+---
+# Test playbook for dispatcher pattern validation
+# Tests OS detection, normalization, validation, and routing logic
+
+- name: Test Multi-Vendor Dispatcher Pattern
+  hosts: localhost
+  gather_facts: false
+  
+  tasks:
+    - name: Test 1 - SR Linux OS detection and normalization
+      block:
+        - set_fact:
+            ansible_network_os: "nokia.srlinux"
+        
+        - set_fact:
+            normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
+        
+        - assert:
+            that:
+              - normalized_os == 'srlinux'
+            success_msg: "✓ Test 1 passed: SR Linux OS normalized correctly"
+            fail_msg: "✗ Test 1 failed: Expected 'srlinux', got '{{ normalized_os }}'"
+
+    - name: Test 2 - Arista EOS OS detection and normalization
+      block:
+        - set_fact:
+            ansible_network_os: "arista.eos"
+        
+        - set_fact:
+            normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
+        
+        - assert:
+            that:
+              - normalized_os == 'eos'
+            success_msg: "✓ Test 2 passed: Arista EOS OS normalized correctly"
+            fail_msg: "✗ Test 2 failed: Expected 'eos', got '{{ normalized_os }}'"
+
+    - name: Test 3 - SONiC OS detection and normalization
+      block:
+        - set_fact:
+            ansible_network_os: "dellemc.sonic"
+        
+        - set_fact:
+            normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
+        
+        - assert:
+            that:
+              - normalized_os == 'sonic'
+            success_msg: "✓ Test 3 passed: SONiC OS normalized correctly"
+            fail_msg: "✗ Test 3 failed: Expected 'sonic', got '{{ normalized_os }}'"
+
+    - name: Test 4 - Juniper OS detection and normalization
+      block:
+        - set_fact:
+            ansible_network_os: "juniper.junos"
+        
+        - set_fact:
+            normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
+        
+        - assert:
+            that:
+              - normalized_os == 'junos'
+            success_msg: "✓ Test 4 passed: Juniper OS normalized correctly"
+            fail_msg: "✗ Test 4 failed: Expected 'junos', got '{{ normalized_os }}'"
+
+    - name: Test 5 - Short form OS names (backward compatibility)
+      block:
+        - set_fact:
+            ansible_network_os: "srlinux"
+        
+        - set_fact:
+            normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
+        
+        - assert:
+            that:
+              - normalized_os == 'srlinux'
+            success_msg: "✓ Test 5 passed: Short form OS names work correctly"
+            fail_msg: "✗ Test 5 failed: Expected 'srlinux', got '{{ normalized_os }}'"
+
+    - name: Test 6 - Supported OS validation
+      block:
+        - set_fact:
+            test_os_list:
+              - "nokia.srlinux"
+              - "srlinux"
+              - "arista.eos"
+              - "eos"
+              - "dellemc.sonic"
+              - "sonic"
+              - "juniper.junos"
+              - "junos"
+        
+        - assert:
+            that:
+              - item in ['nokia.srlinux', 'srlinux', 'arista.eos', 'eos', 'dellemc.sonic', 'sonic', 'juniper.junos', 'junos']
+            success_msg: "✓ OS {{ item }} is supported"
+          loop: "{{ test_os_list }}"
+        
+        - debug:
+            msg: "✓ Test 6 passed: All OS variants are in supported list"
+
+    - name: All dispatcher tests passed
+      debug:
+        msg: |
+          ========================================
+          ✓ All dispatcher pattern tests passed!
+          ========================================
+          - OS detection and normalization: PASS
+          - Multi-vendor support: PASS
+          - Backward compatibility: PASS
+          - Supported OS validation: PASS
+

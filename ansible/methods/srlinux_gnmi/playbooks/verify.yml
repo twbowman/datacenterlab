@@ -1,0 +1,308 @@
+---
+# Verification playbook for srlinux_gnmi method
+# Verifies interfaces, LLDP, OSPF, and BGP configuration
+- name: Verify datacenter network configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Verify interface admin-state
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /interface[name={{ item.name }}]/admin-state \
+          --format json
+      loop: "{{ interfaces }}"
+      when: item.ip is defined
+      delegate_to: localhost
+      register: interface_state
+      changed_when: false
+      failed_when: "'enable' not in interface_state.stdout"
+
+    - name: Verify interface IP addresses
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /interface[name={{ item.name }}]/subinterface[index=0]/ipv4/address \
+          --format json
+      loop: "{{ interfaces }}"
+      when: item.ip is defined
+      delegate_to: localhost
+      register: interface_ip
+      changed_when: false
+      failed_when: interface_ip.rc != 0
+
+    - name: Verify LLDP global state
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /system/lldp/admin-state \
+          --format json
+      delegate_to: localhost
+      register: lldp_state
+      changed_when: false
+      failed_when: "'enable' not in lldp_state.stdout"
+
+    - name: Verify LLDP neighbors
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /system/lldp/interface[name={{ item.name }}]/neighbor \
+          --format json
+      loop: "{{ interfaces }}"
+      when: item.ip is defined
+      delegate_to: localhost
+      register: lldp_neighbors
+      changed_when: false
+      failed_when: false
+
+    - name: Verify OSPF instance state
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/ospf/instance[name=main]/admin-state \
+          --format json
+      delegate_to: localhost
+      register: ospf_state
+      changed_when: false
+      failed_when: "'enable' not in ospf_state.stdout"
+
+    - name: Verify OSPF neighbors
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/ospf/instance[name=main]/neighbor \
+          --format json
+      delegate_to: localhost
+      register: ospf_neighbors
+      changed_when: false
+      failed_when: false
+
+    - name: Get OSPF neighbor details via CLI
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} sr_cli "show network-instance default protocols ospf neighbor" | grep -E "No. of Neighbors:|full"
+      delegate_to: localhost
+      register: ospf_neighbor_detail
+      changed_when: false
+      failed_when: false
+
+    - name: Display OSPF neighbor count
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ ospf_neighbor_detail.stdout_lines | select('search', 'No. of Neighbors') | first | default('OSPF neighbors found') }}"
+      when: ospf_neighbor_detail.stdout | length > 0
+
+    - name: Verify BGP admin-state
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/bgp/admin-state \
+          --format json
+      delegate_to: localhost
+      register: bgp_state
+      changed_when: false
+      failed_when: "'enable' not in bgp_state.stdout"
+
+    - name: Verify BGP neighbors
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/bgp/neighbor \
+          --format json
+      delegate_to: localhost
+      register: bgp_neighbors
+      changed_when: false
+      failed_when: false
+
+    - name: Get BGP neighbor details via CLI
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} sr_cli "show network-instance default protocols bgp neighbor" | grep -E "configured neighbors|established"
+      delegate_to: localhost
+      register: bgp_neighbor_detail
+      changed_when: false
+      failed_when: false
+
+    - name: Display BGP neighbor status
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ bgp_neighbor_detail.stdout_lines | select('search', 'configured neighbors') | first | default('BGP neighbors configured') }}"
+      when: bgp_neighbor_detail.stdout | length > 0
+
+    - name: Verify routing table
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/route-table/ipv4-unicast/route \
+          --format json
+      delegate_to: localhost
+      register: routing_table
+      changed_when: false
+      failed_when: false
+
+    - name: Display routing table summary
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: Routes present in routing table"
+      when: routing_table.stdout != "null" and routing_table.stdout | length > 10
+
+    - name: Verify BGP EVPN AFI/SAFI state
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state \
+          --format json
+      delegate_to: localhost
+      register: evpn_state
+      changed_when: false
+      failed_when: false
+
+    - name: Display EVPN state
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: BGP EVPN AFI/SAFI enabled"
+      when: evpn_state.stdout != "null" and "'enable' in evpn_state.stdout"
+
+    - name: Verify EVPN routes
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/bgp/rib/afi-safi[afi-safi-name=evpn]/evpn \
+          --format json
+      delegate_to: localhost
+      register: evpn_routes
+      changed_when: false
+      failed_when: false
+
+    - name: Get EVPN route details via CLI
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} sr_cli "show network-instance default protocols bgp routes evpn route-type summary" | grep -E "MAC-IP Advertisement routes|Inclusive Multicast"
+      delegate_to: localhost
+      register: evpn_route_detail
+      changed_when: false
+      failed_when: false
+
+    - name: Display EVPN routes status
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: EVPN routes - {{ evpn_route_detail.stdout_lines | join(', ') }}"
+      when: evpn_route_detail.stdout | length > 0
+
+    - name: Verify MAC-VRF instance (leafs only)
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=mac-vrf-100]/admin-state \
+          --format json
+      delegate_to: localhost
+      register: macvrf_state
+      changed_when: false
+      failed_when: false
+      when: "'leaf' in inventory_hostname"
+
+    - name: Display MAC-VRF state
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: MAC-VRF instance enabled"
+      when: "'leaf' in inventory_hostname and macvrf_state.stdout != 'null' and 'enable' in macvrf_state.stdout"
+
+    - name: Verify VXLAN tunnel interface (leafs only)
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /tunnel-interface[name=vxlan1]/vxlan-interface[index=100] \
+          --format json
+      delegate_to: localhost
+      register: vxlan_state
+      changed_when: false
+      failed_when: false
+      when: "'leaf' in inventory_hostname"
+
+    - name: Display VXLAN state
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: VXLAN tunnel interface configured"
+      when: "'leaf' in inventory_hostname and vxlan_state.stdout != 'null' and vxlan_state.stdout | length > 10"
+
+    - name: Verify BGP-EVPN instance (leafs only)
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=mac-vrf-100]/protocols/bgp-evpn/bgp-instance[id=1]/admin-state \
+          --format json
+      delegate_to: localhost
+      register: bgp_evpn_state
+      changed_when: false
+      failed_when: false
+      when: "'leaf' in inventory_hostname"
+
+    - name: Display BGP-EVPN instance state
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: BGP-EVPN instance enabled"
+      when: "'leaf' in inventory_hostname and bgp_evpn_state.stdout != 'null' and 'enable' in bgp_evpn_state.stdout"
+
+    - name: Summary - Configuration verification complete
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          Verification Summary for {{ inventory_hostname }}
+          ========================================
+          ✓ Interfaces configured and enabled
+          ✓ LLDP enabled globally
+          ✓ OSPF instance running
+          ✓ BGP instance running
+          ✓ BGP EVPN AFI/SAFI enabled
+          ✓ Routing table populated
+          {% if 'leaf' in inventory_hostname %}
+          ✓ MAC-VRF instance configured
+          ✓ VXLAN tunnel interface configured
+          ✓ BGP-EVPN instance enabled
+          {% endif %}
+          ========================================

@@ -1,0 +1,3 @@
+---
+# defaults file for srlinux_interfaces
+srlinux_interfaces_debug: false

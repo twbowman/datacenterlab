@@ -1,0 +1,59 @@
+---
+# Diagnostic playbook to check actual device configuration
+- name: Diagnose configuration issues
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if BGP is configured
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/bgp
+      delegate_to: localhost
+      register: bgp_config
+      changed_when: false
+      failed_when: false
+
+    - name: Display BGP configuration
+      ansible.builtin.debug:
+        msg: "{{ bgp_config.stdout }}"
+
+    - name: Check if OSPF is configured
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/ospf
+      delegate_to: localhost
+      register: ospf_config
+      changed_when: false
+      failed_when: false
+
+    - name: Display OSPF configuration
+      ansible.builtin.debug:
+        msg: "{{ ospf_config.stdout }}"
+
+    - name: Check interfaces
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /interface[name=ethernet-1/1]
+      delegate_to: localhost
+      register: interface_config
+      changed_when: false
+      failed_when: false
+
+    - name: Display interface configuration
+      ansible.builtin.debug:
+        msg: "{{ interface_config.stdout }}"

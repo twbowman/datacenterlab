@@ -1,0 +1,27 @@
+---
+# EVPN/VXLAN Configuration for Spine Switches
+# Spines act as BGP route reflectors for the EVPN control plane
+
+# EVPN/VXLAN Configuration for Spines
+evpn_vxlan:
+  # Spines do not participate in VXLAN data plane
+  enabled: false
+  
+  # BGP EVPN Configuration
+  bgp_evpn:
+    # Enable EVPN address family
+    enabled: true
+    
+    # Spines act as route reflectors
+    route_reflector: true
+    
+    # Route reflector cluster ID (typically router_id)
+    # Will be auto-generated as: {{ cluster_id | default(router_id) }}
+    cluster_id: "auto"
+    
+    # Retain route target extended communities
+    retain_route_target: true
+    
+    # Next-hop unchanged for reflected routes
+    next_hop_unchanged: true
+

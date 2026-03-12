@@ -1,0 +1,40 @@
+---
+- name: Detailed BGP verification
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Get detailed BGP neighbor information
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          --username {{ gnmi_username }} \
+          --password {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get --path /network-instance[name=default]/protocols/bgp/neighbor \
+          --format flat
+      delegate_to: localhost
+      register: bgp_detail
+      failed_when: false
+
+    - name: Display BGP neighbor details
+      ansible.builtin.debug:
+        msg: "{{ bgp_detail.stdout_lines }}"
+      when: bgp_detail.stdout_lines is defined and bgp_detail.stdout_lines | length > 0
+
+    - name: Get received routes count
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          --username {{ gnmi_username }} \
+          --password {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get --path '/network-instance[name=default]/protocols/bgp/neighbor[peer-address=*]/afi-safi[afi-safi-name=ipv4-unicast]/received-routes' \
+          --format flat
+      delegate_to: localhost
+      register: received_routes
+      failed_when: false
+
+    - name: Display received routes
+      ansible.builtin.debug:
+        msg: "{{ received_routes.stdout_lines }}"
+      when: received_routes.stdout_lines is defined and received_routes.stdout_lines | length > 0

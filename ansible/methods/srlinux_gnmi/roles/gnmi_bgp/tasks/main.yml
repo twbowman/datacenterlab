@@ -1,0 +1,137 @@
+---
+# tasks file for srlinux_bgp
+# iBGP EVPN configuration with route reflectors:
+# - OSPF provides underlay routing (next-hop reachability)
+# - iBGP peers using loopback IPs (system0)
+# - All devices in same AS (65000)
+# - Spines act as route reflectors for EVPN
+# - BGP advertises only loopback addresses (application endpoints)
+
+- name: Configure system0 loopback interface
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /interface[name=system0]/admin-state \
+      --update-value enable \
+      --update-path /interface[name=system0]/subinterface[index=0]/admin-state \
+      --update-value enable \
+      --update-path /interface[name=system0]/subinterface[index=0]/ipv4/admin-state \
+      --update-value enable \
+      --update-path /interface[name=system0]/subinterface[index=0]/ipv4/address[ip-prefix={{ loopback_ip }}] \
+      --update-value '{}' \
+      --update-path /network-instance[name=default]/interface[name=system0.0] \
+      --update-value '{}'
+  delegate_to: localhost
+  register: loopback_result
+  changed_when: "'UPDATE' in loopback_result.stdout"
+  failed_when: loopback_result.rc != 0
+  when: loopback_ip is defined
+
+- name: Remove any existing transport local-address configuration
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --delete /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/transport/local-address
+  delegate_to: localhost
+  register: transport_delete_result
+  changed_when: "'DELETE' in transport_delete_result.stdout"
+  failed_when: false
+
+- name: Remove any existing multihop configuration
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --delete /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/multihop
+  delegate_to: localhost
+  register: multihop_delete_result
+  changed_when: "'DELETE' in multihop_delete_result.stdout"
+  failed_when: false
+
+- name: Configure BGP with iBGP group
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/autonomous-system \
+      --update-value {{ asn }} \
+      --update-path /network-instance[name=default]/protocols/bgp/router-id \
+      --update-value {{ router_id }} \
+      --update-path /network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=ipv4-unicast]/admin-state \
+      --update-value enable \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/afi-safi[afi-safi-name=ipv4-unicast]/admin-state \
+      --update-value enable \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/transport/tcp-mss \
+      --update-value 1024 \
+      {% for neighbor in bgp_neighbors %}
+      --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/peer-as \
+      --update-value {{ neighbor.peer_asn }} \
+      --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/peer-group \
+      --update-value ibgp \
+      {% endfor %}
+      --update-path /network-instance[name=default]/protocols/bgp/admin-state \
+      --update-value enable
+  delegate_to: localhost
+  register: bgp_config_result
+  changed_when: "'UPDATE' in bgp_config_result.stdout"
+  failed_when: bgp_config_result.rc != 0
+  when: bgp_neighbors is defined
+
+- name: Configure route reflector on spines
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/route-reflector/cluster-id \
+      --update-value {{ cluster_id }} \
+      {% for neighbor in bgp_neighbors %}
+      --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/route-reflector/client \
+      --update-value true \
+      {% endfor %}
+  delegate_to: localhost
+  register: rr_config_result
+  changed_when: "'UPDATE' in rr_config_result.stdout"
+  failed_when: rr_config_result.rc != 0
+  when: bgp_role is defined and bgp_role == 'route_reflector' and bgp_neighbors is defined
+
+- name: Create export policy to advertise local routes
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /routing-policy/policy[name=export-local]/statement[name=10]/match/protocol \
+      --update-value local \
+      --update-path /routing-policy/policy[name=export-local]/statement[name=10]/action/policy-result \
+      --update-value accept
+  delegate_to: localhost
+  register: policy_result
+  changed_when: "'UPDATE' in policy_result.stdout"
+  failed_when: policy_result.rc != 0
+
+- name: Apply export policy to BGP
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path "/network-instance[name=default]/protocols/bgp/group[group-name=ibgp]" \
+      --update-value '{"export-policy": ["export-local"]}'
+  delegate_to: localhost
+  register: export_result
+  changed_when: "'UPDATE' in export_result.stdout"
+  failed_when: export_result.rc != 0

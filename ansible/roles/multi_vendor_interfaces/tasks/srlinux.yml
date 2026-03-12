@@ -1,0 +1,48 @@
+---
+# SR Linux specific interface configuration using native YANG model
+
+- name: Configure interface admin state (SR Linux)
+  nokia.srlinux.gnmi_set:
+    host: "{{ ansible_host }}"
+    port: "{{ gnmi_port }}"
+    username: "{{ gnmi_username }}"
+    password: "{{ gnmi_password }}"
+    insecure: "{{ gnmi_skip_verify }}"
+    update:
+      - path: "/interface[name={{ item.name }}]/admin-state"
+        val: "enable"
+  loop: "{{ interfaces }}"
+  when: interfaces is defined
+
+- name: Configure interface descriptions (SR Linux)
+  nokia.srlinux.gnmi_set:
+    host: "{{ ansible_host }}"
+    port: "{{ gnmi_port }}"
+    username: "{{ gnmi_username }}"
+    password: "{{ gnmi_password }}"
+    insecure: "{{ gnmi_skip_verify }}"
+    update:
+      - path: "/interface[name={{ item.name }}]/description"
+        val: "{{ item.description }}"
+  loop: "{{ interfaces }}"
+  when: 
+    - interfaces is defined
+    - item.description is defined
+
+- name: Configure IPv4 addresses (SR Linux)
+  nokia.srlinux.gnmi_set:
+    host: "{{ ansible_host }}"
+    port: "{{ gnmi_port }}"
+    username: "{{ gnmi_username }}"
+    password: "{{ gnmi_password }}"
+    insecure: "{{ gnmi_skip_verify }}"
+    update:
+      - path: "/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/admin-state"
+        val: "enable"
+      - path: "/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/address[ip-prefix={{ item.ip }}]"
+        val:
+          ip-prefix: "{{ item.ip }}"
+  loop: "{{ interfaces }}"
+  when: 
+    - interfaces is defined
+    - item.ip is defined

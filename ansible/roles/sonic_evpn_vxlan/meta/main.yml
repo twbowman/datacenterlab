@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  author: Production Network Testing Lab
+  description: SONiC EVPN/VXLAN configuration role
+  company: Network Automation Lab
+  
+  license: MIT
+  
+  min_ansible_version: "2.9"
+  
+  platforms:
+    - name: SONiC
+      versions:
+        - all
+  
+  galaxy_tags:
+    - networking
+    - sonic
+    - evpn
+    - vxlan
+    - datacenter
+
+dependencies:
+  - role: sonic_bgp
+    when: evpn_vxlan.bgp_evpn.enabled | default(false)

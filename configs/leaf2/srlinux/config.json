@@ -1,0 +1,20 @@
+{
+  "system": {
+    "name": {
+      "host-name": "leaf2"
+    },
+    "gnmi-server": {
+      "admin-state": "enable",
+      "network-instance": [
+        {
+          "name": "mgmt"
+        }
+      ]
+    },
+    "management": {
+      "openconfig": {
+        "admin-state": "enable"
+      }
+    }
+  }
+}

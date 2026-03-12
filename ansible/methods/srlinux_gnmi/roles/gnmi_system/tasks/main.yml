@@ -1,0 +1,41 @@
+---
+# System-level configuration for SR Linux
+# Includes gNMI server and OpenConfig enablement
+
+- name: Enable gNMI server
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /system/gnmi-server/admin-state \
+      --update-value enable \
+      --update-path /system/gnmi-server/network-instance[name=mgmt] \
+      --update-value '{}'
+  delegate_to: localhost
+  tags: [system, gnmi]
+
+- name: Enable OpenConfig support
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /system/management/openconfig/admin-state \
+      --update-value enable
+  delegate_to: localhost
+  tags: [system, openconfig]
+
+- name: Set gRPC server YANG models to OpenConfig
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /system/grpc-server[name=mgmt]/yang-models \
+      --update-value openconfig
+  delegate_to: localhost
+  tags: [system, openconfig]

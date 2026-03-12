@@ -1,0 +1,22 @@
+---
+# tasks file for srlinux_static_routes
+# Add static /32 host routes for BGP next-hop resolution
+# This allows BGP to install routes with next-hops that are part of connected /31 subnets
+
+- name: Add static /32 host routes for BGP neighbors
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path /network-instance[name=default]/static-routes/route[prefix={{ iface.neighbor_ip }}/32]/next-hop[index=0]/ip-address \
+      --update-value {{ iface.neighbor_ip }}
+  loop: "{{ interfaces }}"
+  loop_control:
+    loop_var: iface
+  when: iface.neighbor_ip is defined
+  delegate_to: localhost
+  register: static_route_result
+  changed_when: "'UPDATE' in static_route_result.stdout"
+  failed_when: static_route_result.rc != 0

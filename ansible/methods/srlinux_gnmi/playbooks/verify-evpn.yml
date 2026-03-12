@@ -1,0 +1,276 @@
+---
+# Verify EVPN-VXLAN configuration
+# Data-driven verification using evpn_vxlan variables from group_vars
+
+- name: Verify EVPN-VXLAN overlay
+  hosts: all
+  gather_facts: false
+  tasks:
+    # ========================================================================
+    # BGP EVPN Address Family Verification (All Devices)
+    # ========================================================================
+    
+    - name: Check EVPN address family is enabled in BGP
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get \
+          --path /network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state \
+          --encoding json_ietf
+      delegate_to: localhost
+      register: evpn_state
+      changed_when: false
+      failed_when: false
+
+    - name: Display EVPN address family state
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: EVPN address family - {{ evpn_state.stdout | from_json }}"
+      when: evpn_state.rc == 0
+
+    - name: Verify EVPN is enabled
+      ansible.builtin.assert:
+        that:
+          - evpn_state.rc == 0
+          - "'enable' in evpn_state.stdout"
+        fail_msg: "EVPN address family is not enabled on {{ inventory_hostname }}"
+        success_msg: "EVPN address family is enabled on {{ inventory_hostname }}"
+      when: evpn_vxlan.bgp_evpn.enabled | default(false)
+
+    # ========================================================================
+    # EVPN Route Advertisement Verification (All Devices)
+    # ========================================================================
+    
+    - name: Show EVPN routes summary
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} \
+          sr_cli "show network-instance default protocols bgp routes evpn route-type summary"
+      delegate_to: localhost
+      register: evpn_routes
+      changed_when: false
+      failed_when: false
+
+    - name: Display EVPN routes summary
+      ansible.builtin.debug:
+        msg: "{{ evpn_routes.stdout_lines }}"
+      when: evpn_routes.rc == 0
+
+    - name: Show detailed EVPN routes
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} \
+          sr_cli "show network-instance default protocols bgp routes evpn route-type 2"
+      delegate_to: localhost
+      register: evpn_type2_routes
+      changed_when: false
+      failed_when: false
+
+    - name: Display Type 2 (MAC-IP) routes
+      ansible.builtin.debug:
+        msg: "{{ evpn_type2_routes.stdout_lines }}"
+      when: evpn_type2_routes.rc == 0
+
+    - name: Show Type 3 (IMET) routes
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} \
+          sr_cli "show network-instance default protocols bgp routes evpn route-type 3"
+      delegate_to: localhost
+      register: evpn_type3_routes
+      changed_when: false
+      failed_when: false
+
+    - name: Display Type 3 (Inclusive Multicast) routes
+      ansible.builtin.debug:
+        msg: "{{ evpn_type3_routes.stdout_lines }}"
+      when: evpn_type3_routes.rc == 0
+
+    # ========================================================================
+    # MAC-VRF Verification (Leafs Only)
+    # ========================================================================
+    
+    - name: Check MAC-VRF status for each VLAN
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get \
+          --path /network-instance[name=mac-vrf-{{ item.vlan_id }}]/admin-state \
+          --encoding json_ietf
+      delegate_to: localhost
+      register: macvrf_state
+      changed_when: false
+      failed_when: false
+      loop: "{{ evpn_vxlan.vlan_vni_mappings | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - evpn_vxlan.enabled | default(false)
+
+    - name: Display MAC-VRF states
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: MAC-VRF {{ item.item.vlan_id }} ({{ item.item.name }}) - {{ item.stdout | from_json }}"
+      loop: "{{ macvrf_state.results | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - item.rc == 0
+
+    - name: Verify all MAC-VRFs are enabled
+      ansible.builtin.assert:
+        that:
+          - item.rc == 0
+          - "'enable' in item.stdout"
+        fail_msg: "MAC-VRF {{ item.item.vlan_id }} is not enabled on {{ inventory_hostname }}"
+        success_msg: "MAC-VRF {{ item.item.vlan_id }} is enabled on {{ inventory_hostname }}"
+      loop: "{{ macvrf_state.results | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - evpn_vxlan.enabled | default(false)
+
+    # ========================================================================
+    # VXLAN Tunnel Verification (Leafs Only)
+    # ========================================================================
+    
+    - name: Show VXLAN tunnel status
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} \
+          sr_cli "show tunnel-interface vxlan1 vxlan-interface * detail"
+      delegate_to: localhost
+      register: vxlan_tunnels
+      changed_when: false
+      failed_when: false
+      when: "'leaf' in inventory_hostname"
+
+    - name: Display VXLAN tunnel status
+      ansible.builtin.debug:
+        msg: "{{ vxlan_tunnels.stdout_lines }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - vxlan_tunnels.rc == 0
+
+    - name: Show VXLAN tunnel endpoints (VTEPs)
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} \
+          sr_cli "show tunnel vxlan-tunnel vtep"
+      delegate_to: localhost
+      register: vtep_status
+      changed_when: false
+      failed_when: false
+      when: "'leaf' in inventory_hostname"
+
+    - name: Display VTEP status
+      ansible.builtin.debug:
+        msg: "{{ vtep_status.stdout_lines }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - vtep_status.rc == 0
+
+    # ========================================================================
+    # VNI to VLAN Mapping Verification (Leafs Only)
+    # ========================================================================
+    
+    - name: Verify VNI to VLAN mappings
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get \
+          --path /tunnel-interface[name=vxlan1]/vxlan-interface[index={{ item.vni }}] \
+          --encoding json_ietf
+      delegate_to: localhost
+      register: vni_mapping
+      changed_when: false
+      failed_when: false
+      loop: "{{ evpn_vxlan.vlan_vni_mappings | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - evpn_vxlan.enabled | default(false)
+
+    - name: Display VNI mappings
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: VLAN {{ item.item.vlan_id }} -> VNI {{ item.item.vni }} - {{ 'CONFIGURED' if item.rc == 0 else 'MISSING' }}"
+      loop: "{{ vni_mapping.results | default([]) }}"
+      when: "'leaf' in inventory_hostname"
+
+    - name: Verify all VNI mappings are configured
+      ansible.builtin.assert:
+        that:
+          - item.rc == 0
+        fail_msg: "VNI {{ item.item.vni }} for VLAN {{ item.item.vlan_id }} is not configured on {{ inventory_hostname }}"
+        success_msg: "VNI {{ item.item.vni }} for VLAN {{ item.item.vlan_id }} is configured on {{ inventory_hostname }}"
+      loop: "{{ vni_mapping.results | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - evpn_vxlan.enabled | default(false)
+
+    # ========================================================================
+    # MAC Table Verification (Leafs Only)
+    # ========================================================================
+    
+    - name: Show MAC tables for all MAC-VRFs
+      ansible.builtin.shell: |
+        docker exec clab-gnmi-clos-{{ inventory_hostname }} \
+          sr_cli "show network-instance mac-vrf-{{ item.vlan_id }} bridge-table mac-table all"
+      delegate_to: localhost
+      register: mac_tables
+      changed_when: false
+      failed_when: false
+      loop: "{{ evpn_vxlan.vlan_vni_mappings | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - evpn_vxlan.enabled | default(false)
+
+    - name: Display MAC tables
+      ansible.builtin.debug:
+        msg: "MAC-VRF {{ item.item.vlan_id }} ({{ item.item.name }}): {{ item.stdout_lines }}"
+      loop: "{{ mac_tables.results | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - item.rc == 0
+
+    # ========================================================================
+    # L3 VNI Verification (Leafs Only)
+    # ========================================================================
+    
+    - name: Check L3 VNI IP-VRF status
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get \
+          --path /network-instance[name={{ item.vrf_name }}]/admin-state \
+          --encoding json_ietf
+      delegate_to: localhost
+      register: ipvrf_state
+      changed_when: false
+      failed_when: false
+      loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+      when: 
+        - "'leaf' in inventory_hostname"
+        - evpn_vxlan.enabled | default(false)
+
+    - name: Display IP-VRF states
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: IP-VRF {{ item.item.vrf_name }} (L3 VNI {{ item.item.vni }}) - {{ item.stdout | from_json if item.rc == 0 else 'NOT CONFIGURED' }}"
+      loop: "{{ ipvrf_state.results | default([]) }}"
+      when: "'leaf' in inventory_hostname"
+
+    # ========================================================================
+    # Summary Report
+    # ========================================================================
+    
+    - name: Generate EVPN verification summary
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          EVPN/VXLAN Verification Summary
+          Device: {{ inventory_hostname }}
+          ========================================
+          EVPN Address Family: {{ 'ENABLED' if evpn_state.rc == 0 and 'enable' in evpn_state.stdout else 'DISABLED' }}
+          {% if 'leaf' in inventory_hostname %}
+          MAC-VRFs Configured: {{ macvrf_state.results | selectattr('rc', 'equalto', 0) | list | length }}/{{ evpn_vxlan.vlan_vni_mappings | default([]) | length }}
+          VNI Mappings Configured: {{ vni_mapping.results | selectattr('rc', 'equalto', 0) | list | length }}/{{ evpn_vxlan.vlan_vni_mappings | default([]) | length }}
+          L3 VNIs Configured: {{ ipvrf_state.results | selectattr('rc', 'equalto', 0) | list | length }}/{{ evpn_vxlan.l3vni | default([]) | length }}
+          {% endif %}
+          ========================================

@@ -1,0 +1,68 @@
+{
+    "DEVICE_METADATA": {
+        "localhost": {
+            "hostname": "spine1",
+            "hwsku": "Force10-S6000",
+            "type": "LeafRouter",
+            "bgp_asn": "65001"
+        }
+    },
+    "LOOPBACK_INTERFACE": {
+        "Loopback0": {},
+        "Loopback0|10.0.0.1/32": {}
+    },
+    "INTERFACE": {
+        "Ethernet0": {},
+        "Ethernet0|10.1.1.0/31": {},
+        "Ethernet4": {},
+        "Ethernet4|10.1.2.0/31": {},
+        "Ethernet8": {},
+        "Ethernet8|10.1.3.0/31": {},
+        "Ethernet12": {},
+        "Ethernet12|10.1.4.0/31": {}
+    },
+    "BGP_NEIGHBOR": {
+        "10.1.1.1": {
+            "asn": "65011",
+            "holdtime": "9",
+            "keepalive": "3",
+            "name": "leaf1"
+        },
+        "10.1.2.1": {
+            "asn": "65012",
+            "holdtime": "9",
+            "keepalive": "3",
+            "name": "leaf2"
+        },
+        "10.1.3.1": {
+            "asn": "65013",
+            "holdtime": "9",
+            "keepalive": "3",
+            "name": "leaf3"
+        },
+        "10.1.4.1": {
+            "asn": "65014",
+            "holdtime": "9",
+            "keepalive": "3",
+            "name": "leaf4"
+        }
+    },
+    "DEVICE_NEIGHBOR": {
+        "Ethernet0": {
+            "name": "leaf1",
+            "port": "Ethernet0"
+        },
+        "Ethernet4": {
+            "name": "leaf2",
+            "port": "Ethernet0"
+        },
+        "Ethernet8": {
+            "name": "leaf3",
+            "port": "Ethernet0"
+        },
+        "Ethernet12": {
+            "name": "leaf4",
+            "port": "Ethernet0"
+        }
+    }
+}

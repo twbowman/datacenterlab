@@ -1,0 +1,91 @@
+---
+# Detailed verification playbook with status output
+# Shows actual OSPF and BGP neighbor states
+- name: Detailed verification of datacenter network
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Get OSPF neighbor details
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface \
+          --format flat | awk -F'/' '
+          /neighbor-router-id:/ { router=$NF; gsub(/neighbor-router-id: /, "", router) }
+          /adjacency-state:/ { 
+            state=$NF; 
+            gsub(/adjacency-state: /, "", state);
+            printf "  Router-ID: %-15s  State: %s\n", router, state
+          }'
+      delegate_to: localhost
+      register: ospf_detail
+      changed_when: false
+      failed_when: false
+
+    - name: Display OSPF neighbors
+      ansible.builtin.debug:
+        msg: 
+          - "========================================"
+          - "{{ inventory_hostname }} OSPF Neighbors"
+          - "========================================"
+          - "{{ ospf_detail.stdout_lines if ospf_detail.stdout_lines else ['  No OSPF neighbors configured'] }}"
+          - "========================================"
+
+    - name: Get BGP neighbor details
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/protocols/bgp/neighbor \
+          --format flat | awk -F'/' '
+          /peer-address:/ { peer=$NF; gsub(/peer-address: /, "", peer) }
+          /peer-as:/ { as=$NF; gsub(/peer-as: /, "", as) }
+          /session-state:/ { 
+            state=$NF; 
+            gsub(/session-state: /, "", state);
+            printf "  Peer: %-15s  AS: %-6s  State: %s\n", peer, as, state
+          }'
+      delegate_to: localhost
+      register: bgp_detail
+      changed_when: false
+      failed_when: false
+
+    - name: Display BGP neighbors
+      ansible.builtin.debug:
+        msg:
+          - "========================================"
+          - "{{ inventory_hostname }} BGP Neighbors"
+          - "========================================"
+          - "{{ bgp_detail.stdout_lines if bgp_detail.stdout_lines else ['  No BGP neighbors configured'] }}"
+          - "========================================"
+
+    - name: Get routing table count
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          --encoding json_ietf \
+          get \
+          --path /network-instance[name=default]/route-table/ipv4-unicast/route \
+          --format flat | wc -l
+      delegate_to: localhost
+      register: route_count
+      changed_when: false
+      failed_when: false
+
+    - name: Display routing table summary
+      ansible.builtin.debug:
+        msg:
+          - "========================================"
+          - "{{ inventory_hostname }} Routing Table"
+          - "========================================"
+          - "Total Routes: {{ route_count.stdout | trim }}"
+          - "========================================"

@@ -1,0 +1,30 @@
+all:
+  children:
+    srlinux_devices:
+      hosts:
+        spine1:
+          ansible_host: 172.20.20.10
+          ansible_network_os: srlinux
+        spine2:
+          ansible_host: 172.20.20.11
+          ansible_network_os: srlinux
+        leaf1:
+          ansible_host: 172.20.20.21
+          ansible_network_os: srlinux
+        leaf2:
+          ansible_host: 172.20.20.22
+          ansible_network_os: srlinux
+        leaf3:
+          ansible_host: 172.20.20.23
+          ansible_network_os: srlinux
+        leaf4:
+          ansible_host: 172.20.20.24
+          ansible_network_os: srlinux
+      vars:
+        ansible_connection: local
+        gnmi_port: 57400
+        gnmi_username: admin
+        gnmi_password: NokiaSrl1!
+        gnmi_skip_verify: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

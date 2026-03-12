@@ -1,0 +1,31 @@
+---
+# Multi-vendor interface configuration dispatcher
+# This role configures interfaces across different network OS platforms
+
+- name: Display detected network OS
+  debug:
+    msg: "Configuring interfaces for {{ ansible_network_os | default('unknown') }}"
+
+- name: Configure interfaces on Nokia SR Linux
+  include_tasks: srlinux.yml
+  when: 
+    - ansible_network_os is defined
+    - ansible_network_os == 'nokia.srlinux'
+
+- name: Configure interfaces on Arista EOS
+  include_tasks: arista_eos.yml
+  when: 
+    - ansible_network_os is defined
+    - ansible_network_os == 'arista.eos'
+
+- name: Configure interfaces on SONiC
+  include_tasks: sonic.yml
+  when: 
+    - ansible_network_os is defined
+    - ansible_network_os == 'dellemc.sonic'
+
+- name: Fail if network OS is not supported
+  fail:
+    msg: "Network OS {{ ansible_network_os | default('undefined') }} is not supported by this role"
+  when: ansible_network_os is not defined or
+        ansible_network_os not in ['nokia.srlinux', 'arista.eos', 'dellemc.sonic']

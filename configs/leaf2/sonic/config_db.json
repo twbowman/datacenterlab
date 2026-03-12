@@ -1,0 +1,60 @@
+{
+    "DEVICE_METADATA": {
+        "localhost": {
+            "hostname": "leaf2",
+            "hwsku": "Force10-S6000",
+            "type": "ToRRouter",
+            "bgp_asn": "65012"
+        }
+    },
+    "LOOPBACK_INTERFACE": {
+        "Loopback0": {},
+        "Loopback0|10.0.0.12/32": {}
+    },
+    "INTERFACE": {
+        "Ethernet0": {},
+        "Ethernet0|10.1.2.1/31": {},
+        "Ethernet4": {},
+        "Ethernet4|10.2.2.1/31": {},
+        "Ethernet8": {},
+        "Ethernet8|10.10.2.1/24": {}
+    },
+    "VLAN": {
+        "Vlan20": {
+            "vlanid": "20"
+        }
+    },
+    "VLAN_INTERFACE": {
+        "Vlan20": {},
+        "Vlan20|10.10.2.1/24": {}
+    },
+    "VLAN_MEMBER": {
+        "Vlan20|Ethernet8": {
+            "tagging_mode": "untagged"
+        }
+    },
+    "BGP_NEIGHBOR": {
+        "10.1.2.0": {
+            "asn": "65001",
+            "holdtime": "9",
+            "keepalive": "3",
+            "name": "spine1"
+        },
+        "10.2.2.0": {
+            "asn": "65002",
+            "holdtime": "9",
+            "keepalive": "3",
+            "name": "spine2"
+        }
+    },
+    "DEVICE_NEIGHBOR": {
+        "Ethernet0": {
+            "name": "spine1",
+            "port": "Ethernet4"
+        },
+        "Ethernet4": {
+            "name": "spine2",
+            "port": "Ethernet4"
+        }
+    }
+}

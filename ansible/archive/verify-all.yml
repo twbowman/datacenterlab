@@ -1,0 +1,18 @@
+---
+- name: Complete network verification suite
+  import_playbook: verify-routing.yml
+
+- name: Detailed BGP verification
+  import_playbook: verify-bgp-detailed.yml
+
+- name: Connectivity verification
+  import_playbook: verify-connectivity.yml
+
+- name: Final summary
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "Verification complete for {{ inventory_hostname }}"
+      run_once: false

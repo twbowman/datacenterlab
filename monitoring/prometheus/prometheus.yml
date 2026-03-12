@@ -1,0 +1,41 @@
+# Prometheus configuration for gNMIc telemetry
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'gnmi-clos'
+    environment: 'lab'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # gNMIc metrics endpoint
+  - job_name: 'gnmic'
+    static_configs:
+      - targets: ['clab-monitoring-gnmic:9273']
+        labels:
+          source: 'gnmic'
+          collector: 'gnmic'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      # Copy source label to name label for dashboard compatibility
+      - source_labels: [source]
+        target_label: name
+        regex: '(.*)'
+        replacement: '$1'
+  
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: 'prometheus'
