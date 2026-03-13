@@ -815,3 +815,160 @@ Contributing to the Production Network Testing Lab:
 7. **Merge**: Maintainer merges approved PR
 
 Thank you for contributing! Your efforts help make this lab better for everyone.
+
+
+## CI/CD Pipeline
+
+### Overview
+
+The project uses GitHub Actions for continuous integration and testing. The CI/CD pipeline runs automatically on pushes and pull requests to `main` and `develop` branches.
+
+### Test Suites
+
+The CI/CD pipeline runs three types of tests:
+
+#### 1. Unit Tests (Required for CI/CD)
+- **Purpose**: Test individual components in isolation
+- **Duration**: ~0.13 seconds for 122 tests
+- **Dependencies**: None (uses mocks)
+- **CI Status**: ✅ Runs in GitHub Actions
+
+```bash
+# Run locally
+pytest tests/unit/ -v
+```
+
+#### 2. Property-Based Tests (Required for CI/CD)
+- **Purpose**: Validate correctness properties across many generated test cases
+- **Duration**: ~12 seconds for 15 tests
+- **Dependencies**: None (uses Hypothesis for test generation)
+- **CI Status**: ✅ Runs in GitHub Actions
+
+```bash
+# Run locally
+pytest tests/property/ -v
+```
+
+#### 3. Integration Tests (Local Only)
+- **Purpose**: Test complete workflows with actual network devices
+- **Duration**: ~5-10 minutes
+- **Dependencies**: Containerlab, network device images, Docker
+- **CI Status**: ❌ Disabled in GitHub Actions (run locally only)
+
+```bash
+# Run locally (requires lab deployment)
+pytest tests/integration/ -v -s
+```
+
+### Why Integration Tests Are Local-Only
+
+Integration tests require:
+- Containerlab deployment with actual network devices
+- Vendor-specific container images (SR Linux, Arista cEOS, etc.)
+- Significant compute resources and time
+- Docker with privileged access
+
+These requirements make integration tests impractical for CI/CD environments. Instead:
+- Unit and property tests provide fast feedback in CI/CD
+- Integration tests validate complete workflows locally
+- Developers run integration tests before submitting PRs
+
+### GitHub Actions Workflow
+
+The workflow (`.github/workflows/test.yml`) includes:
+
+1. **Unit Tests Job**
+   - Installs dependencies with uv
+   - Runs unit tests with coverage
+   - Uploads coverage reports
+   - Comments coverage on PRs
+
+2. **Property Tests Job**
+   - Runs property-based tests with Hypothesis
+   - Uses CI profile for faster execution
+   - Uploads Hypothesis database for reproducibility
+
+3. **Test Summary Job**
+   - Aggregates results from all test jobs
+   - Publishes test results summary
+   - Provides clear pass/fail status
+
+### Running Tests Locally
+
+```bash
+# Run all CI tests (unit + property)
+pytest tests/unit/ tests/property/ -v
+
+# Run with coverage
+pytest tests/unit/ --cov=scripts --cov=ansible/plugins --cov-report=term-missing
+
+# Run integration tests (requires lab)
+./lab start
+pytest tests/integration/ -v -s
+./lab stop
+```
+
+### Test Requirements for PRs
+
+Before submitting a pull request:
+
+1. ✅ All unit tests must pass
+2. ✅ All property-based tests must pass
+3. ✅ Code coverage should not decrease
+4. ✅ Integration tests should pass locally (if modifying network functionality)
+5. ✅ No new linting errors
+
+### Viewing CI/CD Results
+
+- **GitHub Actions**: Check the "Actions" tab in the repository
+- **Test Results**: Automatically commented on PRs
+- **Coverage Reports**: Uploaded as artifacts and commented on PRs
+- **Logs**: Available in GitHub Actions for debugging failures
+
+### Troubleshooting CI/CD Failures
+
+#### Unit Test Failures
+- Run tests locally: `pytest tests/unit/ -v`
+- Check for missing mocks or dependencies
+- Verify test isolation (tests should not depend on external state)
+
+#### Property Test Failures
+- Run with same seed: `pytest tests/property/ --hypothesis-seed=<seed>`
+- Check Hypothesis statistics for patterns
+- Review generated test cases in failure output
+
+#### CI Environment Issues
+- Verify `uv.lock` is committed (required for dependency caching)
+- Check Python version compatibility (3.9+)
+- Review GitHub Actions logs for specific errors
+
+### Adding New Tests
+
+When adding new functionality:
+
+1. **Add unit tests** for individual components
+   - Use mocks for external dependencies
+   - Ensure tests run in <1 second
+   - Place in `tests/unit/`
+
+2. **Add property tests** for correctness properties
+   - Use Hypothesis for test generation
+   - Define clear properties to validate
+   - Place in `tests/property/`
+
+3. **Add integration tests** for end-to-end workflows (optional)
+   - Test with actual lab deployment
+   - Document lab requirements
+   - Place in `tests/integration/`
+
+### CI/CD Configuration Files
+
+- `.github/workflows/test.yml` - Main test workflow
+- `pytest.ini` - Pytest configuration
+- `pyproject.toml` - Project dependencies and tool configuration
+- `uv.lock` - Locked dependency versions (must be committed)
+
+For more details on testing, see:
+- [Unit Tests README](../../tests/unit/README.md)
+- [Property Tests README](../../tests/property/README.md)
+- [Integration Tests README](../../tests/integration/README.md)
