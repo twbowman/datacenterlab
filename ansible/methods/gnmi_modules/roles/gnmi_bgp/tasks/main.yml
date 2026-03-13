@@ -1,5 +1,8 @@
 ---
 # tasks file for gnmi_bgp
+# Note: This is a legacy/example method. The active implementation is in methods/srlinux_gnmi/
+# Updated to use iBGP for consistency with current architecture
+
 - name: Configure BGP global settings via gNMI
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
@@ -28,8 +31,8 @@
       --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.neighbor_ip }}]/peer-as \
       --update-value {{ item.neighbor_asn }} \
       --update-path /network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.neighbor_ip }}]/peer-group \
-      --update-value ebgp \
-      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ebgp]/ipv4-unicast/admin-state \
+      --update-value ibgp \
+      --update-path /network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/ipv4-unicast/admin-state \
       --update-value enable
   loop: "{{ interfaces }}"
   when: item.neighbor_ip is defined

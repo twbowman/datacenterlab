@@ -25,11 +25,11 @@ This is one of the most common production datacenter architectures because:
 - Provides reachability for all /31 point-to-point subnets and /32 loopbacks
 
 ### BGP Configuration
-- eBGP peering using /31 point-to-point interface IPs
-- Each spine/leaf has unique ASN (standard eBGP fabric design)
+- iBGP peering using loopback IPs (system0)
+- All devices in same AS (65000) with route reflectors on spines
 - Export policy: Only advertise loopback addresses (10.0.0.0/16 with /32 mask)
-- OSPF provides next-hop reachability, so no eBGP multihop needed
-- BGP sessions peer directly on connected interfaces
+- OSPF provides next-hop reachability for iBGP sessions
+- BGP sessions use loopback addresses for stability
 
 ### Route Flow
 1. OSPF advertises all point-to-point /31 subnets and loopback /32s
@@ -46,8 +46,9 @@ This is one of the most common production datacenter architectures because:
 - Most common in modern hyperscale datacenters (Facebook, AWS, etc.)
 - Requires IPv6 support and more complex configuration
 
-### Pure eBGP (No IGP)
+### Pure BGP (No IGP)
 - BGP advertises both infrastructure and application routes
+- Can use eBGP (different AS per device) or iBGP with route reflectors
 - Requires careful next-hop resolution (static routes or recursive lookups)
 - Common in cloud-native environments
 - Can have convergence issues without proper tuning

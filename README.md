@@ -40,7 +40,7 @@ Complete documentation is organized in the `docs/` directory:
 
 This lab provides a production-grade datacenter network with:
 - **OSPF underlay** for fast convergence and next-hop reachability
-- **BGP overlay** for application routing
+- **iBGP overlay** with route reflectors for application routing and EVPN
 - **Separate monitoring stack** that persists across network lab rebuilds
 - **Ansible automation** using native SR Linux YANG paths via gNMI
 - **All tools designed for production datacenter use** - only difference is containerized vs physical hardware
@@ -52,7 +52,7 @@ This lab provides a production-grade datacenter network with:
 ```
            ┌─────────┐      ┌─────────┐
            │ spine1  │      │ spine2  │
-           │ AS65001 │      │ AS65002 │
+           │  (RR)   │      │  (RR)   │
            └────┬────┘      └────┬────┘
                 │                │
         ┌───────┼────────────────┼───────┐
@@ -63,7 +63,7 @@ This lab provides a production-grade datacenter network with:
         │   │   │   │            │   │   │   │
      ┌──┴───┴┐ ┌┴───┴──┐ ┌───────┴┐ ┌┴───┴───┐
      │ leaf1 │ │ leaf2 │ │ leaf3  │ │ leaf4  │
-     │AS65011│ │AS65012│ │AS65013 │ │AS65014 │
+     │AS65000│ │AS65000│ │AS65000 │ │AS65000 │
      └───┬───┘ └───┬───┘ └───┬────┘ └───┬────┘
          │         │         │           │
      ┌───┴───┐ ┌───┴───┐ ┌───┴───┐  ┌───┴───┐

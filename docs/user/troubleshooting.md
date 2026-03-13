@@ -569,8 +569,8 @@ docker exec clab-gnmi-clos-spine1 sr_cli "ping network-instance default 10.0.1.1
 # Check local and peer AS numbers
 cat ansible/inventory.yml | grep "asn:"
 
-# For iBGP, all devices should have same ASN
-# For eBGP, each device should have unique ASN
+# For iBGP (current setup), all devices should have same ASN (65000)
+# For eBGP alternative, each device would have unique ASN
 ```
 
 **No Underlay Routing**:
