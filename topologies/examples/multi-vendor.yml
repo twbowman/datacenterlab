@@ -1,0 +1,130 @@
+name: example-multi-vendor
+
+topology:
+  defaults:
+    kind: linux
+  
+  groups:
+    srlinux-router:
+      kind: nokia_srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      type: ixr-d2
+    
+    arista-router:
+      kind: arista_ceos
+      image: ceos:4.28.0F
+    
+    sonic-router:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+    
+    juniper-router:
+      kind: juniper_crpd
+      image: crpd:23.2R1
+
+  nodes:
+    # === Spine Routers (Multi-Vendor) ===
+    srl-spine1:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.10
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: spine
+    
+    arista-spine2:
+      group: arista-router
+      mgmt-ipv4: 172.20.20.11
+      labels:
+        vendor: arista
+        os: eos
+        role: spine
+    
+    # === Leaf Routers (Multi-Vendor) ===
+    srl-leaf1:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.21
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: leaf
+    
+    arista-leaf2:
+      group: arista-router
+      mgmt-ipv4: 172.20.20.22
+      labels:
+        vendor: arista
+        os: eos
+        role: leaf
+    
+    sonic-leaf3:
+      group: sonic-router
+      mgmt-ipv4: 172.20.20.23
+      labels:
+        vendor: dell
+        os: sonic
+        role: leaf
+    
+    juniper-leaf4:
+      group: juniper-router
+      mgmt-ipv4: 172.20.20.24
+      labels:
+        vendor: juniper
+        os: junos
+        role: leaf
+    
+    # === Client Nodes ===
+    client1:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.31
+      exec:
+        - ip addr add 10.10.1.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.1.1
+    
+    client2:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.32
+      exec:
+        - ip addr add 10.10.2.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.2.1
+    
+    client3:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.33
+      exec:
+        - ip addr add 10.10.3.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.3.1
+    
+    client4:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.34
+      exec:
+        - ip addr add 10.10.4.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.4.1
+
+  links:
+    # SR Linux Spine1 to all Leafs (note different interface naming per vendor)
+    - endpoints: ["srl-spine1:ethernet-1/1", "srl-leaf1:ethernet-1/1"]
+    - endpoints: ["srl-spine1:ethernet-1/2", "arista-leaf2:Ethernet1"]
+    - endpoints: ["srl-spine1:ethernet-1/3", "sonic-leaf3:Ethernet0"]
+    - endpoints: ["srl-spine1:ethernet-1/4", "juniper-leaf4:eth1"]
+    
+    # Arista Spine2 to all Leafs
+    - endpoints: ["arista-spine2:Ethernet1", "srl-leaf1:ethernet-1/2"]
+    - endpoints: ["arista-spine2:Ethernet2", "arista-leaf2:Ethernet2"]
+    - endpoints: ["arista-spine2:Ethernet3", "sonic-leaf3:Ethernet1"]
+    - endpoints: ["arista-spine2:Ethernet4", "juniper-leaf4:eth2"]
+    
+    # Clients to Leafs
+    - endpoints: ["srl-leaf1:ethernet-1/3", "client1:eth1"]
+    - endpoints: ["arista-leaf2:Ethernet3", "client2:eth1"]
+    - endpoints: ["sonic-leaf3:Ethernet2", "client3:eth1"]
+    - endpoints: ["juniper-leaf4:eth3", "client4:eth1"]
+
+mgmt:
+  network: example-multivendor-mgmt
+  ipv4-subnet: 172.20.20.0/24

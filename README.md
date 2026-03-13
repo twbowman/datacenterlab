@@ -8,6 +8,7 @@ A production-grade multi-vendor network testing lab for developing and validatin
 - **Getting Started**: See `LAB-RESTART-GUIDE.md` for lab operations
 - **Business Case**: See `GNMI-BUSINESS-CASE.md` for gNMI vs SNMP comparison
 - **IP Addressing**: See `IP-ADDRESS-REFERENCE.md` for network addressing
+- **Changelog**: See `CHANGELOG.md` for version history and migration guides
 
 ## Documentation
 

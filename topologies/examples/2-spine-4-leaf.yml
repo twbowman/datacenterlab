@@ -1,0 +1,118 @@
+name: example-2spine-4leaf
+
+topology:
+  defaults:
+    kind: linux
+  
+  groups:
+    srlinux-router:
+      kind: nokia_srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      type: ixr-d2
+
+  nodes:
+    # === Spine Routers ===
+    spine1:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.10
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: spine
+    
+    spine2:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.11
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: spine
+    
+    # === Leaf Routers ===
+    leaf1:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.21
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: leaf
+    
+    leaf2:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.22
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: leaf
+    
+    leaf3:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.23
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: leaf
+    
+    leaf4:
+      group: srlinux-router
+      mgmt-ipv4: 172.20.20.24
+      labels:
+        vendor: nokia
+        os: srlinux
+        role: leaf
+    
+    # === Client Nodes ===
+    client1:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.31
+      exec:
+        - ip addr add 10.10.1.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.1.1
+    
+    client2:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.32
+      exec:
+        - ip addr add 10.10.2.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.2.1
+    
+    client3:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.33
+      exec:
+        - ip addr add 10.10.3.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.3.1
+    
+    client4:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.34
+      exec:
+        - ip addr add 10.10.4.10/24 dev eth1
+        - ip route add 10.10.0.0/16 via 10.10.4.1
+
+  links:
+    # Spine1 to all Leafs
+    - endpoints: ["spine1:ethernet-1/1", "leaf1:ethernet-1/1"]
+    - endpoints: ["spine1:ethernet-1/2", "leaf2:ethernet-1/1"]
+    - endpoints: ["spine1:ethernet-1/3", "leaf3:ethernet-1/1"]
+    - endpoints: ["spine1:ethernet-1/4", "leaf4:ethernet-1/1"]
+    
+    # Spine2 to all Leafs
+    - endpoints: ["spine2:ethernet-1/1", "leaf1:ethernet-1/2"]
+    - endpoints: ["spine2:ethernet-1/2", "leaf2:ethernet-1/2"]
+    - endpoints: ["spine2:ethernet-1/3", "leaf3:ethernet-1/2"]
+    - endpoints: ["spine2:ethernet-1/4", "leaf4:ethernet-1/2"]
+    
+    # Clients to Leafs
+    - endpoints: ["leaf1:ethernet-1/3", "client1:eth1"]
+    - endpoints: ["leaf2:ethernet-1/3", "client2:eth1"]
+    - endpoints: ["leaf3:ethernet-1/3", "client3:eth1"]
+    - endpoints: ["leaf4:ethernet-1/3", "client4:eth1"]
+
+mgmt:
+  network: example-2spine-mgmt
+  ipv4-subnet: 172.20.20.0/24

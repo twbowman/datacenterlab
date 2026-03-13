@@ -1,0 +1,193 @@
+---
+# Ansible inventory for 2-spine-4-leaf example topology
+# Use with: ansible-playbook -i topologies/examples/inventory-2-spine-4-leaf.yml ansible/site.yml
+
+all:
+  children:
+    spines:
+      hosts:
+        spine1:
+          ansible_host: 172.20.20.10
+          router_id: 10.0.0.1
+          asn: 65000
+          bgp_role: route_reflector
+          cluster_id: 10.0.0.1
+          loopback_ip: 10.0.0.1/32
+          bgp_neighbors:
+            - peer_address: 10.0.1.1
+              peer_asn: 65000
+              description: "leaf1"
+            - peer_address: 10.0.1.2
+              peer_asn: 65000
+              description: "leaf2"
+            - peer_address: 10.0.1.3
+              peer_asn: 65000
+              description: "leaf3"
+            - peer_address: 10.0.1.4
+              peer_asn: 65000
+              description: "leaf4"
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.1.0/31
+              description: "to leaf1"
+            - name: ethernet-1/2
+              ip: 10.1.2.0/31
+              description: "to leaf2"
+            - name: ethernet-1/3
+              ip: 10.1.3.0/31
+              description: "to leaf3"
+            - name: ethernet-1/4
+              ip: 10.1.4.0/31
+              description: "to leaf4"
+        
+        spine2:
+          ansible_host: 172.20.20.11
+          router_id: 10.0.0.2
+          asn: 65000
+          bgp_role: route_reflector
+          cluster_id: 10.0.0.2
+          loopback_ip: 10.0.0.2/32
+          bgp_neighbors:
+            - peer_address: 10.0.1.1
+              peer_asn: 65000
+              description: "leaf1"
+            - peer_address: 10.0.1.2
+              peer_asn: 65000
+              description: "leaf2"
+            - peer_address: 10.0.1.3
+              peer_asn: 65000
+              description: "leaf3"
+            - peer_address: 10.0.1.4
+              peer_asn: 65000
+              description: "leaf4"
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.2.1.0/31
+              description: "to leaf1"
+            - name: ethernet-1/2
+              ip: 10.2.2.0/31
+              description: "to leaf2"
+            - name: ethernet-1/3
+              ip: 10.2.3.0/31
+              description: "to leaf3"
+            - name: ethernet-1/4
+              ip: 10.2.4.0/31
+              description: "to leaf4"
+    
+    leafs:
+      hosts:
+        leaf1:
+          ansible_host: 172.20.20.21
+          router_id: 10.0.1.1
+          asn: 65000
+          bgp_role: client
+          loopback_ip: 10.0.1.1/32
+          bgp_neighbors:
+            - peer_address: 10.0.0.1
+              peer_asn: 65000
+              description: "spine1"
+            - peer_address: 10.0.0.2
+              peer_asn: 65000
+              description: "spine2"
+          client_vlan: 10
+          client_subnet: 10.10.1.0/24
+          client_gateway: 10.10.1.1
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.1.1/31
+              description: "to spine1"
+            - name: ethernet-1/2
+              ip: 10.2.1.1/31
+              description: "to spine2"
+            - name: ethernet-1/3
+              description: "to client1"
+        
+        leaf2:
+          ansible_host: 172.20.20.22
+          router_id: 10.0.1.2
+          asn: 65000
+          bgp_role: client
+          loopback_ip: 10.0.1.2/32
+          bgp_neighbors:
+            - peer_address: 10.0.0.1
+              peer_asn: 65000
+              description: "spine1"
+            - peer_address: 10.0.0.2
+              peer_asn: 65000
+              description: "spine2"
+          client_vlan: 20
+          client_subnet: 10.10.2.0/24
+          client_gateway: 10.10.2.1
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.2.1/31
+              description: "to spine1"
+            - name: ethernet-1/2
+              ip: 10.2.2.1/31
+              description: "to spine2"
+            - name: ethernet-1/3
+              description: "to client2"
+        
+        leaf3:
+          ansible_host: 172.20.20.23
+          router_id: 10.0.1.3
+          asn: 65000
+          bgp_role: client
+          loopback_ip: 10.0.1.3/32
+          bgp_neighbors:
+            - peer_address: 10.0.0.1
+              peer_asn: 65000
+              description: "spine1"
+            - peer_address: 10.0.0.2
+              peer_asn: 65000
+              description: "spine2"
+          client_vlan: 30
+          client_subnet: 10.10.3.0/24
+          client_gateway: 10.10.3.1
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.3.1/31
+              description: "to spine1"
+            - name: ethernet-1/2
+              ip: 10.2.3.1/31
+              description: "to spine2"
+            - name: ethernet-1/3
+              description: "to client3"
+        
+        leaf4:
+          ansible_host: 172.20.20.24
+          router_id: 10.0.1.4
+          asn: 65000
+          bgp_role: client
+          loopback_ip: 10.0.1.4/32
+          bgp_neighbors:
+            - peer_address: 10.0.0.1
+              peer_asn: 65000
+              description: "spine1"
+            - peer_address: 10.0.0.2
+              peer_asn: 65000
+              description: "spine2"
+          client_vlan: 40
+          client_subnet: 10.10.4.0/24
+          client_gateway: 10.10.4.1
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.4.1/31
+              description: "to spine1"
+            - name: ethernet-1/2
+              ip: 10.2.4.1/31
+              description: "to spine2"
+            - name: ethernet-1/3
+              description: "to client4"
+
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_port: 57400
+    ansible_user: admin
+    ansible_password: NokiaSrl1!
+    ansible_network_os: srlinux
+    gnmi_port: 57400
+    gnmi_username: admin
+    gnmi_password: NokiaSrl1!
+    gnmi_skip_verify: true
