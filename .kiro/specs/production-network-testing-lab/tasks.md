@@ -293,7 +293,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 4.1, 4.2, 4.4**
     - Test that equivalent metrics from different vendors have identical normalized paths
 
-- [~] 16. Implement Prometheus relabeling rules
+- [ ] 16. Implement Prometheus relabeling rules
   - [x] 16.1 Add interface name normalization rules
     - Create metric_relabel_configs in prometheus.yml
     - Normalize ethernet-1/1, Ethernet1/1, etc. to eth1_1
@@ -312,7 +312,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test transformation rules with sample data
     - _Requirements: 4.7_
 
-- [~] 17. Create normalization validation script
+- [ ] 17. Create normalization validation script
   - [x] 17.1 Implement metric normalization verification
     - Create validation/check_normalization.py
     - Query Prometheus for normalized metrics
@@ -325,7 +325,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test detection of normalization failures
     - _Requirements: 8.3_
 
-- [~] 18. Checkpoint - Verify metric normalization
+- [ ] 18. Checkpoint - Verify metric normalization
   - Collect metrics from all 4 vendors
   - Verify normalized metric names are consistent
   - Verify metric values and timestamps are preserved
@@ -334,7 +334,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Phase 5: Universal Monitoring Dashboards
 
-- [~] 19. Create universal interface statistics dashboard
+- [ ] 19. Create universal interface statistics dashboard
   - [ ] 19.1 Design dashboard with normalized metric queries
     - Create monitoring/grafana/provisioning/dashboards/universal-interfaces.json
     - Use network_interface_in_octets and network_interface_out_octets
@@ -354,7 +354,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Show interface operational state
     - _Requirements: 5.2_
 
-- [~] 20. Create universal BGP monitoring dashboard
+- [ ] 20. Create universal BGP monitoring dashboard
   - [ ] 20.1 Design BGP session status dashboard
     - Create monitoring/grafana/provisioning/dashboards/universal-bgp.json
     - Use network_bgp_session_state metric
@@ -368,7 +368,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Show route counts by address family
     - _Requirements: 5.3_
 
-- [~] 21. Create universal LLDP topology dashboard
+- [ ] 21. Create universal LLDP topology dashboard
   - [ ] 21.1 Design LLDP neighbor dashboard
     - Create monitoring/grafana/provisioning/dashboards/universal-lldp.json
     - Use network_lldp_neighbor metric
@@ -377,7 +377,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 5.1, 5.4_
 
 
-- [~] 22. Create vendor-specific drill-down dashboards
+- [ ] 22. Create vendor-specific drill-down dashboards
   - [ ] 22.1 Create vendor-specific interface dashboards
     - Create separate dashboards for native vendor metrics
     - Link from universal dashboard to vendor-specific views
@@ -395,7 +395,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 5.5**
     - Test that adding new vendor doesn't require dashboard modifications
 
-- [~] 23. Checkpoint - Verify universal dashboards
+- [ ] 23. Checkpoint - Verify universal dashboards
   - Open Grafana and verify all universal dashboards work
   - Verify queries return data from all 4 vendors
   - Verify drill-down to vendor-specific dashboards works
@@ -403,7 +403,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Phase 6: Validation Framework
 
-- [~] 24. Create validation engine core
+- [ ] 24. Create validation engine core
   - [ ] 24.1 Implement ValidationEngine class
     - Create validation/engine.py with ValidationEngine class
     - Implement validate_all() method orchestrating all checks
@@ -426,7 +426,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 7.7, 8.7_
 
 
-- [~] 25. Implement configuration validation checks
+- [ ] 25. Implement configuration validation checks
   - [ ] 25.1 Create BGP session validation
     - Implement validate_bgp_sessions() in validation/checks.py
     - Query BGP neighbor state via gNMI
@@ -461,7 +461,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 7.6**
     - Test that validation completes within 60 seconds for various topology sizes
 
-- [~] 26. Implement telemetry validation checks
+- [ ] 26. Implement telemetry validation checks
   - [ ] 26.1 Create telemetry streaming verification
     - Implement check_telemetry_streaming() in validation/checks.py
     - Verify gNMI subscriptions are active
@@ -496,7 +496,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test error handling and remediation generation
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [~] 27. Create validation CLI tool
+- [ ] 27. Create validation CLI tool
   - [ ] 27.1 Implement validate-lab.sh script
     - Create scripts/validate-lab.sh
     - Accept topology and expected state as inputs
@@ -518,7 +518,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Fail deployment if critical validations fail
     - _Requirements: 7.6_
 
-- [~] 28. Checkpoint - Verify validation framework
+- [ ] 28. Checkpoint - Verify validation framework
   - Run validation on deployed lab
   - Verify all validation checks execute
   - Introduce intentional failures and verify detection
@@ -528,7 +528,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Phase 7: State Management
 
-- [~] 29. Implement lab state export
+- [ ] 29. Implement lab state export
   - [ ] 29.1 Create state export module
     - Create state/export.py with export_lab_state() function
     - Export topology definition
@@ -554,7 +554,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 12.1**
     - Test that exported state includes topology, configs, and metrics
 
-- [~] 30. Implement lab state restore
+- [ ] 30. Implement lab state restore
   - [ ] 30.1 Create state restore module
     - Create state/restore.py with restore_lab_state() function
     - Validate snapshot before restoration
@@ -583,7 +583,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 12.2**
     - Test that exporting then restoring produces equivalent lab state
 
-- [~] 31. Implement state comparison
+- [ ] 31. Implement state comparison
   - [ ] 31.1 Create state comparison module
     - Create state/compare.py with compare_snapshots() function
     - Compare topology definitions
@@ -605,7 +605,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Output structured diff in JSON
     - _Requirements: 12.6_
 
-- [~] 32. Implement incremental state updates
+- [ ] 32. Implement incremental state updates
   - [ ] 32.1 Create incremental update module
     - Implement apply_state_update() function
     - Calculate diff between current and target state
@@ -620,7 +620,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 12.5_
 
 
-- [~] 33. Create state management CLI tools
+- [ ] 33. Create state management CLI tools
   - [ ] 33.1 Create export-lab-state.sh script
     - Accept lab name and output file as parameters
     - Call state export module
@@ -640,7 +640,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Sort keys alphabetically where possible
     - _Requirements: 12.7_
 
-- [~] 34. Checkpoint - Verify state management
+- [ ] 34. Checkpoint - Verify state management
   - Export lab state to snapshot file
   - Destroy lab
   - Restore lab from snapshot
@@ -650,7 +650,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Phase 8: Performance Benchmarking
 
-- [~] 35. Create benchmarking framework
+- [ ] 35. Create benchmarking framework
   - [ ] 35.1 Implement BenchmarkRunner class
     - Create benchmarks/framework.py with BenchmarkRunner class
     - Implement benchmark_deployment() method
@@ -672,7 +672,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 9.4_
 
 
-- [~] 36. Implement resource utilization measurement
+- [ ] 36. Implement resource utilization measurement
   - [ ] 36.1 Create device CPU utilization measurement
     - Query CPU usage from devices via gNMI
     - Measure during idle and under telemetry load
@@ -696,7 +696,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 3.7**
     - Test that telemetry collection uses <5% device CPU
 
-- [~] 37. Create performance reporting
+- [ ] 37. Create performance reporting
   - [ ] 37.1 Implement performance report generator
     - Create benchmarks/reports.py with generate_performance_report()
     - Aggregate benchmark results
@@ -719,7 +719,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 9.7_
 
 
-- [~] 38. Create benchmarking CLI tools
+- [ ] 38. Create benchmarking CLI tools
   - [ ] 38.1 Create run-benchmarks.sh script
     - Accept benchmark type as parameter (deployment, config, telemetry, all)
     - Run selected benchmarks
@@ -739,7 +739,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test vendor comparison
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [~] 39. Checkpoint - Verify performance benchmarking
+- [ ] 39. Checkpoint - Verify performance benchmarking
   - Run all benchmarks on deployed lab
   - Verify performance reports are generated
   - Review vendor comparison results
