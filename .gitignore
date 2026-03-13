@@ -18,6 +18,15 @@ __pycache__/
 .Python
 venv/
 env/
+.venv/
+
+# Testing artifacts
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.coverage
+.tox/
+*.cover
 
 # Backup files
 *.bak

@@ -5,16 +5,21 @@ A production-grade multi-vendor network testing lab for developing and validatin
 ## Quick Links
 
 - **Spec**: See `.kiro/specs/production-network-testing-lab/README.md` for complete requirements, design, and implementation tasks
-- **Getting Started**: See `LAB-RESTART-GUIDE.md` for lab operations
-- **Business Case**: See `GNMI-BUSINESS-CASE.md` for gNMI vs SNMP comparison
-- **IP Addressing**: See `IP-ADDRESS-REFERENCE.md` for network addressing
+- **Getting Started**: See `docs/user/LAB-RESTART-GUIDE.md` for lab operations
+- **Business Case**: See `docs/developer/GNMI-BUSINESS-CASE.md` for gNMI vs SNMP comparison
+- **IP Addressing**: See `docs/user/IP-ADDRESS-REFERENCE.md` for network addressing
 - **Changelog**: See `CHANGELOG.md` for version history and migration guides
 
 ## Documentation
 
-- `docs/guides/` - Operational guides (troubleshooting, testing, dashboards)
-- `docs/reference/` - Reference documentation (metrics, OpenConfig)
-- `docs/archive/` - Historical development documents
+Complete documentation is organized in the `docs/` directory:
+
+- **[Documentation Index](docs/README.md)** - Complete documentation overview
+- **User Guides** (`docs/user/`) - Setup, configuration, monitoring, troubleshooting
+- **Developer Guides** (`docs/developer/`) - Architecture, API, contributing, vendor extension
+- **Ansible Documentation** (`docs/ansible/`) - Automation framework and playbooks
+- **Monitoring Documentation** (`docs/monitoring/`) - Telemetry, metrics, and dashboards
+- **Project History** (`docs/project-history/`) - Historical checkpoints and task summaries
 
 ## Current Status
 
@@ -426,14 +431,13 @@ pip install -r requirements.txt
 ## Documentation
 
 - `README.md` - This file (overview)
-- `LAB-RESTART-GUIDE.md` - Deployment procedures
-- `TELEMETRY-STRATEGY.md` - Native vs OpenConfig paths strategy for multi-vendor support
-- `ansible/README.md` - Ansible automation guide
+- `docs/README.md` - Complete documentation index
+- `docs/user/LAB-RESTART-GUIDE.md` - Deployment procedures
+- `docs/ansible/` - Ansible automation documentation
+- `docs/monitoring/` - Monitoring and telemetry documentation
+- `docs/developer/` - Developer and API documentation
 - `ansible/methods/srlinux_gnmi/README.md` - gNMI CLI method details (native SR Linux paths)
 - `ansible/methods/srlinux_gnmi/UNDERLAY-ROUTING.md` - Routing architecture
-- `ROUTING-PROTOCOL-DASHBOARDS.md` - OSPF and BGP monitoring dashboards
-- `LINK-UTILIZATION-TESTING.md` - Link analysis and monitoring
-- `archive/README.md` - Archived files
 
 ## Troubleshooting
 
