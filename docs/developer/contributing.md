@@ -641,57 +641,6 @@ retry_delay = min(2 ** attempt, 300)
 retry_delay = 2 ** attempt
 ```
 
-## Continuous Integration
-
-### CI/CD Pipeline
-
-Our CI/CD pipeline uses uv for fast, reproducible builds on every push and pull request:
-
-```yaml
-# .github/workflows/test.yml
-name: Test Suite
-
-on: [push, pull_request]
-
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-      - name: Set up Python
-        run: uv python install 3.9
-      - name: Install dependencies
-        run: uv sync --all-extras
-      - name: Run unit tests
-        run: uv run pytest tests/unit/ -v --cov
-  
-  integration-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Setup containerlab
-        run: bash -c "$(curl -sL https://get.containerlab.dev)"
-      - name: Install dependencies
-        run: uv sync --all-extras
-      - name: Run integration tests
-        run: uv run pytest tests/integration/ -v
-```
-
-### Required Checks
-
-All PRs must pass:
-- ✅ Linting (Python, YAML, Shell)
-- ✅ Unit tests (>80% coverage)
-- ✅ Integration tests
-- ✅ Documentation build
-- ✅ Code review approval
-
 ## Release Process
 
 ### Versioning
@@ -704,13 +653,23 @@ We use Semantic Versioning (SemVer):
 
 ### Release Checklist
 
-- [ ] All tests passing
+- [ ] All tests passing (unit + property)
 - [ ] Documentation updated
 - [ ] CHANGELOG.md updated
 - [ ] Version bumped
 - [ ] Git tag created
 - [ ] Release notes written
 - [ ] Announcement posted
+
+### Required CI Checks
+
+All PRs must pass:
+- ✅ Unit tests (122 tests, <1 second)
+- ✅ Property-based tests (15 tests, ~12 seconds)
+- ✅ Code coverage (maintained or improved)
+- ✅ Code review approval
+
+Note: Integration tests run locally only (not in CI/CD).
 
 ## Getting Help
 
