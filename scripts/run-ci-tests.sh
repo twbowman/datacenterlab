@@ -44,23 +44,18 @@ command_exists() {
 check_prerequisites() {
     print_header "Checking Prerequisites"
     
-    if ! command_exists python3; then
-        print_error "Python 3 is not installed"
+    if ! command_exists uv; then
+        print_error "uv is not installed"
+        echo "Install uv with: curl -LsSf https://astral.sh/uv/install.sh | sh"
         exit 1
     fi
-    print_success "Python 3 is installed"
+    print_success "uv is installed"
     
-    if ! command_exists pip; then
-        print_error "pip is not installed"
+    if [ ! -f "pyproject.toml" ]; then
+        print_error "pyproject.toml not found"
         exit 1
     fi
-    print_success "pip is installed"
-    
-    if [ ! -f "requirements.txt" ]; then
-        print_error "requirements.txt not found"
-        exit 1
-    fi
-    print_success "requirements.txt found"
+    print_success "pyproject.toml found"
     
     echo ""
 }
@@ -69,9 +64,8 @@ check_prerequisites() {
 install_dependencies() {
     print_header "Installing Dependencies"
     
-    echo "Installing Python packages..."
-    pip install -q -r requirements.txt
-    pip install -q pytest-cov pytest-xdist pytest-timeout
+    echo "Syncing Python environment with uv..."
+    uv sync --all-extras
     
     print_success "Dependencies installed"
     echo ""
@@ -81,7 +75,7 @@ install_dependencies() {
 run_unit_tests() {
     print_header "Running Unit Tests"
     
-    if pytest tests/unit/ \
+    if uv run pytest tests/unit/ \
         -v \
         --tb=short \
         --cov=scripts \
@@ -103,7 +97,7 @@ run_unit_tests() {
 run_property_tests() {
     print_header "Running Property-Based Tests"
     
-    if pytest tests/property/ \
+    if uv run pytest tests/property/ \
         -v \
         --tb=short \
         --hypothesis-profile=ci \
@@ -135,7 +129,7 @@ run_integration_tests() {
             print_warning "Install containerlab: sudo bash -c \"\$(curl -sL https://get.containerlab.dev)\""
             INTEGRATION_TESTS_PASSED=true  # Skip but don't fail
         else
-            if pytest tests/integration/ \
+            if uv run pytest tests/integration/ \
                 -v \
                 -s \
                 --tb=short \

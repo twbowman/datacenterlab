@@ -31,6 +31,7 @@ Technical documentation for developers and contributors:
 - [Metric Normalization](developer/metric-normalization.md)
 - [Version Upgrade Procedures](developer/version-upgrade-procedures.md)
 - [gNMI Business Case](developer/GNMI-BUSINESS-CASE.md)
+- [UV Migration Guide](developer/uv-migration.md)
 
 ## Component Documentation
 

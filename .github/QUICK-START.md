@@ -5,6 +5,12 @@
 ### Before You Push
 
 ```bash
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Sync dependencies
+uv sync --all-extras
+
 # Run all tests locally (simulates CI)
 ./scripts/run-ci-tests.sh
 
@@ -28,10 +34,13 @@
 ./scripts/run-ci-tests.sh --property-only
 
 # Run specific test file
-pytest tests/unit/test_deployment.py -v
+uv run pytest tests/unit/test_deployment.py -v
 
 # Run with coverage
-pytest tests/unit/ --cov=scripts --cov-report=html
+uv run pytest tests/unit/ --cov=scripts --cov-report=html
+
+# Run all tests manually
+uv run pytest tests/ -v
 ```
 
 ### Viewing Coverage

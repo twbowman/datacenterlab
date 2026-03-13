@@ -4,10 +4,42 @@ This document describes the continuous integration setup for the production netw
 
 ## Overview
 
-The CI/CD pipeline runs three types of tests:
+The CI/CD pipeline uses **uv** for fast, reproducible Python environment management and runs three types of tests:
 1. **Unit Tests**: Fast, isolated tests of individual components
 2. **Property-Based Tests**: Hypothesis-driven tests validating universal properties
 3. **Integration Tests**: End-to-end tests with containerlab deployment
+
+## Python Environment Management
+
+### UV Integration
+
+The CI pipeline uses [uv](https://github.com/astral-sh/uv) for Python package management:
+
+**Benefits:**
+- 10-100x faster than pip
+- Automatic virtual environment management
+- Reproducible builds with lockfile
+- No manual venv activation needed
+
+**Setup in CI:**
+```yaml
+- name: Install uv
+  uses: astral-sh/setup-uv@v4
+  with:
+    enable-cache: true
+
+- name: Set up Python
+  run: uv python install 3.9
+
+- name: Install dependencies
+  run: uv sync --all-extras
+```
+
+**Running tests:**
+```yaml
+- name: Run tests
+  run: uv run pytest tests/unit/ -v
+```
 
 ## Workflow Structure
 
@@ -83,7 +115,7 @@ The test workflow runs on:
 ### Unit Tests
 
 ```bash
-pytest tests/unit/ \
+uv run pytest tests/unit/ \
   -v \
   --tb=short \
   --cov=scripts \
@@ -98,6 +130,8 @@ pytest tests/unit/ \
 - `-v`: Verbose output
 - `--tb=short`: Short traceback format
 - `--cov`: Coverage measurement
+
+**Note:** All pytest commands are executed via `uv run` to ensure consistent environment.
 - `--cov-report=xml`: XML coverage report for CI tools
 - `--junit-xml`: JUnit XML for test result publishing
 

@@ -10,7 +10,8 @@ Thank you for your interest in contributing to the Production Network Testing La
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.9+
+- uv (Python package manager)
 - Ansible 2.10+
 - Docker 20.10+
 - Containerlab 0.40+
@@ -23,19 +24,17 @@ Thank you for your interest in contributing to the Production Network Testing La
 git clone https://github.com/org/production-network-testing-lab.git
 cd production-network-testing-lab
 
-# Create Python virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install Python dependencies
-pip install -r requirements.txt
+# Install Python dependencies with uv
+uv sync --all-extras
 
 # Install Ansible collections
 ansible-galaxy collection install -r ansible/requirements.yml
 
 # Install pre-commit hooks
-pip install pre-commit
-pre-commit install
+uv run pre-commit install
 
 # Verify installation
 ./scripts/verify-environment.sh
@@ -100,16 +99,19 @@ Follow our code style guidelines (see below) and write tests for your changes.
 ./scripts/lint.sh
 
 # Run unit tests
-pytest tests/unit/ -v
+uv run pytest tests/unit/ -v
 
 # Run integration tests
-pytest tests/integration/ -v
+uv run pytest tests/integration/ -v
 
 # Run property-based tests
-pytest tests/property/ -v
+uv run pytest tests/property/ -v
 
-# Run all tests
-pytest tests/ -v --cov=ansible --cov=monitoring
+# Run all tests with coverage
+uv run pytest tests/ -v --cov=ansible --cov=monitoring
+
+# Or use the CI test script
+./scripts/run-ci-tests.sh
 ```
 
 ### 4. Commit Changes
@@ -464,19 +466,22 @@ def test_configuration_idempotency(config):
 
 ```bash
 # Run specific test file
-pytest tests/unit/test_os_detection.py -v
+uv run pytest tests/unit/test_os_detection.py -v
 
 # Run with coverage
-pytest tests/ --cov=ansible --cov=monitoring --cov-report=html
+uv run pytest tests/ --cov=ansible --cov=monitoring --cov-report=html
 
 # Run only fast tests
-pytest tests/ -m "not slow"
+uv run pytest tests/ -m "not slow"
 
 # Run with verbose output
-pytest tests/ -vv
+uv run pytest tests/ -vv
 
 # Run and stop on first failure
-pytest tests/ -x
+uv run pytest tests/ -x
+
+# Run all tests (CI simulation)
+./scripts/run-ci-tests.sh
 ```
 
 ## Pull Request Guidelines
@@ -640,37 +645,42 @@ retry_delay = 2 ** attempt
 
 ### CI/CD Pipeline
 
-Our CI/CD pipeline runs on every push and pull request:
+Our CI/CD pipeline uses uv for fast, reproducible builds on every push and pull request:
 
 ```yaml
-# .github/workflows/ci.yml
-name: CI
+# .github/workflows/test.yml
+name: Test Suite
 
 on: [push, pull_request]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run linters
-        run: ./scripts/lint.sh
-  
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Set up Python
+        run: uv python install 3.9
+      - name: Install dependencies
+        run: uv sync --all-extras
       - name: Run unit tests
-        run: pytest tests/unit/ -v --cov
+        run: uv run pytest tests/unit/ -v --cov
   
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
       - name: Setup containerlab
         run: bash -c "$(curl -sL https://get.containerlab.dev)"
+      - name: Install dependencies
+        run: uv sync --all-extras
       - name: Run integration tests
-        run: pytest tests/integration/ -v
+        run: uv run pytest tests/integration/ -v
 ```
 
 ### Required Checks
@@ -774,7 +784,7 @@ A: See `docs/developer/vendor-extension.md` for step-by-step guide.
 
 ### Q: How do I run tests locally?
 
-A: Run `pytest tests/ -v` after setting up development environment.
+A: Install uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`), then run `uv sync --all-extras` followed by `uv run pytest tests/ -v`. Or use `./scripts/run-ci-tests.sh` to simulate the full CI environment.
 
 ### Q: What if my PR fails CI checks?
 
