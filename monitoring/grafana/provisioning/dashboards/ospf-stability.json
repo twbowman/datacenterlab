@@ -93,8 +93,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_ospf_state_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{adjacency_state=\"srl_nokia-ospf-types:full\"}",
-          "legendFormat": "{{exported_source}} - {{interface_name}} - {{neighbor_router_id}}",
+          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{adjacency_state=\"srl_nokia-ospf-types:full\"}",
+          "legendFormat": "{{exported_source}} - {{interface_interface_name}} - {{neighbor_router_id}}",
           "range": true,
           "refId": "A"
         }
@@ -182,7 +182,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count by(exported_source) (gnmic_ospf_state_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{adjacency_state=\"srl_nokia-ospf-types:full\"})",
+          "expr": "count by(exported_source) (gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{adjacency_state=\"srl_nokia-ospf-types:full\"})",
           "legendFormat": "{{exported_source}}",
           "range": true,
           "refId": "A"
@@ -271,7 +271,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_ospf_state_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_retransmission_queue_length",
+          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_retransmission_queue_length",
           "legendFormat": "{{exported_source}} - {{interface_interface_name}} - {{neighbor_router_id}}",
           "range": true,
           "refId": "A"
@@ -365,7 +365,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_ospf_state_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state",
+          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -380,18 +380,18 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "area_id": true,
+              "area_area_id": true,
               "collector": true,
               "instance": true,
               "job": true,
-              "source": true,
+              "exported_source": false,
               "subscription_name": true
             },
             "indexByName": {},
             "renameByName": {
               "Value": "State",
               "adjacency_state": "State",
-              "name": "Device",
+              "exported_source": "Device",
               "interface_interface_name": "Interface",
               "neighbor_router_id": "Neighbor Router ID"
             }
@@ -404,7 +404,7 @@
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["network", "ospf", "routing"],
+  "tags": ["network", "ospf", "routing", "srlinux", "vendor-specific"],
   "templating": {
     "list": []
   },
@@ -414,7 +414,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "OSPF Stability Monitoring",
+  "title": "OSPF Stability (SR Linux Only)",
   "uid": "ospf-stability",
   "version": 0,
   "weekStart": ""

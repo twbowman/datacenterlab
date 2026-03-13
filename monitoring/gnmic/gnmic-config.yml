@@ -28,26 +28,10 @@ subscriptions:
     stream-mode: sample
     sample-interval: 10s
   
-  # OpenConfig BGP basic state - vendor agnostic
+  # OpenConfig BGP state - vendor agnostic
   oc_bgp_neighbors:
     paths:
       - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state
-    mode: stream
-    stream-mode: sample
-    sample-interval: 30s
-  
-  # SR Linux native for OSPF (poor OpenConfig support)
-  srl_ospf_state:
-    paths:
-      - /network-instance[name=default]/protocols/ospf
-    mode: stream
-    stream-mode: sample
-    sample-interval: 30s
-  
-  # SR Linux native for detailed BGP (includes EVPN)
-  srl_bgp_detailed:
-    paths:
-      - /network-instance[name=default]/protocols/bgp
     mode: stream
     stream-mode: sample
     sample-interval: 30s
@@ -59,6 +43,44 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 60s
+  
+  # SR Linux native OSPF - vendor specific (SR Linux doesn't expose OSPF via OpenConfig)
+  srl_ospf:
+    paths:
+      - srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface/neighbor/adjacency-state
+      - srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface/neighbor/retransmission-queue-length
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+  
+  # SR Linux native EVPN - vendor specific (SR Linux doesn't expose EVPN via OpenConfig)
+  srl_evpn:
+    paths:
+      - srl_nokia:/network-instance/protocols/bgp-evpn/bgp-instance/oper-state
+      - srl_nokia:/network-instance/protocols/bgp-evpn/bgp-instance/evi
+      - srl_nokia:/network-instance/protocols/bgp-evpn/bgp-instance/ecmp
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+  
+  # SR Linux native VXLAN - vendor specific
+  srl_vxlan:
+    paths:
+      - srl_nokia:/tunnel-interface[name=vxlan1]/vxlan-interface/oper-state
+      - srl_nokia:/tunnel-interface[name=vxlan1]/vxlan-interface/index
+      - srl_nokia:/tunnel-interface[name=vxlan1]/vxlan-interface/bridge-table/statistics
+      - srl_nokia:/tunnel-interface[name=vxlan1]/vxlan-interface/bridge-table/multicast-destinations/multicast-limit
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+  
+  # OpenConfig QoS queue statistics - vendor agnostic
+  oc_qos_queues:
+    paths:
+      - /qos/interfaces/interface/output/queues/queue/state
+    mode: stream
+    stream-mode: sample
+    sample-interval: 10s
 
 outputs:
   prom:

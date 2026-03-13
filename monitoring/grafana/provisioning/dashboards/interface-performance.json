@@ -106,7 +106,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8",
           "legendFormat": "{{exported_source}} - {{interface_name}} OUT",
           "range": true,
           "refId": "A"
@@ -117,7 +117,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_in_octets{interface_name=~\"ethernet.*\"}[1m]) * 8",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_octets{interface_name=~\"ethernet.*\"}[1m]) * 8",
           "hide": false,
           "legendFormat": "{{exported_source}} - {{interface_name}} IN",
           "range": true,
@@ -193,7 +193,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8 / 10000000000) * 100",
+          "expr": "(rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8 / 10000000000) * 100",
           "legendFormat": "{{exported_source}} - {{interface_name}}",
           "range": true,
           "refId": "A"
@@ -288,7 +288,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8 / 10000000000) * 100",
+          "expr": "(rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8 / 10000000000) * 100",
           "legendFormat": "{{exported_source}} - {{interface_name}}",
           "range": true,
           "refId": "A"
@@ -355,7 +355,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{exported_source=~\"172.20.20.10.*\",interface_name=~\"ethernet.*\"}[1m]) * 8",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{exported_source=~\"172.20.20.10.*\",interface_name=~\"ethernet.*\"}[1m]) * 8",
           "legendFormat": "{{interface_name}}",
           "range": true,
           "refId": "A"
@@ -422,7 +422,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{exported_source=~\"172.20.20.11.*\",interface_name=~\"ethernet.*\"}[1m]) * 8",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{exported_source=~\"172.20.20.11.*\",interface_name=~\"ethernet.*\"}[1m]) * 8",
           "legendFormat": "{{interface_name}}",
           "range": true,
           "refId": "A"
@@ -486,7 +486,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(exported_source) (rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8)",
+          "expr": "sum by(exported_source) (rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8)",
           "legendFormat": "{{exported_source}}",
           "range": true,
           "refId": "A"
@@ -557,7 +557,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8 / 10000000000) * 100",
+          "expr": "(rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets{interface_name=~\"ethernet.*\"}[1m]) * 8 / 10000000000) * 100",
           "legendFormat": "{{exported_source}} - {{interface_name}}",
           "range": true,
           "refId": "A"
@@ -650,7 +650,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_packets{interface_name=~\"ethernet.*\"}[1m])",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_pkts{interface_name=~\"ethernet.*\"}[1m])",
           "legendFormat": "{{exported_source}} - {{interface_name}}",
           "range": true,
           "refId": "A"
@@ -743,7 +743,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_errors{interface_name=~\"ethernet.*\"}[5m])",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_errors{interface_name=~\"ethernet.*\"}[5m])",
           "legendFormat": "{{exported_source}} - {{interface_name}} Errors",
           "range": true,
           "refId": "A"
@@ -754,7 +754,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_discards{interface_name=~\"ethernet.*\"}[5m])",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_discards{interface_name=~\"ethernet.*\"}[5m])",
           "hide": false,
           "legendFormat": "{{exported_source}} - {{interface_name}} Discards",
           "range": true,

@@ -1,41 +1,20 @@
 ---
-# System-level configuration for SR Linux
-# Includes gNMI server and OpenConfig enablement
+# System-level configuration for SR Linux (OpenConfig paths)
+# Note: OpenConfig is already enabled, so we use OpenConfig paths for LLDP
 
-- name: Enable gNMI server
+- name: Enable LLDP (OpenConfig path)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /system/gnmi-server/admin-state \
-      --update-value enable \
-      --update-path /system/gnmi-server/network-instance[name=mgmt] \
-      --update-value '{}'
+      --update-path /lldp/config/enabled \
+      --update-value true
   delegate_to: localhost
-  tags: [system, gnmi]
+  register: lldp_result
+  changed_when: "'UPDATE' in lldp_result.stdout"
+  failed_when: lldp_result.rc != 0
+  tags: [system, lldp]
 
-- name: Enable OpenConfig support
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path /system/management/openconfig/admin-state \
-      --update-value enable
-  delegate_to: localhost
-  tags: [system, openconfig]
 
-- name: Set gRPC server YANG models to OpenConfig
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path /system/grpc-server[name=mgmt]/yang-models \
-      --update-value openconfig
-  delegate_to: localhost
-  tags: [system, openconfig]

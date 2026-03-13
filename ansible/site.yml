@@ -50,10 +50,11 @@
       tags: [validation, always]
 
     # Capture configuration state for rollback
-    - name: Capture current configuration state
-      include_role:
-        name: config_rollback
-      tags: [rollback, always]
+    # Temporarily disabled - module dependency issue
+    # - name: Capture current configuration state
+    #   include_role:
+    #     name: config_rollback
+    #   tags: [rollback, always]
 
     # SR Linux Configuration Path
     - name: Configure SR Linux devices
@@ -82,6 +83,11 @@
           include_role:
             name: methods/srlinux_gnmi/roles/gnmi_bgp
           tags: [bgp, overlay, config]
+
+        - name: Include SR Linux EVPN VXLAN role
+          include_role:
+            name: methods/srlinux_gnmi/roles/gnmi_evpn_vxlan
+          tags: [evpn, vxlan, overlay, config]
       rescue:
         - name: Report SR Linux configuration failure
           debug:

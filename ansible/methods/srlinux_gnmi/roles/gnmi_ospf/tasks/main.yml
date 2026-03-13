@@ -1,10 +1,11 @@
 ---
-# tasks file for srlinux_ospf
+# tasks file for srlinux_ospf (gNMI with SR Linux native YANG via origin)
 # Production datacenter OSPF underlay configuration:
 # - OSPF provides next-hop reachability for BGP
 # - Point-to-point interfaces in area 0.0.0.0
 # - Loopbacks advertised as passive interfaces
-# - This is the traditional enterprise/datacenter approach
+# Note: Using SR Linux native YANG paths via gNMI with srl_nokia: origin prefix
+# This allows OpenConfig to remain enabled for telemetry while using native paths for config
 
 - name: Configure OSPF instance and router-id
   ansible.builtin.shell: |
@@ -13,20 +14,17 @@
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/version \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/version' \
       --update-value ospf-v2 \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/router-id \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/router-id' \
       --update-value {{ router_id }} \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/admin-state \
-      --update-value enable
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/admin-state' \
+      --update-value enable \
+      --encoding json_ietf
   delegate_to: localhost
   register: ospf_instance_result
   changed_when: "'UPDATE' in ospf_instance_result.stdout"
   failed_when: ospf_instance_result.rc != 0
-
-- name: Configure OSPF area 0 (created implicitly when adding interfaces)
-  ansible.builtin.debug:
-    msg: "OSPF area 0.0.0.0 will be created when interfaces are added"
 
 - name: Configure OSPF on point-to-point interfaces
   ansible.builtin.shell: |
@@ -35,10 +33,11 @@
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ item.name }}.0]/interface-type \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ item.name }}.0]/interface-type' \
       --update-value point-to-point \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ item.name }}.0]/admin-state \
-      --update-value enable
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ item.name }}.0]/admin-state' \
+      --update-value enable \
+      --encoding json_ietf
   loop: "{{ interfaces }}"
   when: item.ip is defined
   delegate_to: localhost
@@ -53,10 +52,11 @@
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name=system0.0]/passive \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name=system0.0]/passive' \
       --update-value true \
-      --update-path /network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name=system0.0]/admin-state \
-      --update-value enable
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name=system0.0]/admin-state' \
+      --update-value enable \
+      --encoding json_ietf
   when: loopback_ip is defined
   delegate_to: localhost
   register: ospf_loopback_result

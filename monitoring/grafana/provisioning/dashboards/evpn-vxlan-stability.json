@@ -35,25 +35,15 @@
           "mappings": [
             {
               "options": {
-                "established": {
+                "up": {
                   "color": "green",
                   "index": 0,
-                  "text": "ESTABLISHED"
+                  "text": "UP"
                 },
-                "idle": {
+                "down": {
                   "color": "red",
                   "index": 1,
-                  "text": "IDLE"
-                },
-                "active": {
-                  "color": "yellow",
-                  "index": 2,
-                  "text": "ACTIVE"
-                },
-                "connect": {
-                  "color": "orange",
-                  "index": 3,
-                  "text": "CONNECT"
+                  "text": "DOWN"
                 }
               },
               "type": "value"
@@ -103,13 +93,93 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled{session_state=\"ESTABLISHED\"}",
-          "legendFormat": "{{exported_source}} - {{neighbor_address}}",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{oper_state=\"up\"}",
+          "legendFormat": "{{exported_source}} - {{network_instance_name}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "BGP Session Status",
+      "title": "EVPN Instance Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "up": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "UP"
+                },
+                "down": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "DOWN"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state{oper_state=\"up\"}",
+          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VXLAN Interface Status",
       "type": "stat"
     },
     {
@@ -169,14 +239,14 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 0
+        "x": 0,
+        "y": 8
       },
-      "id": 2,
+      "id": 3,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["last"],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -192,102 +262,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count by(exported_source) (gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled{session_state=\"ESTABLISHED\"})",
+          "expr": "count by(exported_source) (gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{oper_state=\"up\"})",
           "legendFormat": "{{exported_source}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "BGP Established Sessions Over Time",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 3,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_queues_input",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} Input Queue",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "BGP Input Queue Depth",
+      "title": "EVPN Instances Count Over Time",
       "type": "timeseries"
     },
     {
@@ -370,13 +351,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_queues_output",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} Output Queue",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_multicast_destinations_multicast_destinations_multicast_limit_current_usage",
+          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "BGP Output Queue Depth",
+      "title": "VXLAN Multicast Destinations",
       "type": "timeseries"
     },
     {
@@ -396,7 +377,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "tooltip": false,
@@ -404,12 +385,12 @@
               "legend": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -435,16 +416,16 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 16
       },
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["mean"],
+          "calcs": ["last"],
           "displayMode": "table",
-          "placement": "bottom",
+          "placement": "right",
           "showLegend": true
         },
         "tooltip": {
@@ -459,8 +440,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_received_UPDATE[5m])",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} RX",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_mac_type_active_entries{mac_type_type=\"evpn\"}",
+          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}} - Active",
           "range": true,
           "refId": "A"
         },
@@ -470,13 +451,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_sent_UPDATE[5m])",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} TX",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_mac_type_total_entries{mac_type_type=\"evpn\"}",
+          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}} - Total",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "BGP Message Rate",
+      "title": "EVPN MAC Table Entries",
       "type": "timeseries"
     },
     {
@@ -511,7 +492,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Session State"
+              "options": "Status"
             },
             "properties": [
               {
@@ -519,15 +500,15 @@
                 "value": [
                   {
                     "options": {
-                      "established": {
+                      "up": {
                         "color": "green",
                         "index": 0,
-                        "text": "ESTABLISHED"
+                        "text": "UP"
                       },
-                      "idle": {
+                      "down": {
                         "color": "red",
                         "index": 1,
-                        "text": "IDLE"
+                        "text": "DOWN"
                       }
                     },
                     "type": "value"
@@ -547,8 +528,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 16
+        "x": 0,
+        "y": 24
       },
       "id": 6,
       "options": {
@@ -569,7 +550,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -581,15 +562,28 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_peer_as",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_evi",
           "format": "table",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_ecmp",
+          "format": "table",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "C"
         }
       ],
-      "title": "BGP Neighbor Details",
+      "title": "EVPN Instance Details",
       "transformations": [
         {
           "id": "merge",
@@ -601,19 +595,144 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
+              "bgp_instance_id": true,
               "collector": true,
               "instance": true,
               "job": true,
-              "exported_source": false,
               "subscription_name": true
             },
             "indexByName": {},
             "renameByName": {
-              "Value #A": "Session State",
-              "Value #B": "Peer AS",
+              "Value #A": "Status",
+              "Value #B": "EVI",
+              "Value #C": "ECMP",
               "exported_source": "Device",
-              "neighbor_address": "Peer Address",
-              "session_state": "Session State"
+              "network_instance_name": "MAC-VRF",
+              "oper_state": "Status"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "up": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "UP"
+                      },
+                      "down": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "DOWN"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state",
+          "format": "table",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VXLAN Interface Details",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "collector": true,
+              "instance": true,
+              "job": true,
+              "subscription_name": true,
+              "tunnel_interface_name": true,
+              "vxlan_interface_type": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value": "Status",
+              "exported_source": "Device",
+              "oper_state": "Status",
+              "vxlan_interface_index": "VNI"
             }
           }
         }
@@ -624,7 +743,7 @@
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["network", "bgp", "routing"],
+  "tags": ["network", "evpn", "vxlan", "overlay", "srlinux", "vendor-specific"],
   "templating": {
     "list": []
   },
@@ -634,8 +753,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "BGP Stability Monitoring",
-  "uid": "bgp-stability",
+  "title": "EVPN/VXLAN Stability (SR Linux Only)",
+  "uid": "evpn-vxlan-stability",
   "version": 0,
   "weekStart": ""
 }

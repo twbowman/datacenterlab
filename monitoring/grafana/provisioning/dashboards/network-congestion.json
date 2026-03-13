@@ -27,96 +27,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "established": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "ESTABLISHED"
-                },
-                "idle": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "IDLE"
-                },
-                "active": {
-                  "color": "yellow",
-                  "index": 2,
-                  "text": "ACTIVE"
-                },
-                "connect": {
-                  "color": "orange",
-                  "index": 3,
-                  "text": "CONNECT"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "textMode": "value_and_name"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled{session_state=\"ESTABLISHED\"}",
-          "legendFormat": "{{exported_source}} - {{neighbor_address}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "BGP Session Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "description": "Packets discarded at ingress (input) - indicates buffer overflow or policy drops",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -129,7 +40,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "tooltip": false,
@@ -159,10 +70,108 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
-          "unit": "short"
+          "unit": "pps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": ["last", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_discards[1m])",
+          "legendFormat": "{{exported_source}} - {{interface_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Input Discards Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Packets discarded at egress (output) - indicates congestion or buffer overflow",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "pps"
         },
         "overrides": []
       },
@@ -175,14 +184,14 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["last", "max"],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
@@ -192,13 +201,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count by(exported_source) (gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled{session_state=\"ESTABLISHED\"})",
-          "legendFormat": "{{exported_source}}",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_discards[1m])",
+          "legendFormat": "{{exported_source}} - {{interface_name}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "BGP Established Sessions Over Time",
+      "title": "Output Discards Rate",
       "type": "timeseries"
     },
     {
@@ -206,6 +215,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "Input errors including CRC, frame errors - indicates physical layer issues",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -248,10 +258,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
-          "unit": "short"
+          "unit": "pps"
         },
         "overrides": []
       },
@@ -264,7 +278,7 @@
       "id": 3,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": ["last", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -281,13 +295,24 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_queues_input",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} Input Queue",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_errors[1m])",
+          "legendFormat": "{{exported_source}} - {{interface_name}} - Errors",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_fcs_errors[1m])",
+          "legendFormat": "{{exported_source}} - {{interface_name}} - FCS",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "BGP Input Queue Depth",
+      "title": "Input Errors Rate",
       "type": "timeseries"
     },
     {
@@ -295,6 +320,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "Output errors - indicates transmission issues",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -337,10 +363,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
-          "unit": "short"
+          "unit": "pps"
         },
         "overrides": []
       },
@@ -353,7 +383,7 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": ["last", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -370,13 +400,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_queues_output",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} Output Queue",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_errors[1m])",
+          "legendFormat": "{{exported_source}} - {{interface_name}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "BGP Output Queue Depth",
+      "title": "Output Errors Rate",
       "type": "timeseries"
     },
     {
@@ -384,6 +414,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "Queue drops per interface and queue - indicates congestion and potential head-of-line blocking",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -396,7 +427,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "tooltip": false,
@@ -404,12 +435,12 @@
               "legend": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -426,10 +457,212 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
-          "unit": "short"
+          "unit": "pps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": ["last", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_dropped_pkts[1m])",
+          "legendFormat": "{{exported_source}} - {{interface_interface_id}} - {{queue_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Queue Dropped Packets Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Maximum queue depth - indicates buffer utilization and potential head-of-line blocking",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": ["last", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_max_queue_len",
+          "legendFormat": "{{exported_source}} - {{interface_interface_id}} - {{queue_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Queue Depth (Max)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Interface utilization percentage - helps identify congestion points",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -437,12 +670,12 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 32
       },
-      "id": 5,
+      "id": 7,
       "options": {
         "legend": {
-          "calcs": ["mean"],
+          "calcs": ["last", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -459,8 +692,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_received_UPDATE[5m])",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} RX",
+          "expr": "(rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_octets[1m]) * 8 / 1000000000) * 100",
+          "legendFormat": "{{exported_source}} - {{interface_name}} - RX",
           "range": true,
           "refId": "A"
         },
@@ -470,13 +703,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_sent_UPDATE[5m])",
-          "legendFormat": "{{exported_source}} - {{neighbor_neighbor_address}} TX",
+          "expr": "(rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets[1m]) * 8 / 1000000000) * 100",
+          "legendFormat": "{{exported_source}} - {{interface_name}} - TX",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "BGP Message Rate",
+      "title": "Interface Utilization (% of 1Gbps)",
       "type": "timeseries"
     },
     {
@@ -484,6 +717,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "Interfaces with the highest discard rates - top congestion points",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -503,37 +737,40 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
               }
             ]
-          }
+          },
+          "unit": "pps"
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "Session State"
+              "options": "Input Discards"
             },
             "properties": [
               {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "established": {
-                        "color": "green",
-                        "index": 0,
-                        "text": "ESTABLISHED"
-                      },
-                      "idle": {
-                        "color": "red",
-                        "index": 1,
-                        "text": "IDLE"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Output Discards"
+            },
+            "properties": [
               {
                 "id": "custom.cellOptions",
                 "value": {
@@ -548,9 +785,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 32
       },
-      "id": 6,
+      "id": 8,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -559,7 +796,13 @@
           "reducer": ["sum"],
           "show": false
         },
-        "showHeader": true
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Input Discards"
+          }
+        ]
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -569,7 +812,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_discards[5m])",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -581,15 +824,28 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_peer_as",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_discards[5m])",
           "format": "table",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_errors[5m])",
+          "format": "table",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "C"
         }
       ],
-      "title": "BGP Neighbor Details",
+      "title": "Top Congestion Points",
       "transformations": [
         {
           "id": "merge",
@@ -604,16 +860,15 @@
               "collector": true,
               "instance": true,
               "job": true,
-              "exported_source": false,
               "subscription_name": true
             },
             "indexByName": {},
             "renameByName": {
-              "Value #A": "Session State",
-              "Value #B": "Peer AS",
+              "Value #A": "Input Discards",
+              "Value #B": "Output Discards",
+              "Value #C": "Input Errors",
               "exported_source": "Device",
-              "neighbor_address": "Peer Address",
-              "session_state": "Session State"
+              "interface_name": "Interface"
             }
           }
         }
@@ -624,7 +879,7 @@
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["network", "bgp", "routing"],
+  "tags": ["network", "congestion", "qos", "performance", "troubleshooting"],
   "templating": {
     "list": []
   },
@@ -634,8 +889,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "BGP Stability Monitoring",
-  "uid": "bgp-stability",
+  "title": "Network Congestion Analysis",
+  "uid": "network-congestion",
   "version": 0,
   "weekStart": ""
 }

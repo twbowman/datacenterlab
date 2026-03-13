@@ -1,267 +1,95 @@
-# SR Linux EVPN/VXLAN Role
+# EVPN/VXLAN Configuration Role (gNMI-based)
 
-This role configures EVPN/VXLAN overlay networks on Nokia SR Linux devices using gNMI.
+This role configures EVPN/VXLAN overlay networking on SR Linux devices using gNMI with native SR Linux YANG paths.
 
 ## Overview
 
-The role implements a data-driven EVPN/VXLAN fabric configuration that supports:
+EVPN/VXLAN provides:
+- Layer 2 extension across the data center fabric
+- Multi-tenancy with MAC-VRF isolation
+- Efficient MAC/IP learning via BGP EVPN control plane
+- Scalable multi-homing and redundancy
 
-- Multiple VLAN-to-VNI mappings for L2 VPN services
-- L3 VNI configuration for inter-subnet routing
-- BGP EVPN address family configuration
-- Route reflector configuration for spines
-- VXLAN tunnel interfaces with VTEP source configuration
-- MAC-VRF network instances for L2 services
-- IP-VRF network instances for L3 services
-- BGP-EVPN and BGP-VPN instance configuration
-- Route advertisement for MAC-IP and inclusive multicast routes
+## Architecture
 
-## Requirements
+- **Leafs**: Participate in VXLAN data plane, host MAC-VRFs, terminate VXLAN tunnels
+- **Spines**: Act as BGP route reflectors for EVPN control plane (no VXLAN data plane)
 
-- SR Linux devices with gNMI enabled
-- BGP already configured (use `gnmi_bgp` role first)
-- OSPF underlay for reachability (use `gnmi_ospf` role first)
-- System loopback (system0) configured with IP address
+## Configuration Method
+
+Uses gNMI SET operations with SR Linux native paths (`srl_nokia:` origin prefix):
+- VXLAN tunnel interfaces
+- MAC-VRF network instances
+- BGP-EVPN and BGP-VPN protocol configuration
+- Client-facing bridged subinterfaces
+- Optional L3 VNI for inter-subnet routing
+
+## Prerequisites
+
+1. Underlay routing (OSPF) must be configured and operational
+2. BGP must be configured with EVPN address family enabled
+3. System IPv4 address must be configured (used as VXLAN source IP)
 
 ## Variables
 
-All configuration is driven by the `evpn_vxlan` variable structure defined in group_vars:
-
-### For Leaf Switches (group_vars/leafs.yml)
+Defined in `group_vars/leafs.yml`:
 
 ```yaml
 evpn_vxlan:
   enabled: true
   
-  # VNI ranges
-  vni:
-    l2vpn_start: 10000
-    l2vpn_end: 19999
-    l3vpn_start: 20000
-    l3vpn_end: 29999
-  
-  # VXLAN tunnel configuration
-  tunnel:
-    source_interface: "loopback0"
-    udp_port: 4789
-    ttl: 64
-  
-  # VLAN to VNI mappings (L2 VPN)
   vlan_vni_mappings:
     - vlan_id: 10
       vni: 10010
       name: "tenant-a-web"
       description: "Tenant A Web Tier"
-    - vlan_id: 20
-      vni: 10020
-      name: "tenant-a-app"
-      description: "Tenant A Application Tier"
   
-  # L3 VNI configuration (inter-subnet routing)
-  l3vni:
+  l3vni:  # Optional
     - vrf_name: "tenant-a"
       vni: 20001
       vlan_id: 3001
-  
-  # BGP EVPN configuration
-  bgp_evpn:
-    enabled: true
-    advertise_all_vni: true
-    advertise_default_gw: true
-    route_reflector_client: true
-```
-
-### For Spine Switches (group_vars/spines.yml)
-
-```yaml
-evpn_vxlan:
-  enabled: false  # Spines don't participate in VXLAN data plane
-  
-  bgp_evpn:
-    enabled: true
-    route_reflector: true
-    cluster_id: "auto"  # Uses router_id
 ```
 
 ## Usage
 
-### Basic Usage
+```bash
+# Configure EVPN/VXLAN on all leafs
+ansible-playbook -i inventory.yml site.yml --tags evpn
 
-```yaml
-- hosts: all
-  roles:
-    - gnmi_interfaces  # Configure physical interfaces first
-    - gnmi_ospf        # Configure underlay routing
-    - gnmi_bgp         # Configure BGP
-    - gnmi_evpn_vxlan  # Configure EVPN/VXLAN overlay
+# Configure only VXLAN tunnels
+ansible-playbook -i inventory.yml site.yml --tags vxlan
+
+# Skip EVPN configuration
+ansible-playbook -i inventory.yml site.yml --skip-tags evpn
 ```
 
-### Verification
-
-Use the verification playbook to check EVPN/VXLAN status:
+## Verification
 
 ```bash
-ansible-playbook -i ansible/inventory.yml \
-  ansible/methods/srlinux_gnmi/playbooks/verify-evpn.yml
+# Check VXLAN tunnel interfaces
+gnmic -a leaf1:57400 -u admin -p password --skip-verify get \
+  --path 'srl_nokia:/tunnel-interface[name=vxlan1]' -e json_ietf
+
+# Check MAC-VRF instances
+gnmic -a leaf1:57400 -u admin -p password --skip-verify get \
+  --path 'srl_nokia:/network-instance[name=mac-vrf-10]' -e json_ietf
+
+# Check EVPN routes
+gnmic -a leaf1:57400 -u admin -p password --skip-verify get \
+  --path 'srl_nokia:/network-instance[name=mac-vrf-10]/protocols/srl_nokia-bgp-evpn:bgp-evpn' -e json_ietf
 ```
 
-The verification playbook checks:
-- EVPN address family is enabled in BGP
-- EVPN routes are advertised (Type 2 MAC-IP, Type 3 IMET)
-- VXLAN tunnels are established
-- VNI to VLAN mappings are correct
-- MAC-VRF operational status
-- L3 VNI IP-VRF status
+## Features
 
-## Implementation Details
+- **L2 VNI**: Bridged VXLAN interfaces for L2 extension
+- **MAC-VRF**: Isolated MAC forwarding tables per tenant
+- **BGP-EVPN**: Control plane for MAC/IP route distribution
+- **Route Targets**: Automatic RT generation (ASN:VNI format)
+- **L3 VNI**: Optional routed VXLAN for inter-subnet routing
+- **Client Interfaces**: Bridged subinterfaces with VLAN tagging
 
-### Configuration Flow
+## Limitations
 
-1. **BGP EVPN Address Family** (All devices)
-   - Enable EVPN address family in BGP
-   - Enable EVPN in iBGP peer group
-
-2. **Route Reflector** (Spines only)
-   - Configure route reflector cluster ID for EVPN
-
-3. **VXLAN Tunnels** (Leafs only)
-   - Create VXLAN tunnel interfaces for each VNI
-   - Configure VTEP source IP (uses system0 loopback)
-
-4. **MAC-VRF Network Instances** (Leafs only)
-   - Create MAC-VRF for each VLAN
-   - Associate VXLAN interfaces with MAC-VRFs
-
-5. **BGP-EVPN Instances** (Leafs only)
-   - Configure BGP-EVPN instance in each MAC-VRF
-   - Configure BGP-VPN instance for route exchange
-
-6. **Route Advertisement** (Leafs only)
-   - Enable MAC-IP route advertisement
-   - Enable inclusive multicast route advertisement
-
-7. **L3 VNI** (Leafs only, if configured)
-   - Create routed VXLAN interfaces for L3 VNI
-   - Create IP-VRF network instances
-   - Associate L3 VNI with IP-VRF
-
-### gNMI vs CLI
-
-The role uses a hybrid approach:
-- **gNMI**: Used for most configuration (interfaces, network instances, BGP-EVPN)
-- **CLI**: Used for configurations not fully supported via gNMI (VTEP source, BGP-VPN, route advertisement)
-
-### Idempotency
-
-All tasks are idempotent and can be run multiple times safely:
-- gNMI set operations update existing configuration
-- CLI commands use `commit now` which only commits if changes exist
-- Tasks use `changed_when` to accurately report changes
-
-## Architecture
-
-### EVPN/VXLAN Fabric Architecture
-
-```
-Spines (Route Reflectors)
-  ├── BGP EVPN address family enabled
-  ├── Route reflector for EVPN routes
-  └── No VXLAN data plane participation
-
-Leafs (VTEP Endpoints)
-  ├── BGP EVPN address family enabled
-  ├── Route reflector clients
-  ├── VXLAN tunnel interface (vxlan1)
-  │   ├── Multiple VNI sub-interfaces (one per VLAN)
-  │   └── VTEP source: system0 loopback IP
-  ├── MAC-VRF network instances (L2 VPN)
-  │   ├── One per VLAN
-  │   ├── Associated with VXLAN interface
-  │   ├── BGP-EVPN instance for control plane
-  │   └── BGP-VPN instance for route exchange
-  └── IP-VRF network instances (L3 VPN)
-      ├── One per tenant/VRF
-      ├── Associated with L3 VNI
-      └── Enables inter-subnet routing
-```
-
-### Data Flow
-
-1. **Control Plane** (BGP EVPN)
-   - Leafs advertise MAC-IP routes (Type 2) to spines
-   - Leafs advertise inclusive multicast routes (Type 3) to spines
-   - Spines reflect routes to all other leafs
-   - Leafs learn remote MAC addresses via BGP
-
-2. **Data Plane** (VXLAN)
-   - Traffic enters leaf on access interface
-   - Leaf looks up destination MAC in MAC-VRF
-   - If remote, encapsulates in VXLAN and sends to remote VTEP
-   - Remote leaf decapsulates and forwards to local access interface
-
-## Troubleshooting
-
-### Check EVPN BGP Status
-
-```bash
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show network-instance default protocols bgp neighbor"
-```
-
-### Check EVPN Routes
-
-```bash
-# Summary
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show network-instance default protocols bgp routes evpn route-type summary"
-
-# Type 2 (MAC-IP) routes
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show network-instance default protocols bgp routes evpn route-type 2"
-
-# Type 3 (IMET) routes
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show network-instance default protocols bgp routes evpn route-type 3"
-```
-
-### Check VXLAN Tunnels
-
-```bash
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show tunnel-interface vxlan1 vxlan-interface * detail"
-```
-
-### Check MAC-VRF Status
-
-```bash
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show network-instance mac-vrf-10"
-```
-
-### Check MAC Table
-
-```bash
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show network-instance mac-vrf-10 bridge-table mac-table all"
-```
-
-### Check VTEP Status
-
-```bash
-docker exec clab-gnmi-clos-leaf1 sr_cli \
-  "show tunnel vxlan-tunnel vtep"
-```
-
-## Dependencies
-
-- `gnmi_interfaces` role (for physical interface configuration)
-- `gnmi_ospf` role (for underlay routing)
-- `gnmi_bgp` role (for BGP and iBGP configuration)
-
-## Tags
-
-None currently defined.
-
-## Author
-
-Generated for production-network-testing-lab project.
+- OpenConfig does not support EVPN/VXLAN configuration on SR Linux
+- Must use SR Linux native YANG paths with `srl_nokia:` origin
+- Client-facing interfaces (ethernet-1/3) must exist in device configuration
