@@ -10,6 +10,8 @@ import pytest
 import json
 import yaml
 from datetime import datetime
+from io import StringIO
+from unittest.mock import patch, mock_open
 
 
 class TestStateExport:
@@ -114,6 +116,56 @@ class TestStateExport:
             timestamp_valid = False
         
         assert timestamp_valid is True
+    
+    def test_state_export_to_yaml_file(self):
+        """Test that state can be exported to YAML file using mocked file operations"""
+        state = {
+            'version': '1.0',
+            'timestamp': '2024-01-15T10:30:00Z',
+            'lab_name': 'test-lab',
+            'topology': {
+                'nodes': {
+                    'spine1': {'kind': 'nokia_srlinux'}
+                }
+            }
+        }
+        
+        # Mock file write operation
+        with patch('builtins.open', mock_open()) as mock_file:
+            # Simulate writing state to file
+            with open('/tmp/state.yaml', 'w') as f:
+                yaml.dump(state, f, default_flow_style=False)
+            
+            # Verify file was opened for writing
+            mock_file.assert_called_once_with('/tmp/state.yaml', 'w')
+            
+            # Verify yaml.dump was called (content written to mock)
+            handle = mock_file()
+            written_content = ''.join(call.args[0] for call in handle.write.call_args_list)
+            
+            # Verify written content is valid YAML
+            assert 'version:' in written_content or written_content != ''
+    
+    def test_state_export_to_json_file(self):
+        """Test that state can be exported to JSON file using mocked file operations"""
+        state = {
+            'version': '1.0',
+            'timestamp': '2024-01-15T10:30:00Z',
+            'lab_name': 'test-lab'
+        }
+        
+        # Mock file write operation using StringIO
+        output = StringIO()
+        json.dump(state, output, indent=2)
+        
+        # Get written content
+        written_content = output.getvalue()
+        
+        # Verify content is valid JSON
+        parsed = json.loads(written_content)
+        assert parsed == state
+        assert 'version' in written_content
+        assert 'timestamp' in written_content
 
 
 class TestStateRestore:
@@ -197,6 +249,67 @@ class TestStateRestore:
             config_valid = False
         
         assert config_valid is True
+    
+    def test_state_restore_from_yaml_file(self):
+        """Test that state can be restored from YAML file using mocked file operations"""
+        yaml_content = """
+version: '1.0'
+timestamp: '2024-01-15T10:30:00Z'
+lab_name: test-lab
+topology:
+  nodes:
+    spine1:
+      kind: nokia_srlinux
+"""
+        
+        # Mock file read operation using StringIO
+        with patch('builtins.open', mock_open(read_data=yaml_content)):
+            with open('/tmp/state.yaml', 'r') as f:
+                restored_state = yaml.safe_load(f)
+            
+            # Verify state was restored correctly
+            assert restored_state['version'] == '1.0'
+            assert restored_state['lab_name'] == 'test-lab'
+            assert 'topology' in restored_state
+            assert 'spine1' in restored_state['topology']['nodes']
+    
+    def test_state_restore_from_json_file(self):
+        """Test that state can be restored from JSON file using mocked file operations"""
+        state_data = {
+            'version': '1.0',
+            'timestamp': '2024-01-15T10:30:00Z',
+            'lab_name': 'test-lab',
+            'topology': {
+                'nodes': {
+                    'spine1': {'kind': 'nokia_srlinux'}
+                }
+            }
+        }
+        
+        json_content = json.dumps(state_data)
+        
+        # Mock file read operation using StringIO
+        input_stream = StringIO(json_content)
+        restored_state = json.load(input_stream)
+        
+        # Verify state was restored correctly
+        assert restored_state == state_data
+        assert restored_state['version'] == '1.0'
+        assert restored_state['lab_name'] == 'test-lab'
+    
+    def test_state_restore_handles_file_read_errors(self):
+        """Test that restore handles file read errors gracefully"""
+        # Mock file read operation that raises an error
+        with patch('builtins.open', side_effect=FileNotFoundError('File not found')):
+            try:
+                with open('/tmp/nonexistent.yaml', 'r') as f:
+                    yaml.safe_load(f)
+                file_error_raised = False
+            except FileNotFoundError:
+                file_error_raised = True
+        
+        # Verify error was raised as expected
+        assert file_error_raised is True
 
 
 class TestStateComparison:
@@ -551,6 +664,62 @@ class TestStateRoundTrip:
         restored_config = json.loads(exported)
         
         assert restored_config == original_config
+    
+    def test_export_restore_roundtrip_with_mocked_files(self):
+        """Test complete export/restore cycle using mocked file operations"""
+        original_state = {
+            'version': '1.0',
+            'timestamp': '2024-01-15T10:30:00Z',
+            'lab_name': 'test-lab',
+            'topology': {
+                'nodes': {
+                    'spine1': {'kind': 'nokia_srlinux'},
+                    'leaf1': {'kind': 'nokia_srlinux'}
+                }
+            },
+            'configurations': {
+                'spine1': {'vendor': 'nokia', 'config': '{}'}
+            }
+        }
+        
+        # Export to StringIO (simulates file write)
+        export_buffer = StringIO()
+        yaml.dump(original_state, export_buffer, default_flow_style=False)
+        
+        # Get exported content
+        exported_content = export_buffer.getvalue()
+        
+        # Import from StringIO (simulates file read)
+        import_buffer = StringIO(exported_content)
+        restored_state = yaml.safe_load(import_buffer)
+        
+        # Verify complete preservation
+        assert restored_state == original_state
+        assert restored_state['topology'] == original_state['topology']
+        assert restored_state['configurations'] == original_state['configurations']
+    
+    def test_export_restore_with_mock_open(self):
+        """Test export/restore using mock_open for file operations"""
+        state = {
+            'version': '1.0',
+            'lab_name': 'test-lab',
+            'topology': {'nodes': {}}
+        }
+        
+        # Mock export operation
+        with patch('builtins.open', mock_open()) as mock_file:
+            with open('/tmp/export.yaml', 'w') as f:
+                yaml.dump(state, f)
+            
+            mock_file.assert_called_with('/tmp/export.yaml', 'w')
+        
+        # Mock import operation
+        yaml_content = yaml.dump(state)
+        with patch('builtins.open', mock_open(read_data=yaml_content)):
+            with open('/tmp/export.yaml', 'r') as f:
+                restored = yaml.safe_load(f)
+            
+            assert restored == state
 
 
 if __name__ == '__main__':

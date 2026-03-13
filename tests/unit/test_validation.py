@@ -13,16 +13,10 @@ import json
 class TestBGPValidation:
     """Test BGP session validation"""
     
-    def test_bgp_session_established(self):
+    def test_bgp_session_established(self, mock_device_bgp_state):
         """Test validation of established BGP sessions"""
-        bgp_state = {
-            'neighbor': {
-                '10.1.1.1': {
-                    'session_state': 'ESTABLISHED',
-                    'peer_as': 65011
-                }
-            }
-        }
+        # Use mock device state from fixture
+        bgp_state = mock_device_bgp_state['spine1']
         
         expected_neighbors = ['10.1.1.1']
         
@@ -33,6 +27,7 @@ class TestBGPValidation:
     
     def test_bgp_session_not_established(self):
         """Test detection of non-established BGP sessions"""
+        # Create mock state with non-established session
         bgp_state = {
             'neighbor': {
                 '10.1.1.1': {
@@ -57,15 +52,13 @@ class TestBGPValidation:
                 assert error['status'] == 'fail'
                 assert error['remediation'] != ''
     
-    def test_missing_bgp_neighbor(self):
+    def test_missing_bgp_neighbor(self, mock_device_bgp_state):
         """Test detection of missing BGP neighbors"""
-        bgp_state = {
-            'neighbor': {
-                '10.1.1.1': {'session_state': 'ESTABLISHED'}
-            }
-        }
+        # Use mock device state from fixture
+        bgp_state = mock_device_bgp_state['spine1']
         
-        expected_neighbors = ['10.1.1.1', '10.1.1.3']
+        # Expected neighbors includes one that exists and one that doesn't
+        expected_neighbors = ['10.1.1.1', '10.1.1.5']
         
         # Find missing neighbors
         actual_neighbors = set(bgp_state['neighbor'].keys())
@@ -73,17 +66,14 @@ class TestBGPValidation:
         missing = expected_set - actual_neighbors
         
         assert len(missing) == 1
-        assert '10.1.1.3' in missing
+        assert '10.1.1.5' in missing
     
-    def test_unexpected_bgp_neighbor(self):
+    def test_unexpected_bgp_neighbor(self, mock_device_bgp_state):
         """Test detection of unexpected BGP neighbors"""
-        bgp_state = {
-            'neighbor': {
-                '10.1.1.1': {'session_state': 'ESTABLISHED'},
-                '10.1.1.99': {'session_state': 'ESTABLISHED'}
-            }
-        }
+        # Use mock device state from fixture
+        bgp_state = mock_device_bgp_state['spine1']
         
+        # Only expect one neighbor, but fixture has two
         expected_neighbors = ['10.1.1.1']
         
         # Find unexpected neighbors
@@ -92,22 +82,16 @@ class TestBGPValidation:
         unexpected = actual_neighbors - expected_set
         
         assert len(unexpected) == 1
-        assert '10.1.1.99' in unexpected
+        assert '10.1.1.3' in unexpected
 
 
 class TestEVPNValidation:
     """Test EVPN route validation"""
     
-    def test_evpn_routes_advertised(self):
+    def test_evpn_routes_advertised(self, mock_device_evpn_state):
         """Test validation of advertised EVPN routes"""
-        evpn_state = {
-            'routes': {
-                'advertised': [
-                    {'vni': 100, 'route_type': 'type-2', 'count': 10},
-                    {'vni': 200, 'route_type': 'type-2', 'count': 5}
-                ]
-            }
-        }
+        # Use mock device state from fixture
+        evpn_state = mock_device_evpn_state['spine1']
         
         # Validate routes are advertised
         assert len(evpn_state['routes']['advertised']) > 0
@@ -117,15 +101,10 @@ class TestEVPNValidation:
         assert len(vni_100_routes) == 1
         assert vni_100_routes[0]['count'] > 0
     
-    def test_evpn_routes_received(self):
+    def test_evpn_routes_received(self, mock_device_evpn_state):
         """Test validation of received EVPN routes"""
-        evpn_state = {
-            'routes': {
-                'received': [
-                    {'vni': 100, 'route_type': 'type-2', 'count': 20}
-                ]
-            }
-        }
+        # Use mock device state from fixture
+        evpn_state = mock_device_evpn_state['spine1']
         
         # Validate routes are received
         assert len(evpn_state['routes']['received']) > 0
@@ -155,16 +134,10 @@ class TestEVPNValidation:
 class TestLLDPValidation:
     """Test LLDP neighbor validation"""
     
-    def test_lldp_neighbors_match_topology(self):
+    def test_lldp_neighbors_match_topology(self, mock_device_lldp_state):
         """Test LLDP neighbors match topology definition"""
-        lldp_state = {
-            'spine1': {
-                'ethernet-1/1': {
-                    'neighbor': 'leaf1',
-                    'neighbor_port': 'ethernet-1/49'
-                }
-            }
-        }
+        # Use mock device state from fixture
+        lldp_state = mock_device_lldp_state
         
         topology_links = [
             {'endpoints': ['spine1:ethernet-1/1', 'leaf1:ethernet-1/49']}
@@ -190,21 +163,15 @@ class TestLLDPValidation:
             
             assert link_found is True
     
-    def test_missing_lldp_neighbor(self):
+    def test_missing_lldp_neighbor(self, mock_device_lldp_state):
         """Test detection of missing LLDP neighbors"""
-        lldp_state = {
-            'spine1': {
-                'ethernet-1/1': {
-                    'neighbor': 'leaf1',
-                    'neighbor_port': 'ethernet-1/49'
-                }
-            }
-        }
+        # Use mock device state from fixture
+        lldp_state = mock_device_lldp_state
         
         expected_neighbors = {
             'spine1': {
                 'ethernet-1/1': 'leaf1',
-                'ethernet-1/2': 'leaf2'  # Missing
+                'ethernet-1/3': 'leaf3'  # Missing - not in fixture
             }
         }
         
@@ -220,20 +187,16 @@ class TestLLDPValidation:
                     })
         
         assert len(missing) == 1
-        assert missing[0]['interface'] == 'ethernet-1/2'
+        assert missing[0]['interface'] == 'ethernet-1/3'
 
 
 class TestInterfaceValidation:
     """Test interface state validation"""
     
-    def test_interface_operational_state(self):
+    def test_interface_operational_state(self, mock_device_interface_state):
         """Test interface operational state validation"""
-        interface_state = {
-            'ethernet-1/1': {
-                'admin_state': 'enable',
-                'oper_state': 'up'
-            }
-        }
+        # Use mock device state from fixture
+        interface_state = mock_device_interface_state['spine1']
         
         # Validate operational state matches expected
         expected_state = 'up'
@@ -243,6 +206,7 @@ class TestInterfaceValidation:
     
     def test_interface_admin_oper_mismatch(self):
         """Test detection of admin/oper state mismatch"""
+        # Create mock state with mismatch
         interface_state = {
             'ethernet-1/1': {
                 'admin_state': 'enable',
@@ -266,24 +230,18 @@ class TestInterfaceValidation:
             assert error['status'] == 'fail'
             assert 'connectivity' in error['remediation'].lower()
     
-    def test_interface_counters_validation(self):
+    def test_interface_counters_validation(self, mock_device_interface_state):
         """Test interface counter validation"""
-        interface_counters = {
-            'ethernet-1/1': {
-                'in_octets': 1234567890,
-                'out_octets': 9876543210,
-                'in_errors': 0,
-                'out_errors': 0
-            }
-        }
+        # Use mock device state from fixture
+        interface_counters = mock_device_interface_state['spine1']['ethernet-1/1']['counters']
         
         # Validate no errors
-        assert interface_counters['ethernet-1/1']['in_errors'] == 0
-        assert interface_counters['ethernet-1/1']['out_errors'] == 0
+        assert interface_counters['in_errors'] == 0
+        assert interface_counters['out_errors'] == 0
         
         # Validate traffic is flowing
-        assert interface_counters['ethernet-1/1']['in_octets'] > 0
-        assert interface_counters['ethernet-1/1']['out_octets'] > 0
+        assert interface_counters['in_octets'] > 0
+        assert interface_counters['out_octets'] > 0
 
 
 class TestValidationReporting:

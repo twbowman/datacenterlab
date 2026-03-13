@@ -8,13 +8,43 @@ Validates: Requirements 15.3
 
 import pytest
 import re
+from unittest.mock import patch, MagicMock
+
+
+# Mock gRPC/gNMI modules to prevent actual network operations
+# This ensures tests run without requiring gRPC libraries or network access
+@pytest.fixture(autouse=True)
+def mock_grpc_modules(monkeypatch):
+    """Automatically mock gRPC and gNMI modules for all tests in this file"""
+    # Create mock modules
+    mock_grpc = MagicMock()
+    mock_gnmi = MagicMock()
+    
+    # Mock gRPC channel creation
+    mock_channel = MagicMock()
+    mock_grpc.insecure_channel.return_value = mock_channel
+    mock_grpc.secure_channel.return_value = mock_channel
+    
+    # Mock gNMI stub
+    mock_gnmi_stub = MagicMock()
+    mock_gnmi.gNMIStub.return_value = mock_gnmi_stub
+    
+    # Patch sys.modules to provide mocked modules
+    import sys
+    monkeypatch.setitem(sys.modules, 'grpc', mock_grpc)
+    monkeypatch.setitem(sys.modules, 'gnmi', mock_gnmi)
+    monkeypatch.setitem(sys.modules, 'gnmi.proto', MagicMock())
+    
+    return {'grpc': mock_grpc, 'gnmi': mock_gnmi}
 
 
 class TestGNMISubscriptions:
     """Test gNMI subscription configuration"""
     
-    def test_openconfig_interface_subscription(self):
+    def test_openconfig_interface_subscription(self, mock_gnmi_connection):
         """Test OpenConfig interface metrics subscription"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         subscription = {
             'name': 'oc_interface_stats',
             'paths': ['/interfaces/interface/state/counters'],
@@ -30,8 +60,10 @@ class TestGNMISubscriptions:
         assert subscription['mode'] == 'stream'
         assert subscription['stream-mode'] == 'sample'
     
-    def test_openconfig_bgp_subscription(self):
+    def test_openconfig_bgp_subscription(self, mock_gnmi_connection):
         """Test OpenConfig BGP metrics subscription"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         subscription = {
             'name': 'oc_bgp_state',
             'paths': [
@@ -44,8 +76,10 @@ class TestGNMISubscriptions:
         assert 'bgp' in subscription['paths'][0]
         assert subscription['stream-mode'] == 'on_change'
     
-    def test_openconfig_lldp_subscription(self):
+    def test_openconfig_lldp_subscription(self, mock_gnmi_connection):
         """Test OpenConfig LLDP metrics subscription"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         subscription = {
             'name': 'oc_lldp_neighbors',
             'paths': ['/lldp/interfaces/interface/neighbors'],
@@ -55,8 +89,10 @@ class TestGNMISubscriptions:
         
         assert 'lldp' in subscription['paths'][0]
     
-    def test_native_vendor_subscription(self):
+    def test_native_vendor_subscription(self, mock_gnmi_connection):
         """Test native vendor-specific subscription"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         subscription = {
             'name': 'srl_ospf_state',
             'paths': ['/network-instance[name=default]/protocols/ospf'],
@@ -311,8 +347,10 @@ class TestTelemetryProcessors:
 class TestTelemetryConnectionManagement:
     """Test telemetry connection management"""
     
-    def test_connection_timeout_configuration(self):
+    def test_connection_timeout_configuration(self, mock_gnmi_connection):
         """Test connection timeout settings"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         target_config = {
             'address': '172.20.20.10:57400',
             'timeout': '30s',
@@ -322,8 +360,10 @@ class TestTelemetryConnectionManagement:
         assert 'timeout' in target_config
         assert 'retry-interval' in target_config
     
-    def test_exponential_backoff_configuration(self):
+    def test_exponential_backoff_configuration(self, mock_gnmi_connection):
         """Test exponential backoff for reconnection"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         backoff_config = {
             'initial-interval': '1s',
             'max-interval': '60s',
@@ -335,19 +375,23 @@ class TestTelemetryConnectionManagement:
         current = 1  # 1 second
         max_interval = 60
         
-        while current <= max_interval:
+        while current < max_interval:
             intervals.append(current)
             current *= backoff_config['multiplier']
-            if current > max_interval:
-                current = max_interval
+        
+        # Add final max interval if not already added
+        if intervals[-1] != max_interval:
+            intervals.append(max_interval)
         
         # Should have increasing intervals: 1, 2, 4, 8, 16, 32, 60
         assert intervals[0] == 1
         assert intervals[1] == 2
         assert intervals[-1] == max_interval
     
-    def test_connection_credentials(self):
+    def test_connection_credentials(self, mock_gnmi_connection):
         """Test connection credentials configuration"""
+        # Mock gNMI connection is available but not used in this test
+        # This ensures no actual network calls are made
         target = {
             'address': '172.20.20.10:57400',
             'username': 'admin',
