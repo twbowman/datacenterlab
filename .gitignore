@@ -19,7 +19,6 @@ __pycache__/
 venv/
 env/
 .venv/
-uv.lock
 
 # Testing artifacts
 .pytest_cache/
