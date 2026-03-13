@@ -7,6 +7,11 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 env:
   PYTHON_VERSION: '3.9'
 
@@ -137,7 +142,8 @@ jobs:
         if: always()
         with:
           files: |
-            test-results/**/*.xml
+            test-results/unit-test-results/*.xml
+            test-results/property-test-results/*.xml
           check_name: Test Results Summary
           comment_title: Test Results
           fail_on: errors
