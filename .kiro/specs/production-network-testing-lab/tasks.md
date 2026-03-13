@@ -998,7 +998,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Monitoring Stack Reliability
 
-- [x] 49. Implement monitoring stack health checks
+- [ ] 49. Implement monitoring stack health checks
   - [ ] 49.1 Create health check endpoints
     - Implement health checks for Prometheus
     - Implement health checks for Grafana
@@ -1020,7 +1020,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 14.1**
     - Test that metrics persist across Prometheus restarts
 
-- [x] 50. Implement monitoring stack backup and restore
+- [ ] 50. Implement monitoring stack backup and restore
   - [ ] 50.1 Create Prometheus backup functionality
     - Implement automated Prometheus snapshots
     - Store snapshots with retention policy
@@ -1039,7 +1039,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Configuration Parsing and Validation
 
-- [~] 51. Implement configuration parsing
+- [ ] 51. Implement configuration parsing
   - [ ] 51.1 Create configuration parser
     - Implement parse_configuration() function
     - Parse vendor-specific configuration formats
@@ -1058,7 +1058,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 11.4**
     - Test parse-format-parse produces equivalent object
 
-- [~] 52. Implement configuration validation
+- [ ] 52. Implement configuration validation
   - [ ] 52.1 Create schema validation
     - Implement validate_configuration() function
     - Validate against vendor-specific schemas
@@ -1079,7 +1079,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Vendor Extension Framework
 
-- [~] 53. Create vendor extension framework
+- [ ] 53. Create vendor extension framework
   - [ ] 53.1 Create vendor integration template
     - Create templates/vendor-integration/ directory
     - Provide role templates for new vendors
@@ -1107,7 +1107,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test integration template usage
     - _Requirements: 10.1, 10.2, 10.3, 10.5_
 
-- [~] 54. Create metric normalizer configuration schema
+- [ ] 54. Create metric normalizer configuration schema
   - [ ] 54.1 Define normalization configuration schema
     - Create schema for vendor metric mappings
     - Define transformation rule format
