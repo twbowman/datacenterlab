@@ -1,0 +1,51 @@
+---
+profile: production
+
+exclude_paths:
+  - .venv/
+  - venv/
+  - .hypothesis/
+  - clab-*/
+  - archive/
+  - .github/
+
+skip_list:
+  - yaml[line-length]  # Handled by yamllint
+  - name[casing]       # Allow flexible naming for network automation
+  - no-changed-when    # Not always applicable for network commands
+  - command-instead-of-module  # Network modules may require raw commands
+  - risky-shell-pipe   # Common in network automation
+
+warn_list:
+  - experimental
+  - ignore-errors
+  - no-handler
+
+kinds:
+  - yaml: "**/*.{yaml,yml}"
+  - playbook: "**/playbooks/*.{yml,yaml}"
+  - tasks: "**/tasks/*.{yml,yaml}"
+  - vars: "**/vars/*.{yml,yaml}"
+  - meta: "**/meta/*.{yml,yaml}"
+  - defaults: "**/defaults/*.{yml,yaml}"
+  - handlers: "**/handlers/*.{yml,yaml}"
+
+mock_modules:
+  - nokia.grpc.gnmi_config
+  - nokia.grpc.gnmi_get
+  - nokia.grpc.gnmi_subscribe
+  - arista.eos.eos_command
+  - arista.eos.eos_config
+  - community.general.json_query
+
+mock_roles:
+  - openconfig_interfaces
+  - openconfig_bgp
+  - eos_interfaces
+  - eos_bgp
+  - eos_ospf
+  - eos_evpn_vxlan
+  - junos_interfaces
+  - junos_bgp
+  - junos_ospf
+  - junos_evpn_vxlan

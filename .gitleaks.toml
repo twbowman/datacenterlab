@@ -1,0 +1,30 @@
+# Gitleaks configuration for network lab
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist for lab credentials and test data"
+paths = [
+    '''\.hypothesis/''',
+    '''clab-.*/''',
+    '''\.venv/''',
+    '''venv/''',
+]
+
+# Lab default credentials (not production secrets)
+regexes = [
+    '''NokiaSrl1!''',  # SR Linux default lab password
+    '''admin:admin''', # Common lab credentials
+]
+
+# Ignore test files and documentation
+files = [
+    '''(.*?)(test|spec)\.py$''',
+    '''README\.md$''',
+    '''CHANGELOG\.md$''',
+    '''\.md$''',
+]

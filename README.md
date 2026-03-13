@@ -334,6 +334,22 @@ See [Developer Guide](docs/developer/contributing.md) for information on:
 - Code standards
 - Submitting changes
 
+### Code Quality
+
+This project uses comprehensive linting and security scanning:
+- **Python**: Ruff (linter/formatter) + Mypy (type checking)
+- **YAML**: yamllint
+- **Ansible**: ansible-lint
+- **Shell**: ShellCheck
+- **Security**: Bandit, Trivy, Gitleaks
+
+Run all checks locally:
+```bash
+./scripts/run-linters.sh
+```
+
+See [Linting & Security Guide](docs/LINTING-SECURITY.md) for details.
+
 ## License
 
 This project is provided as-is for educational and testing purposes.
