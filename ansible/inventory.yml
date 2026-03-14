@@ -53,7 +53,7 @@ all:
               ip: 10.2.3.0/31
             - name: ethernet-1/4
               ip: 10.2.4.0/31
-    
+
     leafs:
       hosts:
         leaf1:

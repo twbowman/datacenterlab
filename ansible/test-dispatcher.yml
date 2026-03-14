@@ -5,16 +5,16 @@
 - name: Test Multi-Vendor Dispatcher Pattern
   hosts: localhost
   gather_facts: false
-  
+
   tasks:
     - name: Test 1 - SR Linux OS detection and normalization
       block:
         - set_fact:
             ansible_network_os: "nokia.srlinux"
-        
+
         - set_fact:
             normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
-        
+
         - assert:
             that:
               - normalized_os == 'srlinux'
@@ -25,10 +25,10 @@
       block:
         - set_fact:
             ansible_network_os: "arista.eos"
-        
+
         - set_fact:
             normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
-        
+
         - assert:
             that:
               - normalized_os == 'eos'
@@ -39,10 +39,10 @@
       block:
         - set_fact:
             ansible_network_os: "dellemc.sonic"
-        
+
         - set_fact:
             normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
-        
+
         - assert:
             that:
               - normalized_os == 'sonic'
@@ -53,10 +53,10 @@
       block:
         - set_fact:
             ansible_network_os: "juniper.junos"
-        
+
         - set_fact:
             normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
-        
+
         - assert:
             that:
               - normalized_os == 'junos'
@@ -67,10 +67,10 @@
       block:
         - set_fact:
             ansible_network_os: "srlinux"
-        
+
         - set_fact:
             normalized_os: "{{ ansible_network_os | regex_replace('^nokia\\.', '') | regex_replace('^arista\\.', '') | regex_replace('^dellemc\\.', '') | regex_replace('^juniper\\.', '') }}"
-        
+
         - assert:
             that:
               - normalized_os == 'srlinux'
@@ -89,13 +89,13 @@
               - "sonic"
               - "juniper.junos"
               - "junos"
-        
+
         - assert:
             that:
               - item in ['nokia.srlinux', 'srlinux', 'arista.eos', 'eos', 'dellemc.sonic', 'sonic', 'juniper.junos', 'junos']
             success_msg: "✓ OS {{ item }} is supported"
           loop: "{{ test_os_list }}"
-        
+
         - debug:
             msg: "✓ Test 6 passed: All OS variants are in supported list"
 

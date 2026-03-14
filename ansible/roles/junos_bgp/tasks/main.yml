@@ -75,7 +75,7 @@
           cluster_id: "{{ router_id }}"
     state: merged
   loop: "{{ bgp_neighbors }}"
-  when: 
+  when:
     - bgp_role is defined
     - bgp_role == 'route_reflector'
     - bgp_neighbors is defined

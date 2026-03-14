@@ -103,9 +103,9 @@
           ========================================
           Network Verification Complete
           ========================================
-          
+
           All devices verified via gnmic
-          
+
           Use tags to verify specific components:
             - Interfaces: ansible-playbook playbooks/verify-gnmic.yml --tags interfaces
             - LLDP: ansible-playbook playbooks/verify-gnmic.yml --tags lldp

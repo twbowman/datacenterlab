@@ -3,7 +3,7 @@ name: gnmi-clos
 topology:
   defaults:
     kind: linux
-  
+
   # Define groups for different node types
   groups:
     srlinux-router:
@@ -19,14 +19,14 @@ topology:
       startup-config: configs/spine1/srlinux/config.json
       binds:
         - ./configs/spine1:/config
-    
+
     spine2:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.11
       startup-config: configs/spine2/srlinux/config.json
       binds:
         - ./configs/spine2:/config
-    
+
     # === Leaf Routers ===
     leaf1:
       group: srlinux-router
@@ -34,28 +34,28 @@ topology:
       startup-config: configs/leaf1/srlinux/config.json
       binds:
         - ./configs/leaf1:/config
-    
+
     leaf2:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.22
       startup-config: configs/leaf2/srlinux/config.json
       binds:
         - ./configs/leaf2:/config
-    
+
     leaf3:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.23
       startup-config: configs/leaf3/srlinux/config.json
       binds:
         - ./configs/leaf3:/config
-    
+
     leaf4:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.24
       startup-config: configs/leaf4/srlinux/config.json
       binds:
         - ./configs/leaf4:/config
-    
+
     # === Client Nodes ===
     # Clients - all on same L2 subnet via EVPN/VXLAN (mac-vrf-100, VNI 10100)
     # MTU 1400 to fit within VXLAN encapsulation overhead (~50 bytes)
@@ -66,7 +66,7 @@ topology:
       exec:
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.11/24 dev eth1
-    
+
     client2:
       kind: linux
       image: nicolaka/netshoot:latest
@@ -74,7 +74,7 @@ topology:
       exec:
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.12/24 dev eth1
-    
+
     client3:
       kind: linux
       image: nicolaka/netshoot:latest
@@ -82,7 +82,7 @@ topology:
       exec:
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.13/24 dev eth1
-    
+
     client4:
       kind: linux
       image: nicolaka/netshoot:latest
@@ -97,13 +97,13 @@ topology:
     - endpoints: ["spine1:ethernet-1/2", "leaf2:ethernet-1/1"]
     - endpoints: ["spine1:ethernet-1/3", "leaf3:ethernet-1/1"]
     - endpoints: ["spine1:ethernet-1/4", "leaf4:ethernet-1/1"]
-    
+
     # Spine2 to all Leafs
     - endpoints: ["spine2:ethernet-1/1", "leaf1:ethernet-1/2"]
     - endpoints: ["spine2:ethernet-1/2", "leaf2:ethernet-1/2"]
     - endpoints: ["spine2:ethernet-1/3", "leaf3:ethernet-1/2"]
     - endpoints: ["spine2:ethernet-1/4", "leaf4:ethernet-1/2"]
-    
+
     # Clients to Leafs (one per leaf)
     - endpoints: ["leaf1:ethernet-1/3", "client1:eth1"]
     - endpoints: ["leaf2:ethernet-1/3", "client2:eth1"]

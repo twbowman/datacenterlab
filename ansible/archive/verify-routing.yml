@@ -85,23 +85,23 @@
   tasks:
     - name: Count operational interfaces
       ansible.builtin.set_fact:
-        up_interfaces: "{{ interfaces_parsed[0].updates | selectattr('values', 'defined') | 
-                          map(attribute='values') | list | 
-                          map('dict2items') | flatten | 
+        up_interfaces: "{{ interfaces_parsed[0].updates | selectattr('values', 'defined') |
+                          map(attribute='values') | list |
+                          map('dict2items') | flatten |
                           selectattr('value', 'equalto', 'up') | list | length }}"
       when: interfaces_parsed is defined
 
     - name: Extract BGP neighbor states
       ansible.builtin.set_fact:
-        bgp_sessions: "{{ bgp_parsed[0].updates[0].values | dict2items | 
-                         selectattr('key', 'search', 'neighbor') | 
+        bgp_sessions: "{{ bgp_parsed[0].updates[0].values | dict2items |
+                         selectattr('key', 'search', 'neighbor') |
                          map(attribute='value') | list }}"
       when: bgp_parsed is defined and bgp_parsed[0].updates is defined
 
     - name: Count established BGP sessions
       ansible.builtin.set_fact:
-        established_count: "{{ bgp_sessions | selectattr('session-state', 'defined') | 
-                              selectattr('session-state', 'equalto', 'established') | 
+        established_count: "{{ bgp_sessions | selectattr('session-state', 'defined') |
+                              selectattr('session-state', 'equalto', 'established') |
                               list | length }}"
         total_neighbors: "{{ bgp_sessions | length }}"
       when: bgp_sessions is defined

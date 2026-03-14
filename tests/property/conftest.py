@@ -4,7 +4,7 @@ Property-based testing configuration for production network testing lab
 This module configures hypothesis settings for property-based tests.
 """
 
-from hypothesis import settings, Verbosity
+from hypothesis import Verbosity, settings
 
 # Configure hypothesis to run 100+ examples per test as per design requirements
 settings.register_profile("default", max_examples=100, deadline=None)

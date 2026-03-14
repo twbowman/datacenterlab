@@ -26,7 +26,7 @@
 
 value_transformations:
   description: "Rules for transforming metric values to consistent units and scales"
-  
+
   # Interface bandwidth: Convert to bits per second
   interface_bandwidth:
     description: "Convert octets to bits for bandwidth calculations"
@@ -37,7 +37,7 @@ value_transformations:
     notes: |
       Most network engineers think in bits/sec, not bytes/sec.
       Grafana queries should use: rate(network_interface_in_octets[5m]) * 8
-  
+
   # BGP session state: Normalize state values
   bgp_session_state:
     description: "Map vendor-specific BGP state values to OpenConfig standard"
@@ -55,7 +55,7 @@ value_transformations:
       OpenConfig defines BGP states as integers:
       1=IDLE, 2=CONNECT, 3=ACTIVE, 4=OPENSENT, 5=OPENCONFIRM, 6=ESTABLISHED
       Some vendors use strings, others use integers - normalize to integers
-  
+
   # OSPF neighbor state: Normalize state values
   ospf_neighbor_state:
     description: "Map vendor-specific OSPF state values to standard integers"
@@ -74,7 +74,7 @@ value_transformations:
     notes: |
       OSPF RFC 2328 defines neighbor states as:
       1=Down, 2=Attempt, 3=Init, 4=2-Way, 5=ExStart, 6=Exchange, 7=Loading, 8=Full
-  
+
   # Timestamps: Ensure consistent format
   timestamps:
     description: "Convert all timestamps to Unix epoch (seconds since 1970-01-01)"
@@ -85,7 +85,7 @@ value_transformations:
     notes: |
       Some vendors use ISO 8601, others use Unix epoch.
       Normalize to Unix epoch for Prometheus compatibility.
-  
+
   # Percentages: Normalize to 0-100 scale
   percentages:
     description: "Ensure all percentage values are in 0-100 range"
@@ -96,7 +96,7 @@ value_transformations:
     notes: |
       Some vendors report 0-1 (0.85 = 85%), others 0-100.
       Normalize to 0-100 for consistency.
-  
+
   # Timers: Convert to seconds
   timers:
     description: "Convert all timer values to seconds"
@@ -116,7 +116,7 @@ value_transformations:
 
 label_transformations:
   description: "Rules for transforming metric labels to consistent formats"
-  
+
   # Interface name normalization
   interface_names:
     description: "Normalize interface names across vendors"
@@ -131,7 +131,7 @@ label_transformations:
             output: "eth1_1"
           - input: "ethernet-1/49"
             output: "eth1_49"
-      
+
       # Arista: Ethernet1/1 -> eth1_1
       arista:
         pattern: "^Ethernet(\\d+)/(\\d+)$"
@@ -141,7 +141,7 @@ label_transformations:
             output: "eth1_1"
           - input: "Ethernet49/1"
             output: "eth49_1"
-      
+
       # Arista: Ethernet1 -> eth1_0
       arista_single:
         pattern: "^Ethernet(\\d+)$"
@@ -149,7 +149,7 @@ label_transformations:
         examples:
           - input: "Ethernet1"
             output: "eth1_0"
-      
+
       # SONiC: Ethernet0 -> eth0_0
       sonic:
         pattern: "^Ethernet(\\d+)$"
@@ -159,7 +159,7 @@ label_transformations:
             output: "eth0_0"
           - input: "Ethernet48"
             output: "eth48_0"
-      
+
       # Juniper: ge-0/0/0 -> eth0_0_0
       juniper:
         pattern: "^ge-(\\d+)/(\\d+)/(\\d+)$"
@@ -169,7 +169,7 @@ label_transformations:
             output: "eth0_0_0"
           - input: "ge-0/0/47"
             output: "eth0_0_47"
-      
+
       # Management interfaces: keep as-is
       management:
         pattern: "^(mgmt|Management|ma1).*$"
@@ -179,17 +179,17 @@ label_transformations:
             output: "mgmt0"
           - input: "Management1"
             output: "mgmt0"
-    
+
     applies_to:
       - interface label in all network_interface_* metrics
       - interface label in network_lldp_* metrics
       - interface label in network_ospf_interface_* metrics
-    
+
     notes: |
       Interface name normalization enables universal queries like:
         network_interface_in_octets{interface="eth1_1"}
       This works across all vendors regardless of native naming.
-  
+
   # BGP session state labels
   bgp_state_labels:
     description: "Normalize BGP state string representations"
@@ -209,7 +209,7 @@ label_transformations:
     notes: |
       Ensures consistent state representation across vendors.
       Grafana queries can reliably filter: {state="ESTABLISHED"}
-  
+
   # Device role labels
   device_role:
     description: "Standardize device role labels"
@@ -228,7 +228,7 @@ label_transformations:
     notes: |
       Device roles should be set in gNMIc target configuration.
       Enables queries like: network_interface_in_octets{role="spine"}
-  
+
   # Vendor labels
   vendor_labels:
     description: "Standardize vendor identification labels"
@@ -255,9 +255,9 @@ label_transformations:
 vendor_prefixes:
   description: "Prefix native-only metrics with vendor identifier"
   requirement: "Requirement 4.5 - preserve native metrics with vendor prefix"
-  
+
   prefix_format: "vendor_{vendor}_{metric_name}"
-  
+
   examples:
     sr_linux_native:
       description: "SR Linux native metrics without OpenConfig equivalent"
@@ -268,7 +268,7 @@ vendor_prefixes:
           normalized: "vendor_nokia_network_instance_vxlan_vtep_count"
         - original: "srl_bgp_evpn_route_type_2_count"
           normalized: "vendor_nokia_bgp_evpn_route_type_2_count"
-    
+
     arista_native:
       description: "Arista native metrics without OpenConfig equivalent"
       metrics:
@@ -278,7 +278,7 @@ vendor_prefixes:
           normalized: "vendor_arista_vxlan_flood_list_count"
         - original: "eos_mlag_peer_link_status"
           normalized: "vendor_arista_mlag_peer_link_status"
-    
+
     sonic_native:
       description: "SONiC native metrics without OpenConfig equivalent"
       metrics:
@@ -288,7 +288,7 @@ vendor_prefixes:
           normalized: "vendor_dellemc_queue_watermark"
         - original: "sonic_pfc_pause_frames"
           normalized: "vendor_dellemc_pfc_pause_frames"
-    
+
     juniper_native:
       description: "Juniper native metrics without OpenConfig equivalent"
       metrics:
@@ -298,7 +298,7 @@ vendor_prefixes:
           normalized: "vendor_juniper_cos_queue_stats"
         - original: "junos_chassis_temperature"
           normalized: "vendor_juniper_chassis_temperature"
-  
+
   implementation:
     gnmic_processor: |
       processors:
@@ -324,7 +324,7 @@ vendor_prefixes:
                       apply-on: "name"
                       old: "^eos_"
                       new: "vendor_arista_"
-    
+
     prometheus_relabeling: |
       metric_relabel_configs:
         # Add vendor_metric label for native metrics
@@ -332,21 +332,21 @@ vendor_prefixes:
           regex: 'vendor_.*'
           target_label: vendor_metric
           replacement: 'true'
-  
+
   notes: |
     Native metrics are preserved with vendor prefix to:
     1. Avoid naming conflicts between vendors
     2. Clearly identify vendor-specific metrics
     3. Enable vendor-specific dashboards and queries
     4. Maintain access to advanced vendor features
-    
+
     Query examples:
       # All native Nokia metrics
       {__name__=~"vendor_nokia_.*"}
-      
+
       # Native metrics from all vendors
       {vendor_metric="true"}
-      
+
       # Exclude native metrics (universal only)
       {vendor_metric!="true"}
 
@@ -357,7 +357,7 @@ vendor_prefixes:
 
 gnmic_processors:
   description: "gNMIc event processors for metric normalization"
-  
+
   # Processor 1: Normalize interface metrics
   normalize_interface_metrics:
     description: "Transform vendor interface paths to network_interface_* metrics"
@@ -379,7 +379,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/interface/statistics/in-octets"
                       new: "network_interface_in_octets"
-            
+
             - event-convert:
                 value-names:
                   - "^/srl_nokia/interface/statistics/out-octets$"
@@ -393,7 +393,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/interface/statistics/out-octets"
                       new: "network_interface_out_octets"
-            
+
             # Arista interface counters (OpenConfig path)
             - event-convert:
                 value-names:
@@ -403,7 +403,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/interfaces/interface/state/counters/in-octets"
                       new: "network_interface_in_octets"
-            
+
             - event-convert:
                 value-names:
                   - "^/interfaces/interface/state/counters/out-octets$"
@@ -412,7 +412,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/interfaces/interface/state/counters/out-octets"
                       new: "network_interface_out_octets"
-            
+
             # Normalize interface name labels
             - event-convert:
                 tag-names:
@@ -444,7 +444,7 @@ gnmic_processors:
                       apply-on: "value"
                       old: "^ge-(\\d+)/(\\d+)/(\\d+)$"
                       new: "eth${1}_${2}_${3}"
-  
+
   # Processor 2: Normalize BGP metrics
   normalize_bgp_metrics:
     description: "Transform vendor BGP paths to network_bgp_* metrics"
@@ -461,7 +461,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/network-instance/protocols/bgp/neighbor/session-state"
                       new: "network_bgp_session_state"
-            
+
             # OpenConfig BGP session state (Arista, SONiC, Juniper)
             - event-convert:
                 value-names:
@@ -471,7 +471,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state"
                       new: "network_bgp_session_state"
-            
+
             # Normalize BGP state values to integers
             - event-convert:
                 value-names:
@@ -501,7 +501,7 @@ gnmic_processors:
                       apply-on: "value"
                       old: "ESTABLISHED"
                       new: "6"
-  
+
   # Processor 3: Normalize LLDP metrics
   normalize_lldp_metrics:
     description: "Transform vendor LLDP paths to network_lldp_* metrics"
@@ -518,7 +518,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/system/lldp/interface/neighbor/system-name"
                       new: "network_lldp_neighbor_system_name"
-            
+
             # OpenConfig LLDP (all vendors)
             - event-convert:
                 value-names:
@@ -528,7 +528,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/lldp/interfaces/interface/neighbors/neighbor/state/system-name"
                       new: "network_lldp_neighbor_system_name"
-            
+
             - event-convert:
                 value-names:
                   - "^/lldp/interfaces/interface/neighbors/neighbor/state/port-id$"
@@ -537,7 +537,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "/lldp/interfaces/interface/neighbors/neighbor/state/port-id"
                       new: "network_lldp_neighbor_port_id"
-  
+
   # Processor 4: Add vendor prefix to native metrics
   add_vendor_prefix:
     description: "Prefix native-only metrics with vendor identifier"
@@ -550,7 +550,7 @@ gnmic_processors:
                 tag-name: vendor_metric
                 value: "true"
                 condition: "!contains(name, 'network_')"
-            
+
             # Add Nokia prefix
             - event-convert:
                 value-names:
@@ -560,7 +560,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "^srl_"
                       new: "vendor_nokia_"
-            
+
             # Add Arista prefix
             - event-convert:
                 value-names:
@@ -570,7 +570,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "^eos_"
                       new: "vendor_arista_"
-            
+
             # Add SONiC prefix
             - event-convert:
                 value-names:
@@ -580,7 +580,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "^sonic_"
                       new: "vendor_dellemc_"
-            
+
             # Add Juniper prefix
             - event-convert:
                 value-names:
@@ -590,7 +590,7 @@ gnmic_processors:
                       apply-on: "name"
                       old: "^junos_"
                       new: "vendor_juniper_"
-  
+
   # Processor 5: Add standard tags
   add_standard_tags:
     description: "Add standard tags to all metrics"
@@ -603,22 +603,22 @@ gnmic_processors:
                 tag-name: metric_type
                 value: "interface"
                 condition: "contains(name, 'interface')"
-            
+
             - event-add-tag:
                 tag-name: metric_type
                 value: "bgp"
                 condition: "contains(name, 'bgp')"
-            
+
             - event-add-tag:
                 tag-name: metric_type
                 value: "lldp"
                 condition: "contains(name, 'lldp')"
-            
+
             - event-add-tag:
                 tag-name: metric_type
                 value: "ospf"
                 condition: "contains(name, 'ospf')"
-            
+
             # Normalize vendor tag
             - event-convert:
                 tag-names:
@@ -648,13 +648,13 @@ gnmic_processors:
 
 prometheus_relabeling:
   description: "Prometheus relabeling rules for metric normalization"
-  
+
   config: |
     scrape_configs:
       - job_name: 'gnmic'
         static_configs:
           - targets: ['gnmic:9273']
-        
+
         metric_relabel_configs:
           # Drop metrics with empty values
           - source_labels: [__name__]
@@ -663,43 +663,43 @@ prometheus_relabeling:
             target_label: __name__
             replacement: ''
             # Only if value is empty or null
-          
+
           # Normalize interface label name
           - source_labels: [interface_name]
             target_label: interface
             regex: '(.+)'
             replacement: '${1}'
-          
+
           # Add normalized_interface label (keep original)
           - source_labels: [interface]
             target_label: interface_normalized
             regex: '(.+)'
             replacement: '${1}'
-          
+
           # Add device_type label if missing (from source)
           - source_labels: [source]
             target_label: device_type
             regex: '(spine|leaf|border).*'
             replacement: '${1}'
-          
+
           # Ensure vendor label is lowercase
           - source_labels: [vendor]
             target_label: vendor
             regex: '([A-Z].*)'
             replacement: '${1}'
             action: lowercase
-          
+
           # Add universal_metric label
           - source_labels: [__name__]
             target_label: universal_metric
             regex: 'network_.*'
             replacement: 'true'
-          
+
           - source_labels: [__name__]
             target_label: universal_metric
             regex: 'vendor_.*'
             replacement: 'false'
-          
+
           # Drop internal gNMIc metrics
           - source_labels: [__name__]
             regex: 'gnmic_.*_(subscriptions|targets|outputs).*'
@@ -711,66 +711,66 @@ prometheus_relabeling:
 
 validation:
   description: "How to validate transformation rules are working correctly"
-  
+
   test_interface_normalization:
     description: "Verify interface metrics are normalized"
     prometheus_query: |
       # Should return metrics from all vendors
       network_interface_in_octets
-      
+
       # Should have normalized interface names
       network_interface_in_octets{interface=~"eth.*"}
-      
+
       # Should have vendor tags
       count(network_interface_in_octets) by (vendor)
-    
+
     expected_result: |
       Metrics from all vendors (nokia, arista, dellemc, juniper)
       Interface names in format: eth1_1, eth1_49, etc.
       Vendor tag present on all metrics
-  
+
   test_bgp_normalization:
     description: "Verify BGP metrics are normalized"
     prometheus_query: |
       # Should return BGP state as integer
       network_bgp_session_state
-      
+
       # Count established sessions
       count(network_bgp_session_state == 6)
-      
+
       # Sessions by vendor
       count(network_bgp_session_state) by (vendor)
-    
+
     expected_result: |
       BGP state values are integers (1-6)
       6 = ESTABLISHED
       Metrics from all vendors
-  
+
   test_vendor_prefix:
     description: "Verify native metrics have vendor prefix"
     prometheus_query: |
       # All native Nokia metrics
       {__name__=~"vendor_nokia_.*"}
-      
+
       # All native metrics (any vendor)
       {vendor_metric="true"}
-      
+
       # Count native metrics by vendor
       count({vendor_metric="true"}) by (vendor)
-    
+
     expected_result: |
       Native metrics have vendor_ prefix
       vendor_metric="true" label present
       Native metrics separated by vendor
-  
+
   test_label_normalization:
     description: "Verify labels are normalized"
     prometheus_query: |
       # Vendor labels should be lowercase
       network_interface_in_octets{vendor=~"[A-Z].*"}
-      
+
       # Should return empty (no uppercase vendors)
-    
+
     expected_result: |
       No results (all vendor labels are lowercase)
       Interface labels are normalized
@@ -782,7 +782,7 @@ validation:
 
 troubleshooting:
   description: "Common issues and solutions"
-  
+
   metrics_not_normalized:
     symptom: "Metrics still have vendor-specific names"
     causes:
@@ -794,7 +794,7 @@ troubleshooting:
       - "Verify processor configuration in gnmic-config.yml"
       - "Test regex patterns with sample metric names"
       - "Ensure processors are applied to correct outputs"
-  
+
   interface_names_not_normalized:
     symptom: "Interface labels still vendor-specific"
     causes:
@@ -805,7 +805,7 @@ troubleshooting:
       - "Check which label contains interface name"
       - "Update regex patterns for your interface format"
       - "Test with: network_interface_in_octets{interface=~\".*\"}"
-  
+
   native_metrics_missing_prefix:
     symptom: "Native metrics don't have vendor_ prefix"
     causes:
@@ -816,7 +816,7 @@ troubleshooting:
       - "Verify processor order (should be early in chain)"
       - "Check metric name patterns in processor config"
       - "Test with: {__name__=~\"srl_.*|eos_.*|sonic_.*|junos_.*\"}"
-  
+
   values_incorrect_after_transformation:
     symptom: "Metric values changed unexpectedly"
     causes:

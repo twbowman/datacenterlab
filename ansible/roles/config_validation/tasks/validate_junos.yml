@@ -34,7 +34,7 @@
       Expected format: X.X.X.X/Y (CIDR notation)
     success_msg: "IPv4 address {{ item.ip }} is valid"
   loop: "{{ interfaces | default([]) }}"
-  when: 
+  when:
     - interfaces is defined
     - item.ip is defined
 

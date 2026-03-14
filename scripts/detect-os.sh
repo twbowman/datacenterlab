@@ -6,7 +6,6 @@ set -e
 
 # Colors
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
@@ -57,7 +56,7 @@ chmod +x "$INVENTORY_SCRIPT"
 print_info "Detecting device operating systems..."
 echo ""
 
-if python3 "$INVENTORY_SCRIPT" -t "$TOPOLOGY_FILE" -o "$OUTPUT_FILE" 2>&1 | while read line; do
+if python3 "$INVENTORY_SCRIPT" -t "$TOPOLOGY_FILE" -o "$OUTPUT_FILE" 2>&1 | while read -r line; do
     echo "  $line"
 done; then
     echo ""
@@ -71,7 +70,7 @@ done; then
         # Count devices by OS
         for os in srlinux eos sonic junos unknown; do
             count=$(grep -c "ansible_network_os: $os" "$OUTPUT_FILE" 2>/dev/null || echo "0")
-            if [ $count -gt 0 ]; then
+            if [ "$count" -gt 0 ]; then
                 echo "  - $os: $count device(s)"
             fi
         done

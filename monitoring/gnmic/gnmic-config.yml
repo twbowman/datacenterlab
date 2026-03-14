@@ -27,7 +27,7 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 10s
-  
+
   # OpenConfig BGP state - vendor agnostic
   oc_bgp_neighbors:
     paths:
@@ -35,7 +35,7 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 30s
-  
+
   # OpenConfig LLDP - good cross-vendor support
   oc_lldp:
     paths:
@@ -43,7 +43,7 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 60s
-  
+
   # SR Linux native OSPF - vendor specific (SR Linux doesn't expose OSPF via OpenConfig)
   srl_ospf:
     paths:
@@ -52,7 +52,7 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 30s
-  
+
   # SR Linux native EVPN - vendor specific (SR Linux doesn't expose EVPN via OpenConfig)
   srl_evpn:
     paths:
@@ -62,7 +62,7 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 30s
-  
+
   # SR Linux native VXLAN - vendor specific
   srl_vxlan:
     paths:
@@ -73,7 +73,7 @@ subscriptions:
     mode: stream
     stream-mode: sample
     sample-interval: 30s
-  
+
   # OpenConfig QoS queue statistics - vendor agnostic
   oc_qos_queues:
     paths:

@@ -20,7 +20,7 @@
             - address: "{{ item.ip }}"
     state: merged
   loop: "{{ interfaces }}"
-  when: 
+  when:
     - interfaces is defined
     - item.ip is defined
 

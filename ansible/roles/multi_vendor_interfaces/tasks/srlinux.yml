@@ -25,7 +25,7 @@
       - path: "/interface[name={{ item.name }}]/description"
         val: "{{ item.description }}"
   loop: "{{ interfaces }}"
-  when: 
+  when:
     - interfaces is defined
     - item.description is defined
 
@@ -43,6 +43,6 @@
         val:
           ip-prefix: "{{ item.ip }}"
   loop: "{{ interfaces }}"
-  when: 
+  when:
     - interfaces is defined
     - item.ip is defined

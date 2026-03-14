@@ -16,8 +16,8 @@
           --path /network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface \
           --format flat | awk -F'/' '
           /neighbor-router-id:/ { router=$NF; gsub(/neighbor-router-id: /, "", router) }
-          /adjacency-state:/ { 
-            state=$NF; 
+          /adjacency-state:/ {
+            state=$NF;
             gsub(/adjacency-state: /, "", state);
             printf "  Router-ID: %-15s  State: %s\n", router, state
           }'
@@ -28,7 +28,7 @@
 
     - name: Display OSPF neighbors
       ansible.builtin.debug:
-        msg: 
+        msg:
           - "========================================"
           - "{{ inventory_hostname }} OSPF Neighbors"
           - "========================================"
@@ -47,8 +47,8 @@
           --format flat | awk -F'/' '
           /peer-address:/ { peer=$NF; gsub(/peer-address: /, "", peer) }
           /peer-as:/ { as=$NF; gsub(/peer-as: /, "", as) }
-          /session-state:/ { 
-            state=$NF; 
+          /session-state:/ {
+            state=$NF;
             gsub(/session-state: /, "", state);
             printf "  Peer: %-15s  AS: %-6s  State: %s\n", peer, as, state
           }'

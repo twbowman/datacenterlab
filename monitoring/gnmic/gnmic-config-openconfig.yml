@@ -18,7 +18,7 @@ targets:
       vendor: nokia
       device_type: spine
       os: srlinux
-  
+
   leaf1:
     address: clab-gnmi-clos-leaf1:57400
     username: admin

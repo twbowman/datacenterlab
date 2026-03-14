@@ -5,11 +5,11 @@
 - name: Deploy Multi-Vendor Datacenter Network
   hosts: all
   gather_facts: false
-  
+
   tasks:
     - name: Display deployment information
       debug:
-        msg: 
+        msg:
           - "Deploying to: {{ inventory_hostname }}"
           - "Network OS: {{ ansible_network_os }}"
           - "Management IP: {{ ansible_host }}"

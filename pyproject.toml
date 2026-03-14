@@ -87,6 +87,7 @@ select = [
 ignore = [
     "E501",  # line too long (handled by formatter)
     "S101",  # use of assert (common in tests)
+    "S110",  # try-except-pass (intentional in some scripts)
     "S603",  # subprocess without shell=True (intentional)
     "S607",  # starting process with partial path (intentional)
 ]
@@ -94,7 +95,16 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
     "S101",  # assert allowed in tests
+    "S104",  # binding to 0.0.0.0 in test data
+    "S108",  # /tmp usage in tests
+    "S110",  # try-except-pass in tests
+    "S602",  # shell=True in test subprocess calls
     "ARG",   # unused arguments common in fixtures
+    "E402",  # import order in test setup
+]
+"validation/**/*.py" = [
+    "S101",  # assert allowed in tests
+    "ARG",   # unused arguments in test helpers
 ]
 
 [tool.mypy]

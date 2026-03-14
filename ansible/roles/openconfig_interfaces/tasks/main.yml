@@ -28,7 +28,7 @@
       --update-value '{"name":"system0","type":"softwareLoopback","enabled":true}' \
       --update-path "openconfig:/interfaces/interface[name=system0]/subinterfaces/subinterface[index=0]/ipv4/addresses/address[ip={{ loopback_ip.split('/')[0] }}]/config" \
       --update-value '{"ip":"{{ loopback_ip.split('/')[0] }}","prefix-length":{{ loopback_ip.split('/')[1] }}}'
-  when: 
+  when:
     - loopback_ip is defined
     - system0_check.stdout == "null" or "false" in system0_check.stdout
   delegate_to: localhost
@@ -65,7 +65,7 @@
       --update-path "openconfig:/interfaces/interface[name={{ item.item.name }}]/subinterfaces/subinterface[index=0]/ipv4/addresses/address[ip={{ item.item.ip.split('/')[0] }}]/config" \
       --update-value '{"ip":"{{ item.item.ip.split('/')[0] }}","prefix-length":{{ item.item.ip.split('/')[1] }}}'
   loop: "{{ interface_check.results }}"
-  when: 
+  when:
     - item.item.ip is defined
     - item.stdout == "null" or "false" in item.stdout
   delegate_to: localhost

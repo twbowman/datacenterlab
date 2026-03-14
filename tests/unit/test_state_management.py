@@ -6,250 +6,229 @@ Tests state export, restore, comparison, and incremental updates.
 Validates: Requirements 15.1
 """
 
-import pytest
 import json
-import yaml
 from datetime import datetime
 from io import StringIO
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
+import pytest
+import yaml
 
 
 class TestStateExport:
     """Test lab state export functionality"""
-    
+
     def test_state_export_includes_topology(self):
         """Test that exported state includes topology definition"""
         state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'name': 'test-lab',
-                'nodes': {
-                    'spine1': {
-                        'kind': 'nokia_srlinux',
-                        'image': 'ghcr.io/nokia/srlinux:latest'
-                    }
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {
+                "name": "test-lab",
+                "nodes": {
+                    "spine1": {"kind": "nokia_srlinux", "image": "ghcr.io/nokia/srlinux:latest"}
+                },
+            },
         }
-        
+
         # Validate topology is included
-        assert 'topology' in state
-        assert 'nodes' in state['topology']
-        assert len(state['topology']['nodes']) > 0
-    
+        assert "topology" in state
+        assert "nodes" in state["topology"]
+        assert len(state["topology"]["nodes"]) > 0
+
     def test_state_export_includes_configurations(self):
         """Test that exported state includes device configurations"""
         state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'configurations': {
-                'spine1': {
-                    'vendor': 'nokia',
-                    'os': 'srlinux',
-                    'config': '{"interface": [{"name": "ethernet-1/1"}]}'
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "configurations": {
+                "spine1": {
+                    "vendor": "nokia",
+                    "os": "srlinux",
+                    "config": '{"interface": [{"name": "ethernet-1/1"}]}',
                 }
-            }
+            },
         }
-        
+
         # Validate configurations are included
-        assert 'configurations' in state
-        assert 'spine1' in state['configurations']
-        assert 'vendor' in state['configurations']['spine1']
-        assert 'os' in state['configurations']['spine1']
-        assert 'config' in state['configurations']['spine1']
-    
+        assert "configurations" in state
+        assert "spine1" in state["configurations"]
+        assert "vendor" in state["configurations"]["spine1"]
+        assert "os" in state["configurations"]["spine1"]
+        assert "config" in state["configurations"]["spine1"]
+
     def test_state_export_includes_metadata(self):
         """Test that exported state includes metadata"""
         state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'metadata': {
-                'created_by': 'user@example.com',
-                'description': 'Test lab snapshot',
-                'tags': ['production', 'evpn']
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "metadata": {
+                "created_by": "user@example.com",
+                "description": "Test lab snapshot",
+                "tags": ["production", "evpn"],
+            },
         }
-        
+
         # Validate metadata
-        assert 'metadata' in state
-        assert 'created_by' in state['metadata']
-        assert 'description' in state['metadata']
-        assert 'tags' in state['metadata']
-    
+        assert "metadata" in state
+        assert "created_by" in state["metadata"]
+        assert "description" in state["metadata"]
+        assert "tags" in state["metadata"]
+
     def test_state_export_includes_metrics_snapshot(self):
         """Test that exported state includes metrics snapshot"""
         state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'metrics_snapshot': {
-                'start_time': '2024-01-15T10:00:00Z',
-                'end_time': '2024-01-15T10:30:00Z',
-                'prometheus_snapshot': '/path/to/snapshot'
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "metrics_snapshot": {
+                "start_time": "2024-01-15T10:00:00Z",
+                "end_time": "2024-01-15T10:30:00Z",
+                "prometheus_snapshot": "/path/to/snapshot",
+            },
         }
-        
+
         # Validate metrics snapshot
-        assert 'metrics_snapshot' in state
-        assert 'start_time' in state['metrics_snapshot']
-        assert 'end_time' in state['metrics_snapshot']
-    
+        assert "metrics_snapshot" in state
+        assert "start_time" in state["metrics_snapshot"]
+        assert "end_time" in state["metrics_snapshot"]
+
     def test_state_export_version_information(self):
         """Test that exported state includes version information"""
-        state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab'
-        }
-        
+        state = {"version": "1.0", "timestamp": "2024-01-15T10:30:00Z", "lab_name": "test-lab"}
+
         # Validate version info
-        assert 'version' in state
-        assert 'timestamp' in state
-        
+        assert "version" in state
+        assert "timestamp" in state
+
         # Timestamp should be ISO 8601 format
         try:
-            datetime.fromisoformat(state['timestamp'].replace('Z', '+00:00'))
+            datetime.fromisoformat(state["timestamp"].replace("Z", "+00:00"))
             timestamp_valid = True
         except ValueError:
             timestamp_valid = False
-        
+
         assert timestamp_valid is True
-    
+
     def test_state_export_to_yaml_file(self):
         """Test that state can be exported to YAML file using mocked file operations"""
         state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'}
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {"nodes": {"spine1": {"kind": "nokia_srlinux"}}},
         }
-        
+
         # Mock file write operation
-        with patch('builtins.open', mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()) as mock_file:
             # Simulate writing state to file
-            with open('/tmp/state.yaml', 'w') as f:
+            with open("/tmp/state.yaml", "w") as f:
                 yaml.dump(state, f, default_flow_style=False)
-            
+
             # Verify file was opened for writing
-            mock_file.assert_called_once_with('/tmp/state.yaml', 'w')
-            
+            mock_file.assert_called_once_with("/tmp/state.yaml", "w")
+
             # Verify yaml.dump was called (content written to mock)
             handle = mock_file()
-            written_content = ''.join(call.args[0] for call in handle.write.call_args_list)
-            
+            written_content = "".join(call.args[0] for call in handle.write.call_args_list)
+
             # Verify written content is valid YAML
-            assert 'version:' in written_content or written_content != ''
-    
+            assert "version:" in written_content or written_content != ""
+
     def test_state_export_to_json_file(self):
         """Test that state can be exported to JSON file using mocked file operations"""
-        state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab'
-        }
-        
+        state = {"version": "1.0", "timestamp": "2024-01-15T10:30:00Z", "lab_name": "test-lab"}
+
         # Mock file write operation using StringIO
         output = StringIO()
         json.dump(state, output, indent=2)
-        
+
         # Get written content
         written_content = output.getvalue()
-        
+
         # Verify content is valid JSON
         parsed = json.loads(written_content)
         assert parsed == state
-        assert 'version' in written_content
-        assert 'timestamp' in written_content
+        assert "version" in written_content
+        assert "timestamp" in written_content
 
 
 class TestStateRestore:
     """Test lab state restore functionality"""
-    
+
     def test_state_restore_validates_snapshot(self):
         """Test that restore validates snapshot before applying"""
         snapshot = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {}
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {},
         }
-        
+
         # Validation checks
-        required_fields = ['version', 'timestamp', 'lab_name', 'topology']
-        
+        required_fields = ["version", "timestamp", "lab_name", "topology"]
+
         is_valid = all(field in snapshot for field in required_fields)
         assert is_valid is True
-    
+
     def test_state_restore_rejects_invalid_snapshot(self):
         """Test that restore rejects invalid snapshots"""
         invalid_snapshot = {
-            'version': '1.0'
+            "version": "1.0"
             # Missing required fields
         }
-        
-        required_fields = ['version', 'timestamp', 'lab_name', 'topology']
-        
+
+        required_fields = ["version", "timestamp", "lab_name", "topology"]
+
         is_valid = all(field in invalid_snapshot for field in required_fields)
         assert is_valid is False
-    
+
     def test_state_restore_validates_topology_structure(self):
         """Test that restore validates topology structure"""
         snapshot = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'name': 'test-lab',
-                'nodes': {
-                    'spine1': {
-                        'kind': 'nokia_srlinux',
-                        'image': 'ghcr.io/nokia/srlinux:latest'
-                    }
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {
+                "name": "test-lab",
+                "nodes": {
+                    "spine1": {"kind": "nokia_srlinux", "image": "ghcr.io/nokia/srlinux:latest"}
+                },
+            },
         }
-        
+
         # Validate topology structure
-        topology = snapshot['topology']
-        assert 'name' in topology
-        assert 'nodes' in topology
-        assert isinstance(topology['nodes'], dict)
-    
+        topology = snapshot["topology"]
+        assert "name" in topology
+        assert "nodes" in topology
+        assert isinstance(topology["nodes"], dict)
+
     def test_state_restore_validates_configuration_format(self):
         """Test that restore validates configuration format"""
         snapshot = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'configurations': {
-                'spine1': {
-                    'vendor': 'nokia',
-                    'os': 'srlinux',
-                    'config': '{"interface": []}'
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "configurations": {
+                "spine1": {"vendor": "nokia", "os": "srlinux", "config": '{"interface": []}'}
+            },
         }
-        
+
         # Validate configuration format
-        config = snapshot['configurations']['spine1']
-        assert 'vendor' in config
-        assert 'os' in config
-        assert 'config' in config
-        
+        config = snapshot["configurations"]["spine1"]
+        assert "vendor" in config
+        assert "os" in config
+        assert "config" in config
+
         # Config should be valid JSON
         try:
-            json.loads(config['config'])
+            json.loads(config["config"])
             config_valid = True
         except json.JSONDecodeError:
             config_valid = False
-        
+
         assert config_valid is True
-    
+
     def test_state_restore_from_yaml_file(self):
         """Test that state can be restored from YAML file using mocked file operations"""
         yaml_content = """
@@ -261,119 +240,109 @@ topology:
     spine1:
       kind: nokia_srlinux
 """
-        
+
         # Mock file read operation using StringIO
-        with patch('builtins.open', mock_open(read_data=yaml_content)):
-            with open('/tmp/state.yaml', 'r') as f:
+        with patch("builtins.open", mock_open(read_data=yaml_content)):
+            with open("/tmp/state.yaml") as f:
                 restored_state = yaml.safe_load(f)
-            
+
             # Verify state was restored correctly
-            assert restored_state['version'] == '1.0'
-            assert restored_state['lab_name'] == 'test-lab'
-            assert 'topology' in restored_state
-            assert 'spine1' in restored_state['topology']['nodes']
-    
+            assert restored_state["version"] == "1.0"
+            assert restored_state["lab_name"] == "test-lab"
+            assert "topology" in restored_state
+            assert "spine1" in restored_state["topology"]["nodes"]
+
     def test_state_restore_from_json_file(self):
         """Test that state can be restored from JSON file using mocked file operations"""
         state_data = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'}
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {"nodes": {"spine1": {"kind": "nokia_srlinux"}}},
         }
-        
+
         json_content = json.dumps(state_data)
-        
+
         # Mock file read operation using StringIO
         input_stream = StringIO(json_content)
         restored_state = json.load(input_stream)
-        
+
         # Verify state was restored correctly
         assert restored_state == state_data
-        assert restored_state['version'] == '1.0'
-        assert restored_state['lab_name'] == 'test-lab'
-    
+        assert restored_state["version"] == "1.0"
+        assert restored_state["lab_name"] == "test-lab"
+
     def test_state_restore_handles_file_read_errors(self):
         """Test that restore handles file read errors gracefully"""
         # Mock file read operation that raises an error
-        with patch('builtins.open', side_effect=FileNotFoundError('File not found')):
+        with patch("builtins.open", side_effect=FileNotFoundError("File not found")):
             try:
-                with open('/tmp/nonexistent.yaml', 'r') as f:
+                with open("/tmp/nonexistent.yaml") as f:
                     yaml.safe_load(f)
                 file_error_raised = False
             except FileNotFoundError:
                 file_error_raised = True
-        
+
         # Verify error was raised as expected
         assert file_error_raised is True
 
 
 class TestStateComparison:
     """Test state comparison functionality"""
-    
+
     def test_compare_topology_changes(self):
         """Test comparison of topology changes"""
         snapshot1 = {
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'},
-                    'leaf1': {'kind': 'nokia_srlinux'}
-                }
+            "topology": {
+                "nodes": {"spine1": {"kind": "nokia_srlinux"}, "leaf1": {"kind": "nokia_srlinux"}}
             }
         }
-        
+
         snapshot2 = {
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'},
-                    'leaf1': {'kind': 'nokia_srlinux'},
-                    'leaf2': {'kind': 'nokia_srlinux'}  # Added
+            "topology": {
+                "nodes": {
+                    "spine1": {"kind": "nokia_srlinux"},
+                    "leaf1": {"kind": "nokia_srlinux"},
+                    "leaf2": {"kind": "nokia_srlinux"},  # Added
                 }
             }
         }
-        
+
         # Find differences
-        nodes1 = set(snapshot1['topology']['nodes'].keys())
-        nodes2 = set(snapshot2['topology']['nodes'].keys())
-        
+        nodes1 = set(snapshot1["topology"]["nodes"].keys())
+        nodes2 = set(snapshot2["topology"]["nodes"].keys())
+
         added = nodes2 - nodes1
         removed = nodes1 - nodes2
-        
-        assert 'leaf2' in added
+
+        assert "leaf2" in added
         assert len(removed) == 0
-    
+
     def test_compare_configuration_changes(self):
         """Test comparison of configuration changes"""
-        config1 = {
-            'bgp': {
-                'asn': 65001,
-                'router_id': '10.0.0.1'
-            }
-        }
-        
+        config1 = {"bgp": {"asn": 65001, "router_id": "10.0.0.1"}}
+
         config2 = {
-            'bgp': {
-                'asn': 65001,
-                'router_id': '10.0.0.2'  # Changed
+            "bgp": {
+                "asn": 65001,
+                "router_id": "10.0.0.2",  # Changed
             }
         }
-        
+
         # Find differences
         changes = []
-        if config1['bgp']['router_id'] != config2['bgp']['router_id']:
-            changes.append({
-                'field': 'bgp.router_id',
-                'old': config1['bgp']['router_id'],
-                'new': config2['bgp']['router_id']
-            })
-        
+        if config1["bgp"]["router_id"] != config2["bgp"]["router_id"]:
+            changes.append(
+                {
+                    "field": "bgp.router_id",
+                    "old": config1["bgp"]["router_id"],
+                    "new": config2["bgp"]["router_id"],
+                }
+            )
+
         assert len(changes) == 1
-        assert changes[0]['field'] == 'bgp.router_id'
-    
+        assert changes[0]["field"] == "bgp.router_id"
+
     def test_generate_configuration_diff(self):
         """Test generation of configuration diff"""
         config1 = """
@@ -381,346 +350,304 @@ interface ethernet-1/1
   description to leaf1
   ip address 10.1.1.0/31
 """
-        
+
         config2 = """
 interface ethernet-1/1
   description to leaf1
   ip address 10.1.1.2/31
 """
-        
+
         # Simple diff detection
-        lines1 = config1.strip().split('\n')
-        lines2 = config2.strip().split('\n')
-        
+        lines1 = config1.strip().split("\n")
+        lines2 = config2.strip().split("\n")
+
         diff = []
-        for i, (line1, line2) in enumerate(zip(lines1, lines2)):
+        for i, (line1, line2) in enumerate(zip(lines1, lines2, strict=False)):
             if line1 != line2:
-                diff.append({
-                    'line': i + 1,
-                    'old': line1,
-                    'new': line2
-                })
-        
+                diff.append({"line": i + 1, "old": line1, "new": line2})
+
         assert len(diff) > 0
-        assert 'ip address' in diff[0]['old']
-    
+        assert "ip address" in diff[0]["old"]
+
     def test_compare_metrics_snapshots(self):
         """Test comparison of metrics snapshots"""
         snapshot1 = {
-            'metrics_snapshot': {
-                'start_time': '2024-01-15T10:00:00Z',
-                'end_time': '2024-01-15T10:30:00Z'
+            "metrics_snapshot": {
+                "start_time": "2024-01-15T10:00:00Z",
+                "end_time": "2024-01-15T10:30:00Z",
             }
         }
-        
+
         snapshot2 = {
-            'metrics_snapshot': {
-                'start_time': '2024-01-15T11:00:00Z',
-                'end_time': '2024-01-15T11:30:00Z'
+            "metrics_snapshot": {
+                "start_time": "2024-01-15T11:00:00Z",
+                "end_time": "2024-01-15T11:30:00Z",
             }
         }
-        
+
         # Compare time ranges
-        assert snapshot1['metrics_snapshot']['start_time'] != snapshot2['metrics_snapshot']['start_time']
+        assert (
+            snapshot1["metrics_snapshot"]["start_time"]
+            != snapshot2["metrics_snapshot"]["start_time"]
+        )
 
 
 class TestIncrementalUpdates:
     """Test incremental state update functionality"""
-    
+
     def test_incremental_update_configuration_only(self):
         """Test incremental update with configuration changes only"""
         current_state = {
-            'topology': {'nodes': {'spine1': {}}},
-            'configurations': {
-                'spine1': {'config': 'old_config'}
-            }
+            "topology": {"nodes": {"spine1": {}}},
+            "configurations": {"spine1": {"config": "old_config"}},
         }
-        
+
         target_state = {
-            'topology': {'nodes': {'spine1': {}}},  # Unchanged
-            'configurations': {
-                'spine1': {'config': 'new_config'}  # Changed
-            }
+            "topology": {"nodes": {"spine1": {}}},  # Unchanged
+            "configurations": {
+                "spine1": {"config": "new_config"}  # Changed
+            },
         }
-        
+
         # Calculate what needs updating
-        topology_changed = current_state['topology'] != target_state['topology']
-        config_changed = current_state['configurations'] != target_state['configurations']
-        
+        topology_changed = current_state["topology"] != target_state["topology"]
+        config_changed = current_state["configurations"] != target_state["configurations"]
+
         assert topology_changed is False
         assert config_changed is True
-    
+
     def test_incremental_update_topology_changes(self):
         """Test incremental update with topology changes"""
-        current_state = {
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'}
-                }
-            }
-        }
-        
+        current_state = {"topology": {"nodes": {"spine1": {"kind": "nokia_srlinux"}}}}
+
         target_state = {
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'},
-                    'leaf1': {'kind': 'nokia_srlinux'}  # Added
+            "topology": {
+                "nodes": {
+                    "spine1": {"kind": "nokia_srlinux"},
+                    "leaf1": {"kind": "nokia_srlinux"},  # Added
                 }
             }
         }
-        
+
         # Find nodes to add
-        current_nodes = set(current_state['topology']['nodes'].keys())
-        target_nodes = set(target_state['topology']['nodes'].keys())
-        
+        current_nodes = set(current_state["topology"]["nodes"].keys())
+        target_nodes = set(target_state["topology"]["nodes"].keys())
+
         nodes_to_add = target_nodes - current_nodes
         nodes_to_remove = current_nodes - target_nodes
-        
-        assert 'leaf1' in nodes_to_add
+
+        assert "leaf1" in nodes_to_add
         assert len(nodes_to_remove) == 0
-    
+
     def test_incremental_update_avoids_full_redeployment(self):
         """Test that incremental update avoids full redeployment"""
         # Mock update scenario
         full_redeployment_needed = False
-        
+
         # Only configuration changed, not topology
         topology_changed = False
         config_changed = True
-        
+
         if topology_changed:
             full_redeployment_needed = True
-        
+
         assert full_redeployment_needed is False
         assert config_changed is True
 
 
 class TestVersionControlFriendlyFormat:
     """Test version control friendly format"""
-    
+
     def test_state_exports_as_yaml(self):
         """Test that state can be exported as YAML"""
         state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'}
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {"nodes": {"spine1": {"kind": "nokia_srlinux"}}},
         }
-        
+
         # Export as YAML
         yaml_str = yaml.dump(state, default_flow_style=False, sort_keys=False)
-        
+
         # Should be valid YAML
         parsed = yaml.safe_load(yaml_str)
         assert parsed == state
-    
+
     def test_state_exports_as_json(self):
         """Test that state can be exported as JSON"""
-        state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab'
-        }
-        
+        state = {"version": "1.0", "timestamp": "2024-01-15T10:30:00Z", "lab_name": "test-lab"}
+
         # Export as JSON
         json_str = json.dumps(state, indent=2)
-        
+
         # Should be valid JSON
         parsed = json.loads(json_str)
         assert parsed == state
-    
+
     def test_yaml_format_is_readable(self):
         """Test that YAML format is human-readable"""
         state = {
-            'version': '1.0',
-            'lab_name': 'test-lab',
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'}
-                }
-            }
+            "version": "1.0",
+            "lab_name": "test-lab",
+            "topology": {"nodes": {"spine1": {"kind": "nokia_srlinux"}}},
         }
-        
+
         yaml_str = yaml.dump(state, default_flow_style=False, sort_keys=False)
-        
+
         # YAML should not use flow style (inline)
-        assert '{' not in yaml_str or yaml_str.count('{') < 3
-        
+        assert "{" not in yaml_str or yaml_str.count("{") < 3
+
         # Should have proper indentation
-        assert '  ' in yaml_str
-    
+        assert "  " in yaml_str
+
     def test_keys_are_sorted_for_consistency(self):
         """Test that keys can be sorted for consistent diffs"""
         state = {
-            'topology': {},
-            'version': '1.0',
-            'lab_name': 'test-lab',
-            'timestamp': '2024-01-15T10:30:00Z'
+            "topology": {},
+            "version": "1.0",
+            "lab_name": "test-lab",
+            "timestamp": "2024-01-15T10:30:00Z",
         }
-        
+
         # Export with sorted keys
         yaml_str = yaml.dump(state, default_flow_style=False, sort_keys=True)
-        
+
         # Keys should be in alphabetical order
-        lines = yaml_str.split('\n')
-        keys = [line.split(':')[0] for line in lines if ':' in line and not line.startswith(' ')]
-        
+        lines = yaml_str.split("\n")
+        keys = [line.split(":")[0] for line in lines if ":" in line and not line.startswith(" ")]
+
         # Check if sorted
         assert keys == sorted(keys)
 
 
 class TestStateSnapshotMetadata:
     """Test state snapshot metadata"""
-    
+
     def test_snapshot_includes_timestamp(self):
         """Test that snapshot includes creation timestamp"""
-        snapshot = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z'
-        }
-        
-        assert 'timestamp' in snapshot
-        
+        snapshot = {"version": "1.0", "timestamp": "2024-01-15T10:30:00Z"}
+
+        assert "timestamp" in snapshot
+
         # Validate ISO 8601 format
         try:
-            datetime.fromisoformat(snapshot['timestamp'].replace('Z', '+00:00'))
+            datetime.fromisoformat(snapshot["timestamp"].replace("Z", "+00:00"))
             valid = True
         except ValueError:
             valid = False
-        
+
         assert valid is True
-    
+
     def test_snapshot_includes_version(self):
         """Test that snapshot includes version information"""
-        snapshot = {
-            'version': '1.0'
-        }
-        
-        assert 'version' in snapshot
-        
+        snapshot = {"version": "1.0"}
+
+        assert "version" in snapshot
+
         # Version should follow semantic versioning
         import re
-        version_pattern = r'^\d+\.\d+$'
-        assert re.match(version_pattern, snapshot['version'])
-    
+
+        version_pattern = r"^\d+\.\d+$"
+        assert re.match(version_pattern, snapshot["version"])
+
     def test_snapshot_includes_description(self):
         """Test that snapshot can include description"""
         snapshot = {
-            'version': '1.0',
-            'metadata': {
-                'description': 'Snapshot before EVPN deployment',
-                'created_by': 'user@example.com',
-                'tags': ['pre-deployment', 'baseline']
-            }
+            "version": "1.0",
+            "metadata": {
+                "description": "Snapshot before EVPN deployment",
+                "created_by": "user@example.com",
+                "tags": ["pre-deployment", "baseline"],
+            },
         }
-        
-        assert 'metadata' in snapshot
-        assert 'description' in snapshot['metadata']
-        assert 'created_by' in snapshot['metadata']
-        assert 'tags' in snapshot['metadata']
+
+        assert "metadata" in snapshot
+        assert "description" in snapshot["metadata"]
+        assert "created_by" in snapshot["metadata"]
+        assert "tags" in snapshot["metadata"]
 
 
 class TestStateRoundTrip:
     """Test state export and restore round-trip"""
-    
+
     def test_export_restore_preserves_topology(self):
         """Test that export then restore preserves topology"""
         original_state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'}
-                }
-            }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {"nodes": {"spine1": {"kind": "nokia_srlinux"}}},
         }
-        
+
         # Simulate export (to YAML)
         exported = yaml.dump(original_state)
-        
+
         # Simulate restore (from YAML)
         restored_state = yaml.safe_load(exported)
-        
+
         # Should be identical
-        assert restored_state['topology'] == original_state['topology']
-    
+        assert restored_state["topology"] == original_state["topology"]
+
     def test_export_restore_preserves_configurations(self):
         """Test that export then restore preserves configurations"""
         original_config = {
-            'spine1': {
-                'vendor': 'nokia',
-                'os': 'srlinux',
-                'config': '{"interface": []}'
-            }
+            "spine1": {"vendor": "nokia", "os": "srlinux", "config": '{"interface": []}'}
         }
-        
+
         # Simulate export/restore
         exported = json.dumps(original_config)
         restored_config = json.loads(exported)
-        
+
         assert restored_config == original_config
-    
+
     def test_export_restore_roundtrip_with_mocked_files(self):
         """Test complete export/restore cycle using mocked file operations"""
         original_state = {
-            'version': '1.0',
-            'timestamp': '2024-01-15T10:30:00Z',
-            'lab_name': 'test-lab',
-            'topology': {
-                'nodes': {
-                    'spine1': {'kind': 'nokia_srlinux'},
-                    'leaf1': {'kind': 'nokia_srlinux'}
-                }
+            "version": "1.0",
+            "timestamp": "2024-01-15T10:30:00Z",
+            "lab_name": "test-lab",
+            "topology": {
+                "nodes": {"spine1": {"kind": "nokia_srlinux"}, "leaf1": {"kind": "nokia_srlinux"}}
             },
-            'configurations': {
-                'spine1': {'vendor': 'nokia', 'config': '{}'}
-            }
+            "configurations": {"spine1": {"vendor": "nokia", "config": "{}"}},
         }
-        
+
         # Export to StringIO (simulates file write)
         export_buffer = StringIO()
         yaml.dump(original_state, export_buffer, default_flow_style=False)
-        
+
         # Get exported content
         exported_content = export_buffer.getvalue()
-        
+
         # Import from StringIO (simulates file read)
         import_buffer = StringIO(exported_content)
         restored_state = yaml.safe_load(import_buffer)
-        
+
         # Verify complete preservation
         assert restored_state == original_state
-        assert restored_state['topology'] == original_state['topology']
-        assert restored_state['configurations'] == original_state['configurations']
-    
+        assert restored_state["topology"] == original_state["topology"]
+        assert restored_state["configurations"] == original_state["configurations"]
+
     def test_export_restore_with_mock_open(self):
         """Test export/restore using mock_open for file operations"""
-        state = {
-            'version': '1.0',
-            'lab_name': 'test-lab',
-            'topology': {'nodes': {}}
-        }
-        
+        state = {"version": "1.0", "lab_name": "test-lab", "topology": {"nodes": {}}}
+
         # Mock export operation
-        with patch('builtins.open', mock_open()) as mock_file:
-            with open('/tmp/export.yaml', 'w') as f:
+        with patch("builtins.open", mock_open()) as mock_file:
+            with open("/tmp/export.yaml", "w") as f:
                 yaml.dump(state, f)
-            
-            mock_file.assert_called_with('/tmp/export.yaml', 'w')
-        
+
+            mock_file.assert_called_with("/tmp/export.yaml", "w")
+
         # Mock import operation
         yaml_content = yaml.dump(state)
-        with patch('builtins.open', mock_open(read_data=yaml_content)):
-            with open('/tmp/export.yaml', 'r') as f:
+        with patch("builtins.open", mock_open(read_data=yaml_content)):
+            with open("/tmp/export.yaml") as f:
                 restored = yaml.safe_load(f)
-            
+
             assert restored == state
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

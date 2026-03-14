@@ -27,7 +27,7 @@ all:
             - name: ethernet-1/2
               ip: 10.1.2.0/31
               description: "to-leaf2"
-        
+
         leaf1:
           ansible_host: 172.20.20.21
           router_id: 10.0.1.1
@@ -63,7 +63,7 @@ all:
             - name: ethernet-1/2
               ip: 10.2.2.0/31
               description: "to-leaf2"
-        
+
         leaf2:
           ansible_host: 172.20.20.22
           router_id: 10.0.1.2
@@ -108,7 +108,7 @@ all:
         arista_spines:
           hosts:
             spine2:
-    
+
     leafs:
       children:
         srlinux_leafs:

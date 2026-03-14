@@ -6,11 +6,11 @@
 - name: Configure Multi-Vendor Datacenter Network
   hosts: all
   gather_facts: false
-  
+
   tasks:
     - name: Display deployment information
       debug:
-        msg: 
+        msg:
           - "Configuring device: {{ inventory_hostname }}"
           - "Network OS: {{ ansible_network_os | default('not detected') }}"
           - "Management IP: {{ ansible_host }}"
@@ -94,14 +94,14 @@
             msg: |
               ✗ Configuration failed for SR Linux device {{ inventory_hostname }}
               Error: {{ ansible_failed_result.msg | default('Unknown error') }}
-              
+
               Remediation suggestions:
               - Verify device is reachable: ping {{ ansible_host }}
               - Check gNMI service is running on port {{ gnmi_port }}
               - Verify credentials: username={{ gnmi_username }}
               - Review configuration syntax in inventory
               - Check device logs for detailed error messages
-              
+
               Attempting automatic rollback...
 
         - name: Execute rollback for SR Linux
@@ -128,7 +128,7 @@
               Arista EOS configuration roles are not yet implemented.
               This is a placeholder for future implementation (Task 4).
               Device {{ inventory_hostname }} will be skipped.
-          
+
         - name: Skip Arista device gracefully
           meta: end_host
       rescue:
@@ -137,14 +137,14 @@
             msg: |
               ✗ Configuration failed for Arista EOS device {{ inventory_hostname }}
               Error: {{ ansible_failed_result.msg | default('Unknown error') }}
-              
+
               Remediation suggestions:
               - Verify device is reachable: ping {{ ansible_host }}
               - Check eAPI/gNMI service is running
               - Verify credentials: username={{ ansible_user }}
               - Review configuration syntax in inventory
               - Check device logs for detailed error messages
-              
+
               Attempting automatic rollback...
 
         - name: Execute rollback for Arista EOS
@@ -185,14 +185,14 @@
             msg: |
               ✗ Configuration failed for SONiC device {{ inventory_hostname }}
               Error: {{ ansible_failed_result.msg | default('Unknown error') }}
-              
+
               Remediation suggestions:
               - Verify device is reachable: ping {{ ansible_host }}
               - Check REST API service is running
               - Verify credentials: username={{ ansible_user }}
               - Review configuration syntax in inventory
               - Check device logs for detailed error messages
-              
+
               Attempting automatic rollback...
 
         - name: Execute rollback for SONiC
@@ -233,14 +233,14 @@
             msg: |
               ✗ Configuration failed for Juniper device {{ inventory_hostname }}
               Error: {{ ansible_failed_result.msg | default('Unknown error') }}
-              
+
               Remediation suggestions:
               - Verify device is reachable: ping {{ ansible_host }}
               - Check NETCONF service is running
               - Verify credentials: username={{ ansible_user }}
               - Review configuration syntax in inventory
               - Check device logs for detailed error messages
-              
+
               Attempting automatic rollback...
 
         - name: Execute rollback for Juniper

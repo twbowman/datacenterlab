@@ -5,7 +5,7 @@
 - name: Configure EVPN/VXLAN on Arista EOS Devices
   hosts: all
   gather_facts: false
-  
+
   tasks:
     - name: Display EVPN deployment information
       debug:

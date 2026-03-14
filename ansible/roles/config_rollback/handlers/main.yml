@@ -3,7 +3,7 @@
 
 - name: Execute rollback
   include_tasks: "../tasks/rollback_{{ normalized_os }}.yml"
-  when: 
+  when:
     - rollback_available | default(false)
     - normalized_os is defined
 

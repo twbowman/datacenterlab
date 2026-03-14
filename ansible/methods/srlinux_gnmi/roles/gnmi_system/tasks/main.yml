@@ -16,5 +16,3 @@
   changed_when: "'UPDATE' in lldp_result.stdout"
   failed_when: lldp_result.rc != 0
   tags: [system, lldp]
-
-

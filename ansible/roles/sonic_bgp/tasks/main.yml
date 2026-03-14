@@ -84,7 +84,7 @@
             route_reflector_client: true
     state: merged
   loop: "{{ bgp_neighbors }}"
-  when: 
+  when:
     - bgp_role is defined
     - bgp_role == 'route_reflector'
     - bgp_neighbors is defined

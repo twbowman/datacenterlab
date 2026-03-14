@@ -3,7 +3,7 @@ name: example-evpn-vxlan
 topology:
   defaults:
     kind: linux
-  
+
   groups:
     srlinux-router:
       kind: nokia_srlinux
@@ -20,7 +20,7 @@ topology:
         os: srlinux
         role: spine
         bgp_role: route_reflector
-    
+
     spine2:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.11
@@ -29,7 +29,7 @@ topology:
         os: srlinux
         role: spine
         bgp_role: route_reflector
-    
+
     # === Leaf Routers (VXLAN VTEPs) ===
     leaf1:
       group: srlinux-router
@@ -40,7 +40,7 @@ topology:
         role: leaf
         vtep: "true"
         vni_range: "10010-10040"
-    
+
     leaf2:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.22
@@ -50,7 +50,7 @@ topology:
         role: leaf
         vtep: "true"
         vni_range: "10010-10040"
-    
+
     leaf3:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.23
@@ -60,7 +60,7 @@ topology:
         role: leaf
         vtep: "true"
         vni_range: "10010-10040"
-    
+
     leaf4:
       group: srlinux-router
       mgmt-ipv4: 172.20.20.24
@@ -70,7 +70,7 @@ topology:
         role: leaf
         vtep: "true"
         vni_range: "10010-10040"
-    
+
     # === Client Nodes (Different VLANs/VNIs) ===
     # Tenant 1 - VLAN 10, VNI 10010
     client1:
@@ -84,7 +84,7 @@ topology:
       exec:
         - ip addr add 10.10.1.10/24 dev eth1
         - ip route add 10.10.0.0/16 via 10.10.1.1
-    
+
     # Tenant 2 - VLAN 20, VNI 10020
     client2:
       kind: linux
@@ -97,7 +97,7 @@ topology:
       exec:
         - ip addr add 10.10.2.10/24 dev eth1
         - ip route add 10.10.0.0/16 via 10.10.2.1
-    
+
     # Tenant 1 - VLAN 10, VNI 10010 (same as client1)
     client3:
       kind: linux
@@ -110,7 +110,7 @@ topology:
       exec:
         - ip addr add 10.10.1.11/24 dev eth1
         - ip route add 10.10.0.0/16 via 10.10.1.1
-    
+
     # Tenant 2 - VLAN 20, VNI 10020 (same as client2)
     client4:
       kind: linux
@@ -130,18 +130,18 @@ topology:
     - endpoints: ["spine1:ethernet-1/2", "leaf2:ethernet-1/1"]
     - endpoints: ["spine1:ethernet-1/3", "leaf3:ethernet-1/1"]
     - endpoints: ["spine1:ethernet-1/4", "leaf4:ethernet-1/1"]
-    
+
     # Spine2 to all Leafs (Underlay)
     - endpoints: ["spine2:ethernet-1/1", "leaf1:ethernet-1/2"]
     - endpoints: ["spine2:ethernet-1/2", "leaf2:ethernet-1/2"]
     - endpoints: ["spine2:ethernet-1/3", "leaf3:ethernet-1/2"]
     - endpoints: ["spine2:ethernet-1/4", "leaf4:ethernet-1/2"]
-    
+
     # Clients to Leafs (Access)
     # Tenant 1 clients on leaf1 and leaf3
     - endpoints: ["leaf1:ethernet-1/3", "client1:eth1"]
     - endpoints: ["leaf3:ethernet-1/3", "client3:eth1"]
-    
+
     # Tenant 2 clients on leaf2 and leaf4
     - endpoints: ["leaf2:ethernet-1/3", "client2:eth1"]
     - endpoints: ["leaf4:ethernet-1/3", "client4:eth1"]

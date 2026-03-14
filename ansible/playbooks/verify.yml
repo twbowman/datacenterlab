@@ -72,7 +72,7 @@
           ========================================
           Network Verification Complete
           ========================================
-          
+
           Use tags to verify specific components:
             - LLDP only: ansible-playbook playbooks/verify.yml --tags lldp
             - BGP only: ansible-playbook playbooks/verify.yml --tags bgp

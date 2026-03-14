@@ -29,7 +29,7 @@
               activate: true
     state: merged
   loop: "{{ bgp_neighbors }}"
-  when: 
+  when:
     - evpn_vxlan.bgp_evpn.enabled | default(false)
     - bgp_neighbors is defined
 
@@ -49,7 +49,7 @@
               route_reflector_client: true
     state: merged
   loop: "{{ bgp_neighbors }}"
-  when: 
+  when:
     - evpn_vxlan.bgp_evpn.enabled | default(false)
     - evpn_vxlan.bgp_evpn.route_reflector | default(false)
     - bgp_role is defined
@@ -67,7 +67,7 @@
         description: "VXLAN Tunnel Interface"
         enabled: true
     state: merged
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -76,7 +76,7 @@
     config:
       source_interface: "{{ evpn_vxlan.tunnel.source_interface | default('Loopback0') }}"
     state: merged
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -85,7 +85,7 @@
     config:
       udp_port: "{{ evpn_vxlan.tunnel.udp_port | default(4789) }}"
     state: merged
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -101,7 +101,7 @@
         state: active
     state: merged
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - evpn_vxlan.vlan_vni_mappings is defined
@@ -118,7 +118,7 @@
           vni: "{{ item.vni }}"
     state: merged
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - evpn_vxlan.vlan_vni_mappings is defined
@@ -142,7 +142,7 @@
                   - "{{ asn }}:{{ item.vni }}"
     state: merged
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - evpn_vxlan.vlan_vni_mappings is defined
@@ -158,7 +158,7 @@
         description: "L3 VNI VRF for {{ item.vrf_name }}"
     state: merged
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -170,7 +170,7 @@
         state: active
     state: merged
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -183,7 +183,7 @@
           vrf: "{{ item.vrf_name }}"
     state: merged
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -199,7 +199,7 @@
             - protocol: "connected"
     state: merged
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -217,7 +217,7 @@
             export: "{{ item.route_target.export }}"
     state: merged
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -229,7 +229,7 @@
   arista.eos.eos_config:
     lines:
       - "ip virtual-router mac-address {{ evpn_vxlan.anycast_gateway.virtual_mac }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - evpn_vxlan.anycast_gateway.enabled | default(false)
     - "'leaf' in inventory_hostname"
@@ -241,6 +241,6 @@
 - name: Display EVPN/VXLAN configuration results
   ansible.builtin.debug:
     msg: "EVPN/VXLAN configured on {{ inventory_hostname }} - {{ evpn_vxlan.vlan_vni_mappings | length }} VLANs mapped to VNIs"
-  when: 
+  when:
     - eos_evpn_debug | default(false)
     - evpn_vxlan.vlan_vni_mappings is defined

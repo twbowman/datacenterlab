@@ -1,5 +1,5 @@
 # Vendor-Specific to OpenConfig Path Mappings
-# 
+#
 # This file documents the mapping between vendor-specific telemetry paths
 # and normalized OpenConfig paths for all supported vendors in the lab.
 #
@@ -27,7 +27,7 @@
 interface_counters:
   description: "Interface traffic counters (octets, packets, errors, discards)"
   openconfig_support: "Excellent - all vendors support this path"
-  
+
   # Normalized metric names (target output)
   normalized_metrics:
     - network_interface_in_octets
@@ -38,191 +38,185 @@ interface_counters:
     - network_interface_out_errors
     - network_interface_in_discards
     - network_interface_out_discards
-  
+
   # Vendor-specific paths and mappings
   vendors:
     sr_linux:
       openconfig_path: "/interfaces/interface/state/counters"
       native_path: "/interface[name=*]/statistics"
       recommendation: "Use OpenConfig path for universal compatibility"
-      
+
       mappings:
         in_octets:
           openconfig: "/interfaces/interface/state/counters/in-octets"
           native: "/interface/statistics/in-octets"
           normalized: "network_interface_in_octets"
-        
+
         out_octets:
           openconfig: "/interfaces/interface/state/counters/out-octets"
           native: "/interface/statistics/out-octets"
           normalized: "network_interface_out_octets"
-        
+
         in_packets:
           openconfig: "/interfaces/interface/state/counters/in-pkts"
           native: "/interface/statistics/in-packets"
           normalized: "network_interface_in_packets"
-        
+
         out_packets:
           openconfig: "/interfaces/interface/state/counters/out-pkts"
           native: "/interface/statistics/out-packets"
           normalized: "network_interface_out_packets"
-        
+
         in_errors:
           openconfig: "/interfaces/interface/state/counters/in-errors"
           native: "/interface/statistics/in-error-packets"
           normalized: "network_interface_in_errors"
-        
+
         out_errors:
           openconfig: "/interfaces/interface/state/counters/out-errors"
           native: "/interface/statistics/out-error-packets"
           normalized: "network_interface_out_errors"
-        
+
         in_discards:
           openconfig: "/interfaces/interface/state/counters/in-discards"
           native: "/interface/statistics/in-discarded-packets"
           normalized: "network_interface_in_discards"
-        
+
         out_discards:
           openconfig: "/interfaces/interface/state/counters/out-discards"
           native: "/interface/statistics/out-discarded-packets"
           normalized: "network_interface_out_discards"
-
-    
     arista_eos:
       openconfig_path: "/interfaces/interface/state/counters"
       native_path: "/Sysdb/interface/counter/eth/slice/phy/*/intfCounterDir/*/intfCounter"
       recommendation: "Use OpenConfig path - excellent support"
-      
+
       mappings:
         in_octets:
           openconfig: "/interfaces/interface/state/counters/in-octets"
           native: "/Sysdb/.../inOctets"
           normalized: "network_interface_in_octets"
-        
+
         out_octets:
           openconfig: "/interfaces/interface/state/counters/out-octets"
           native: "/Sysdb/.../outOctets"
           normalized: "network_interface_out_octets"
-        
+
         in_packets:
           openconfig: "/interfaces/interface/state/counters/in-pkts"
           native: "/Sysdb/.../inUcastPkts"
           normalized: "network_interface_in_packets"
-        
+
         out_packets:
           openconfig: "/interfaces/interface/state/counters/out-pkts"
           native: "/Sysdb/.../outUcastPkts"
           normalized: "network_interface_out_packets"
-        
+
         in_errors:
           openconfig: "/interfaces/interface/state/counters/in-errors"
           native: "/Sysdb/.../inErrors"
           normalized: "network_interface_in_errors"
-        
+
         out_errors:
           openconfig: "/interfaces/interface/state/counters/out-errors"
           native: "/Sysdb/.../outErrors"
           normalized: "network_interface_out_errors"
-        
+
         in_discards:
           openconfig: "/interfaces/interface/state/counters/in-discards"
           native: "/Sysdb/.../inDiscards"
           normalized: "network_interface_in_discards"
-        
+
         out_discards:
           openconfig: "/interfaces/interface/state/counters/out-discards"
           native: "/Sysdb/.../outDiscards"
           normalized: "network_interface_out_discards"
-
-    
     sonic:
       openconfig_path: "/interfaces/interface/state/counters"
       native_path: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters"
       recommendation: "Use OpenConfig path - good support"
-      
+
       mappings:
         in_octets:
           openconfig: "/interfaces/interface/state/counters/in-octets"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-octets"
           normalized: "network_interface_in_octets"
-        
+
         out_octets:
           openconfig: "/interfaces/interface/state/counters/out-octets"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-octets"
           normalized: "network_interface_out_octets"
-        
+
         in_packets:
           openconfig: "/interfaces/interface/state/counters/in-pkts"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-pkts"
           normalized: "network_interface_in_packets"
-        
+
         out_packets:
           openconfig: "/interfaces/interface/state/counters/out-pkts"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-pkts"
           normalized: "network_interface_out_packets"
-        
+
         in_errors:
           openconfig: "/interfaces/interface/state/counters/in-errors"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-errors"
           normalized: "network_interface_in_errors"
-        
+
         out_errors:
           openconfig: "/interfaces/interface/state/counters/out-errors"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-errors"
           normalized: "network_interface_out_errors"
-        
+
         in_discards:
           openconfig: "/interfaces/interface/state/counters/in-discards"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/in-discards"
           normalized: "network_interface_in_discards"
-        
+
         out_discards:
           openconfig: "/interfaces/interface/state/counters/out-discards"
           native: "/sonic-port:sonic-port/PORT/PORT_LIST/state/counters/out-discards"
           normalized: "network_interface_out_discards"
-
-    
     juniper:
       openconfig_path: "/interfaces/interface/state/counters"
       native_path: "/junos/system/linecard/interface/logical/usage"
       recommendation: "Use OpenConfig path - good support"
-      
+
       mappings:
         in_octets:
           openconfig: "/interfaces/interface/state/counters/in-octets"
           native: "/junos/.../in-octets"
           normalized: "network_interface_in_octets"
-        
+
         out_octets:
           openconfig: "/interfaces/interface/state/counters/out-octets"
           native: "/junos/.../out-octets"
           normalized: "network_interface_out_octets"
-        
+
         in_packets:
           openconfig: "/interfaces/interface/state/counters/in-pkts"
           native: "/junos/.../in-pkts"
           normalized: "network_interface_in_packets"
-        
+
         out_packets:
           openconfig: "/interfaces/interface/state/counters/out-pkts"
           native: "/junos/.../out-pkts"
           normalized: "network_interface_out_packets"
-        
+
         in_errors:
           openconfig: "/interfaces/interface/state/counters/in-errors"
           native: "/junos/.../in-errors"
           normalized: "network_interface_in_errors"
-        
+
         out_errors:
           openconfig: "/interfaces/interface/state/counters/out-errors"
           native: "/junos/.../out-errors"
           normalized: "network_interface_out_errors"
-        
+
         in_discards:
           openconfig: "/interfaces/interface/state/counters/in-discards"
           native: "/junos/.../in-discards"
           normalized: "network_interface_in_discards"
-        
+
         out_discards:
           openconfig: "/interfaces/interface/state/counters/out-discards"
           native: "/junos/.../out-discards"
@@ -237,8 +231,6 @@ interface_counters:
 bgp_metrics:
   description: "BGP neighbor state, session statistics, and route counts"
   openconfig_support: "Good for basic state, limited for advanced features"
-
-  
   # Normalized metric names (target output)
   normalized_metrics:
     - network_bgp_session_state
@@ -249,121 +241,117 @@ bgp_metrics:
     - network_bgp_sent_prefixes
     - network_bgp_last_established
     - network_bgp_keepalive_interval
-  
+
   # Vendor-specific paths and mappings
   vendors:
     sr_linux:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
       native_path: "/network-instance[name=default]/protocols/bgp/neighbor"
       recommendation: "Use OpenConfig for basic state, native for EVPN details"
-      
+
       mappings:
         session_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state"
           native: "/network-instance/protocols/bgp/neighbor/session-state"
           normalized: "network_bgp_session_state"
           notes: "Values: IDLE, CONNECT, ACTIVE, OPENSENT, OPENCONFIRM, ESTABLISHED"
-        
+
         established_transitions:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/established-transitions"
           native: "/network-instance/protocols/bgp/neighbor/statistics/established-transitions"
           normalized: "network_bgp_established_transitions"
-        
+
         received_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/received"
           native: "/network-instance/protocols/bgp/neighbor/received-routes"
           normalized: "network_bgp_received_routes"
-        
+
         sent_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/sent"
           native: "/network-instance/protocols/bgp/neighbor/sent-routes"
           normalized: "network_bgp_sent_routes"
-        
+
         last_established:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/last-established"
           native: "/network-instance/protocols/bgp/neighbor/last-established"
           normalized: "network_bgp_last_established"
-
-    
     arista_eos:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
       native_path: "/Sysdb/routing/bgp/export"
       recommendation: "Excellent OpenConfig support - use OpenConfig paths"
-      
+
       mappings:
         session_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state"
           native: "/Sysdb/routing/bgp/export/*/peerStatus"
           normalized: "network_bgp_session_state"
-        
+
         established_transitions:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/established-transitions"
           native: "/Sysdb/routing/bgp/export/*/establishedTransitions"
           normalized: "network_bgp_established_transitions"
-        
+
         received_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/received"
           native: "/Sysdb/routing/bgp/export/*/receivedRoutes"
           normalized: "network_bgp_received_routes"
-        
+
         sent_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/sent"
           native: "/Sysdb/routing/bgp/export/*/sentRoutes"
           normalized: "network_bgp_sent_routes"
-        
+
         last_established:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/last-established"
           native: "/Sysdb/routing/bgp/export/*/lastEstablished"
           normalized: "network_bgp_last_established"
-    
+
     sonic:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
       native_path: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR"
       recommendation: "Use OpenConfig for basic state, native for detailed statistics"
-      
+
       mappings:
         session_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state"
           native: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/session-state"
           normalized: "network_bgp_session_state"
-        
+
         established_transitions:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/established-transitions"
           native: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/established-transitions"
           normalized: "network_bgp_established_transitions"
-        
+
         received_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/received"
           native: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/received-routes"
           normalized: "network_bgp_received_routes"
-        
+
         sent_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/sent"
           native: "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR/state/sent-routes"
           normalized: "network_bgp_sent_routes"
-
-    
     juniper:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
       native_path: "/junos/routing/bgp/neighbor"
       recommendation: "Good OpenConfig support - prefer OpenConfig paths"
-      
+
       mappings:
         session_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state"
           native: "/junos/routing/bgp/neighbor/state"
           normalized: "network_bgp_session_state"
-        
+
         established_transitions:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/established-transitions"
           native: "/junos/routing/bgp/neighbor/flap-count"
           normalized: "network_bgp_established_transitions"
-        
+
         received_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/received"
           native: "/junos/routing/bgp/neighbor/received-routes"
           normalized: "network_bgp_received_routes"
-        
+
         sent_routes:
           openconfig: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi/state/sent"
           native: "/junos/routing/bgp/neighbor/advertised-routes"
@@ -378,7 +366,7 @@ bgp_metrics:
 lldp_metrics:
   description: "LLDP neighbor discovery and topology information"
   openconfig_support: "Excellent - all vendors support this path"
-  
+
   # Normalized metric names (target output)
   normalized_metrics:
     - network_lldp_neighbor_system_name
@@ -387,126 +375,120 @@ lldp_metrics:
     - network_lldp_neighbor_port_description
     - network_lldp_neighbor_system_description
     - network_lldp_neighbor_management_address
-  
+
   # Vendor-specific paths and mappings
   vendors:
     sr_linux:
       openconfig_path: "/lldp/interfaces/interface/neighbors/neighbor/state"
       native_path: "/system/lldp/interface[name=*]/neighbor"
       recommendation: "Use OpenConfig path - excellent support"
-
-      
       mappings:
         system_name:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/system-name"
           native: "/system/lldp/interface/neighbor/system-name"
           normalized: "network_lldp_neighbor_system_name"
-        
+
         port_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-id"
           native: "/system/lldp/interface/neighbor/port-id"
           normalized: "network_lldp_neighbor_port_id"
-        
+
         chassis_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/chassis-id"
           native: "/system/lldp/interface/neighbor/chassis-id"
           normalized: "network_lldp_neighbor_chassis_id"
-        
+
         port_description:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-description"
           native: "/system/lldp/interface/neighbor/port-description"
           normalized: "network_lldp_neighbor_port_description"
-        
+
         system_description:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/system-description"
           native: "/system/lldp/interface/neighbor/system-description"
           normalized: "network_lldp_neighbor_system_description"
-        
+
         management_address:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/management-address"
           native: "/system/lldp/interface/neighbor/management-address"
           normalized: "network_lldp_neighbor_management_address"
-    
+
     arista_eos:
       openconfig_path: "/lldp/interfaces/interface/neighbors/neighbor/state"
       native_path: "/Sysdb/l2discovery/lldp/status"
       recommendation: "Use OpenConfig path - excellent support"
-      
+
       mappings:
         system_name:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/system-name"
           native: "/Sysdb/l2discovery/lldp/status/*/systemName"
           normalized: "network_lldp_neighbor_system_name"
-        
+
         port_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-id"
           native: "/Sysdb/l2discovery/lldp/status/*/portId"
           normalized: "network_lldp_neighbor_port_id"
-        
+
         chassis_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/chassis-id"
           native: "/Sysdb/l2discovery/lldp/status/*/chassisId"
           normalized: "network_lldp_neighbor_chassis_id"
-        
+
         port_description:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-description"
           native: "/Sysdb/l2discovery/lldp/status/*/portDescription"
           normalized: "network_lldp_neighbor_port_description"
-
-    
     sonic:
       openconfig_path: "/lldp/interfaces/interface/neighbors/neighbor/state"
       native_path: "/sonic-lldp:sonic-lldp/LLDP_NEIGHBOR"
       recommendation: "Use OpenConfig path - good support"
-      
+
       mappings:
         system_name:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/system-name"
           native: "/sonic-lldp:sonic-lldp/LLDP_NEIGHBOR/system-name"
           normalized: "network_lldp_neighbor_system_name"
-        
+
         port_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-id"
           native: "/sonic-lldp:sonic-lldp/LLDP_NEIGHBOR/port-id"
           normalized: "network_lldp_neighbor_port_id"
-        
+
         chassis_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/chassis-id"
           native: "/sonic-lldp:sonic-lldp/LLDP_NEIGHBOR/chassis-id"
           normalized: "network_lldp_neighbor_chassis_id"
-        
+
         port_description:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-description"
           native: "/sonic-lldp:sonic-lldp/LLDP_NEIGHBOR/port-description"
           normalized: "network_lldp_neighbor_port_description"
-    
+
     juniper:
       openconfig_path: "/lldp/interfaces/interface/neighbors/neighbor/state"
       native_path: "/junos/lldp/neighbors"
       recommendation: "Use OpenConfig path - good support"
-      
+
       mappings:
         system_name:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/system-name"
           native: "/junos/lldp/neighbors/system-name"
           normalized: "network_lldp_neighbor_system_name"
-        
+
         port_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-id"
           native: "/junos/lldp/neighbors/port-id"
           normalized: "network_lldp_neighbor_port_id"
-        
+
         chassis_id:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/chassis-id"
           native: "/junos/lldp/neighbors/chassis-id"
           normalized: "network_lldp_neighbor_chassis_id"
-        
+
         port_description:
           openconfig: "/lldp/interfaces/interface/neighbors/neighbor/state/port-description"
           native: "/junos/lldp/neighbors/port-description"
           normalized: "network_lldp_neighbor_port_description"
-
-
 # =============================================================================
 # OSPF METRICS
 # =============================================================================
@@ -516,7 +498,7 @@ lldp_metrics:
 ospf_metrics:
   description: "OSPF neighbor state, area information, and LSA statistics"
   openconfig_support: "Limited - recommend using vendor-specific paths"
-  
+
   # Normalized metric names (target output)
   normalized_metrics:
     - network_ospf_neighbor_state
@@ -525,141 +507,137 @@ ospf_metrics:
     - network_ospf_area_lsa_count
     - network_ospf_interface_cost
     - network_ospf_interface_state
-  
+
   # Vendor-specific paths and mappings
   vendors:
     sr_linux:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/ospfv2"
       native_path: "/network-instance[name=default]/protocols/ospf"
       recommendation: "Use native path - better support and more detailed metrics"
-      
+
       mappings:
         neighbor_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/state"
           native: "/network-instance/protocols/ospf/instance/area/interface/neighbor/adjacency-state"
           normalized: "network_ospf_neighbor_state"
           notes: "Values: DOWN, ATTEMPT, INIT, 2WAY, EXSTART, EXCHANGE, LOADING, FULL"
-        
+
         neighbor_priority:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/priority"
           native: "/network-instance/protocols/ospf/instance/area/interface/neighbor/priority"
           normalized: "network_ospf_neighbor_priority"
-        
+
         neighbor_dead_timer:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/dead-timer"
           native: "/network-instance/protocols/ospf/instance/area/interface/neighbor/dead-timer"
           normalized: "network_ospf_neighbor_dead_timer"
-        
+
         area_lsa_count:
           openconfig: "Not available in OpenConfig"
           native: "/network-instance/protocols/ospf/instance/area/statistics/lsa-count"
           normalized: "network_ospf_area_lsa_count"
-        
+
         interface_cost:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/metric"
           native: "/network-instance/protocols/ospf/instance/area/interface/metric"
           normalized: "network_ospf_interface_cost"
-        
+
         interface_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/state"
           native: "/network-instance/protocols/ospf/instance/area/interface/oper-state"
           normalized: "network_ospf_interface_state"
-
-    
     arista_eos:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/ospfv2"
       native_path: "/Sysdb/routing/ospf/instance"
       recommendation: "Mixed - OpenConfig for basic state, native for detailed metrics"
-      
+
       mappings:
         neighbor_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/state"
           native: "/Sysdb/routing/ospf/instance/*/neighbor/*/state"
           normalized: "network_ospf_neighbor_state"
-        
+
         neighbor_priority:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/priority"
           native: "/Sysdb/routing/ospf/instance/*/neighbor/*/priority"
           normalized: "network_ospf_neighbor_priority"
-        
+
         neighbor_dead_timer:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/dead-timer"
           native: "/Sysdb/routing/ospf/instance/*/neighbor/*/deadTimer"
           normalized: "network_ospf_neighbor_dead_timer"
-        
+
         area_lsa_count:
           openconfig: "Not available in OpenConfig"
           native: "/Sysdb/routing/ospf/instance/*/area/*/lsaCount"
           normalized: "network_ospf_area_lsa_count"
-        
+
         interface_cost:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/metric"
           native: "/Sysdb/routing/ospf/instance/*/interface/*/cost"
           normalized: "network_ospf_interface_cost"
-        
+
         interface_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/state"
           native: "/Sysdb/routing/ospf/instance/*/interface/*/state"
           normalized: "network_ospf_interface_state"
-    
+
     sonic:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/ospfv2"
       native_path: "/sonic-ospf:sonic-ospf/OSPF"
       recommendation: "Use native path - limited OpenConfig support"
-      
+
       mappings:
         neighbor_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/state"
           native: "/sonic-ospf:sonic-ospf/OSPF/neighbor/state"
           normalized: "network_ospf_neighbor_state"
-        
+
         neighbor_priority:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/priority"
           native: "/sonic-ospf:sonic-ospf/OSPF/neighbor/priority"
           normalized: "network_ospf_neighbor_priority"
-        
+
         area_lsa_count:
           openconfig: "Not available in OpenConfig"
           native: "/sonic-ospf:sonic-ospf/OSPF/area/lsa-count"
           normalized: "network_ospf_area_lsa_count"
-        
+
         interface_cost:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/metric"
           native: "/sonic-ospf:sonic-ospf/OSPF/interface/cost"
           normalized: "network_ospf_interface_cost"
-
-    
     juniper:
       openconfig_path: "/network-instances/network-instance/protocols/protocol/ospfv2"
       native_path: "/junos/routing/ospf"
       recommendation: "Use native path - more reliable and detailed"
-      
+
       mappings:
         neighbor_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/state"
           native: "/junos/routing/ospf/neighbor/state"
           normalized: "network_ospf_neighbor_state"
-        
+
         neighbor_priority:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/priority"
           native: "/junos/routing/ospf/neighbor/priority"
           normalized: "network_ospf_neighbor_priority"
-        
+
         neighbor_dead_timer:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/dead-timer"
           native: "/junos/routing/ospf/neighbor/dead-interval"
           normalized: "network_ospf_neighbor_dead_timer"
-        
+
         area_lsa_count:
           openconfig: "Not available in OpenConfig"
           native: "/junos/routing/ospf/area/lsa-count"
           normalized: "network_ospf_area_lsa_count"
-        
+
         interface_cost:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/metric"
           native: "/junos/routing/ospf/interface/metric"
           normalized: "network_ospf_interface_cost"
-        
+
         interface_state:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/state"
           native: "/junos/routing/ospf/interface/state"
@@ -684,7 +662,7 @@ implementation_notes:
                       apply-on: "name"
                       old: "/srl_nokia/interface/statistics/in-octets"
                       new: "interface_in_octets"
-  
+
   prometheus_relabeling:
     description: "Use Prometheus metric_relabel_configs for additional normalization"
     example: |
@@ -693,27 +671,25 @@ implementation_notes:
           regex: 'gnmic_srl_interface_stats_.*_in_octets'
           target_label: __name__
           replacement: 'network_interface_in_octets'
-
-  
   grafana_queries:
     description: "Universal Grafana queries using normalized metric names"
     examples:
       interface_bandwidth: |
         # Works across all vendors
         rate(network_interface_in_octets[5m]) * 8
-      
+
       bgp_session_status: |
         # Filter by vendor if needed
         network_bgp_session_state{vendor=~"nokia|arista|sonic|juniper"}
-      
+
       lldp_neighbors: |
         # Universal topology query
         network_lldp_neighbor_system_name
-      
+
       ospf_neighbor_count: |
         # Count OSPF neighbors per device
         count(network_ospf_neighbor_state == 8) by (source)
-  
+
   vendor_tags:
     description: "All metrics include vendor tags for filtering and drill-down"
     required_tags:
@@ -721,14 +697,14 @@ implementation_notes:
       - os: "srlinux, eos, sonic, junos"
       - device_type: "spine, leaf, border, etc."
       - source: "device hostname"
-    
+
     usage: |
       # Filter by vendor
       network_interface_in_octets{vendor="nokia"}
-      
+
       # Filter by device type
       network_bgp_session_state{device_type="spine"}
-      
+
       # Exclude specific vendor
       network_lldp_neighbor_system_name{vendor!="juniper"}
 
@@ -743,25 +719,25 @@ testing:
       sr_linux: |
         gnmic -a spine1:57400 -u admin -p NokiaSrl1! --insecure \
           get --path "/interfaces/interface[name=ethernet-1/1]/state/counters"
-      
+
       arista_eos: |
         gnmic -a spine2:6030 -u admin -p admin --insecure \
           get --path "/interfaces/interface[name=Ethernet1]/state/counters"
-      
+
       sonic: |
         gnmic -a leaf1:8080 -u admin -p admin --insecure \
           get --path "/interfaces/interface[name=Ethernet0]/state/counters"
-      
+
       juniper: |
         gnmic -a leaf2:32767 -u admin -p admin --insecure \
           get --path "/interfaces/interface[name=ge-0/0/0]/state/counters"
-  
+
   verify_normalization:
     description: "Verify normalized metrics appear in Prometheus"
     query: |
       # Check for normalized interface metrics
       curl 'http://prometheus:9090/api/v1/query?query=network_interface_in_octets'
-      
+
       # Should return metrics from all vendors with vendor tags
       # Example result:
       # network_interface_in_octets{vendor="nokia",source="spine1",interface="ethernet-1-1"} 123456
@@ -778,21 +754,21 @@ migration_strategy:
       - Interface counters (all vendors)
       - Basic BGP state (all vendors)
       - LLDP neighbors (all vendors)
-  
+
   phase_2_add_native:
     description: "Add vendor-specific paths for advanced features"
     metrics:
       - OSPF detailed state (vendor-specific)
       - EVPN/VXLAN metrics (vendor-specific)
       - Advanced BGP RIB (vendor-specific)
-  
+
   phase_3_normalize:
     description: "Apply normalization to create universal metrics"
     actions:
       - Configure gNMIc event processors
       - Add Prometheus relabeling rules
       - Update Grafana dashboards to use normalized names
-  
+
   phase_4_validate:
     description: "Verify universal queries work across all vendors"
     validation:

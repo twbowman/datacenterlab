@@ -6,50 +6,50 @@
 evpn_vxlan:
   # Enable EVPN/VXLAN functionality
   enabled: true
-  
+
   # VNI (VXLAN Network Identifier) Configuration
   vni:
     # VNI range for L2 VPN services
     l2vpn_start: 10000
     l2vpn_end: 19999
-    
+
     # VNI range for L3 VPN services
     l3vpn_start: 20000
     l3vpn_end: 29999
-    
+
     # Auto-assign VNIs based on VLAN ID (VNI = base + VLAN)
     auto_assign: true
     auto_assign_base: 10000
-  
+
   # Route Distinguisher (RD) Configuration
   route_distinguisher:
     # Format: <router_id>:<vni>
     # Will be auto-generated as: {{ router_id }}:{{ vni }}
     format: "auto"
-    
+
   # Route Target (RT) Configuration
   route_target:
     # Format for import/export: <asn>:<vni>
     # Will be auto-generated as: {{ asn }}:{{ vni }}
     format: "auto"
-    
+
     # Override auto-generation with explicit values if needed
     # explicit:
     #   - vni: 10010
     #     import: ["65000:10010", "65000:10020"]
     #     export: ["65000:10010"]
-  
+
   # VXLAN Tunnel Configuration
   tunnel:
     # Source interface for VXLAN tunnels (typically loopback)
     source_interface: "loopback0"
-    
+
     # UDP port for VXLAN encapsulation
     udp_port: 4789
-    
+
     # TTL for VXLAN packets
     ttl: 64
-  
+
   # VLAN to VNI Mappings
   # Each VLAN is mapped to a VNI for L2 extension across the fabric
   vlan_vni_mappings:
@@ -57,27 +57,27 @@ evpn_vxlan:
       vni: 10010
       name: "tenant-a-web"
       description: "Tenant A Web Tier"
-      
+
     - vlan_id: 20
       vni: 10020
       name: "tenant-a-app"
       description: "Tenant A Application Tier"
-      
+
     - vlan_id: 30
       vni: 10030
       name: "tenant-a-db"
       description: "Tenant A Database Tier"
-      
+
     - vlan_id: 40
       vni: 10040
       name: "tenant-b-web"
       description: "Tenant B Web Tier"
-      
+
     - vlan_id: 50
       vni: 10050
       name: "tenant-b-app"
       description: "Tenant B Application Tier"
-  
+
   # L3 VNI Configuration (for inter-subnet routing)
   l3vni:
     - vrf_name: "tenant-a"
@@ -87,7 +87,7 @@ evpn_vxlan:
       route_target:
         import: ["65000:20001"]
         export: ["65000:20001"]
-      
+
     - vrf_name: "tenant-b"
       vni: 20002
       vlan_id: 3002
@@ -95,48 +95,48 @@ evpn_vxlan:
       route_target:
         import: ["65000:20002"]
         export: ["65000:20002"]
-  
+
   # BGP EVPN Configuration
   bgp_evpn:
     # Enable EVPN address family
     enabled: true
-    
+
     # Advertise all VNIs
     advertise_all_vni: true
-    
+
     # Advertise default gateway
     advertise_default_gw: true
-    
+
     # Advertise SVI MAC-IP routes
     advertise_svi_ip: true
-    
+
     # Route reflector configuration (for spines)
     # Leafs will be route reflector clients
     route_reflector_client: true
-  
+
   # Anycast Gateway Configuration
   # Provides first-hop redundancy for hosts
   anycast_gateway:
     enabled: true
-    
+
     # Virtual MAC address shared across all leafs
     virtual_mac: "00:00:5e:00:01:01"
-    
+
     # Gateway IP per VLAN (defined per-host in inventory)
     # Example:
     # - vlan_id: 10
     #   ip: 10.10.1.1/24
-  
+
   # Multi-homing Configuration (for dual-attached hosts)
   multihoming:
     enabled: false
     # ESI (Ethernet Segment Identifier) configuration
     # Will be configured per-interface when needed
-  
+
   # ARP/ND Suppression
   arp_suppression:
     enabled: true
-    
+
   # MAC Learning
   mac_learning:
     # Disable MAC learning on VXLAN interfaces (use BGP EVPN)

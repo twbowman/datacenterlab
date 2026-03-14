@@ -2,7 +2,7 @@
 galaxy_info:
   author: Network Automation
   description: Configure BGP using OpenConfig YANG models
-  company: 
+  company:
   license: MIT
   min_ansible_version: "2.9"
   platforms:

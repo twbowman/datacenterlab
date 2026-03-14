@@ -4,21 +4,21 @@ Pytest configuration for integration tests
 Provides fixtures for integration testing with actual lab deployment.
 """
 
-import pytest
 import subprocess
-import time
-import os
 import sys
-import yaml
-import requests
+import time
 from pathlib import Path
+
+import pytest
+import requests
+import yaml
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 # Add scripts directory to path
-scripts_dir = project_root / 'scripts'
+scripts_dir = project_root / "scripts"
 sys.path.insert(0, str(scripts_dir))
 
 
@@ -32,7 +32,7 @@ def orb_prefix():
 def lab_deployed(orb_prefix):
     """
     Deploy lab for integration tests (session-scoped)
-    
+
     This fixture deploys the lab once per test session and tears it down at the end.
     """
     # Check if lab is already running
@@ -40,14 +40,14 @@ def lab_deployed(orb_prefix):
         f"{orb_prefix} docker ps --filter name=clab-gnmi-clos --format '{{{{.Names}}}}'",
         shell=True,
         capture_output=True,
-        text=True
+        text=True,
     )
-    
+
     if result.returncode == 0 and result.stdout.strip():
         print("Lab already running, skipping deployment")
         yield True
         return
-    
+
     # Deploy lab
     print("Deploying lab for integration tests...")
     deploy_result = subprocess.run(
@@ -55,18 +55,18 @@ def lab_deployed(orb_prefix):
         shell=True,
         cwd=project_root,
         capture_output=True,
-        text=True
+        text=True,
     )
-    
+
     if deploy_result.returncode != 0:
         pytest.fail(f"Lab deployment failed: {deploy_result.stderr}")
-    
+
     # Wait for devices to be ready
     print("Waiting for devices to be ready...")
     time.sleep(30)
-    
+
     yield True
-    
+
     # Teardown: destroy lab
     # Note: Commented out to allow inspection after tests
     # Uncomment if you want automatic cleanup
@@ -88,14 +88,14 @@ def monitoring_deployed(orb_prefix, lab_deployed):
         f"{orb_prefix} docker ps --filter name=clab-monitoring --format '{{{{.Names}}}}'",
         shell=True,
         capture_output=True,
-        text=True
+        text=True,
     )
-    
+
     if result.returncode == 0 and result.stdout.strip():
         print("Monitoring stack already running, skipping deployment")
         yield True
         return
-    
+
     # Deploy monitoring stack
     print("Deploying monitoring stack for integration tests...")
     deploy_result = subprocess.run(
@@ -103,18 +103,18 @@ def monitoring_deployed(orb_prefix, lab_deployed):
         shell=True,
         cwd=project_root,
         capture_output=True,
-        text=True
+        text=True,
     )
-    
+
     if deploy_result.returncode != 0:
         pytest.fail(f"Monitoring deployment failed: {deploy_result.stderr}")
-    
+
     # Wait for monitoring services to be ready
     print("Waiting for monitoring services to be ready...")
     time.sleep(20)
-    
+
     yield True
-    
+
     # Teardown: destroy monitoring
     # Note: Commented out to allow inspection after tests
     # print("Destroying monitoring stack after integration tests...")
@@ -129,14 +129,14 @@ def monitoring_deployed(orb_prefix, lab_deployed):
 def topology_config():
     """Load topology configuration"""
     topology_file = project_root / "topology.yml"
-    with open(topology_file, 'r') as f:
+    with open(topology_file) as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture
 def device_list(topology_config):
     """Extract list of devices from topology"""
-    nodes = topology_config.get('topology', {}).get('nodes', {})
+    nodes = topology_config.get("topology", {}).get("nodes", {})
     return list(nodes.keys())
 
 
@@ -161,12 +161,12 @@ def gnmic_url():
 def wait_for_service(url, timeout=60, interval=5):
     """
     Wait for a service to become available
-    
+
     Args:
         url: Service URL to check
         timeout: Maximum time to wait in seconds
         interval: Check interval in seconds
-    
+
     Returns:
         bool: True if service is available, False otherwise
     """

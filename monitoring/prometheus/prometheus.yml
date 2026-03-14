@@ -32,119 +32,119 @@ scrape_configs:
         target_label: name
         regex: '(.*)'
         replacement: '$1'
-      
+
       # Vendor-specific relabeling rules
       # Preserve vendor and os labels from gNMIc (already added by gNMIc processors)
       # These labels are: vendor (nokia, arista, dellemc, juniper) and os (srlinux, eos, sonic, junos)
-      
+
       # Add device role labels based on device name
       # Spine devices: spine1, spine2
       - source_labels: [source]
         target_label: role
         regex: '(spine\d+)'
         replacement: 'spine'
-      
+
       # Leaf devices: leaf1, leaf2, leaf3, leaf4
       - source_labels: [source]
         target_label: role
         regex: '(leaf\d+)'
         replacement: 'leaf'
-      
+
       # Add topology labels
       # Topology name from external label
       - source_labels: [cluster]
         target_label: topology
         regex: '(.*)'
         replacement: '$1'
-      
+
       # Add fabric type label (EVPN/VXLAN Clos fabric)
       - source_labels: [role]
         target_label: fabric_type
         regex: '(spine|leaf)'
         replacement: 'clos'
-      
+
       # Add layer label (spine = layer3, leaf = layer2/layer3)
       - source_labels: [role]
         target_label: layer
         regex: 'spine'
         replacement: 'layer3'
-      
+
       - source_labels: [role]
         target_label: layer
         regex: 'leaf'
         replacement: 'layer2_layer3'
-      
+
       # Interface name normalization rules
       # These rules create an interface_normalized label with consistent naming across vendors
       # Format: ethX_Y (e.g., eth1_1, eth0_0)
-      
+
       # SR Linux: ethernet-1/1 -> eth1_1
       - source_labels: [interface_name]
         target_label: interface_normalized
         regex: 'ethernet-(\d+)/(\d+)'
         replacement: 'eth${1}_${2}'
-      
+
       # Arista: Ethernet1/1 -> eth1_1
       - source_labels: [interface_name]
         target_label: interface_normalized
         regex: 'Ethernet(\d+)/(\d+)'
         replacement: 'eth${1}_${2}'
-      
+
       # Arista/SONiC: Ethernet1 -> eth1_0
       - source_labels: [interface_name]
         target_label: interface_normalized
         regex: 'Ethernet(\d+)'
         replacement: 'eth${1}_0'
-      
+
       # Juniper: ge-0/0/0 -> eth0_0_0
       - source_labels: [interface_name]
         target_label: interface_normalized
         regex: 'ge-(\d+)/(\d+)/(\d+)'
         replacement: 'eth${1}_${2}_${3}'
-      
+
       # Juniper: xe-0/0/0 -> eth0_0_0 (10G interfaces)
       - source_labels: [interface_name]
         target_label: interface_normalized
         regex: 'xe-(\d+)/(\d+)/(\d+)'
         replacement: 'eth${1}_${2}_${3}'
-      
+
       # Juniper: et-0/0/0 -> eth0_0_0 (40G/100G interfaces)
       - source_labels: [interface_name]
         target_label: interface_normalized
         regex: 'et-(\d+)/(\d+)/(\d+)'
         replacement: 'eth${1}_${2}_${3}'
-      
+
       # Also normalize the 'interface' label if present (some metrics use this instead)
       - source_labels: [interface]
         target_label: interface_normalized
         regex: 'ethernet-(\d+)/(\d+)'
         replacement: 'eth${1}_${2}'
-      
+
       - source_labels: [interface]
         target_label: interface_normalized
         regex: 'Ethernet(\d+)/(\d+)'
         replacement: 'eth${1}_${2}'
-      
+
       - source_labels: [interface]
         target_label: interface_normalized
         regex: 'Ethernet(\d+)'
         replacement: 'eth${1}_0'
-      
+
       - source_labels: [interface]
         target_label: interface_normalized
         regex: 'ge-(\d+)/(\d+)/(\d+)'
         replacement: 'eth${1}_${2}_${3}'
-      
+
       - source_labels: [interface]
         target_label: interface_normalized
         regex: 'xe-(\d+)/(\d+)/(\d+)'
         replacement: 'eth${1}_${2}_${3}'
-      
+
       - source_labels: [interface]
         target_label: interface_normalized
         regex: 'et-(\d+)/(\d+)/(\d+)'
         replacement: 'eth${1}_${2}_${3}'
-  
+
   # Prometheus self-monitoring
   - job_name: 'prometheus'
     static_configs:

@@ -5,7 +5,7 @@
 - name: Verify EVPN/VXLAN on Arista EOS Devices
   hosts: all
   gather_facts: false
-  
+
   tasks:
     - name: Display verification information
       debug:
@@ -98,7 +98,7 @@
         fail_msg: "VNI {{ item.vni }} for VLAN {{ item.vlan_id }} is not configured on {{ inventory_hostname }}"
         success_msg: "✓ VNI {{ item.vni }} for VLAN {{ item.vlan_id }} is configured"
       loop: "{{ evpn_vxlan.vlan_vni_mappings | default([]) }}"
-      when: 
+      when:
         - "'leaf' in inventory_hostname"
         - evpn_vxlan.vlan_vni_mappings is defined
       tags: [vxlan, vni]
@@ -176,7 +176,7 @@
         commands:
           - show vrf
       register: vrf_status
-      when: 
+      when:
         - "'leaf' in inventory_hostname"
         - evpn_vxlan.l3vni is defined
         - evpn_vxlan.l3vni | length > 0
@@ -185,7 +185,7 @@
     - name: Display VRF status (leafs with L3 VNI)
       debug:
         msg: "{{ vrf_status.stdout_lines[0] }}"
-      when: 
+      when:
         - "'leaf' in inventory_hostname"
         - evpn_vxlan.l3vni is defined
         - evpn_vxlan.l3vni | length > 0
@@ -198,7 +198,7 @@
         fail_msg: "VRF {{ item.vrf_name }} is not configured on {{ inventory_hostname }}"
         success_msg: "✓ VRF {{ item.vrf_name }} is configured"
       loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-      when: 
+      when:
         - "'leaf' in inventory_hostname"
         - evpn_vxlan.l3vni is defined
         - evpn_vxlan.l3vni | length > 0

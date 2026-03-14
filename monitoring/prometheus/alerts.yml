@@ -13,7 +13,7 @@ groups:
         annotations:
           summary: "Interface {{ $labels.interface }} is down"
           description: "Interface {{ $labels.interface }} on {{ $labels.device }} has been down for more than 1 minute"
-      
+
       # High interface utilization
       - alert: HighInterfaceUtilization
         expr: (interface_out_octets / interface_speed) > 0.8
@@ -23,7 +23,7 @@ groups:
         annotations:
           summary: "High utilization on {{ $labels.interface }}"
           description: "Interface {{ $labels.interface }} on {{ $labels.device }} is over 80% utilized"
-      
+
       # BGP peer down
       - alert: BGPPeerDown
         expr: bgp_peer_state != 6
@@ -33,7 +33,7 @@ groups:
         annotations:
           summary: "BGP peer {{ $labels.peer }} is down"
           description: "BGP peer {{ $labels.peer }} on {{ $labels.device }} is not in Established state"
-      
+
       # High packet drops
       - alert: HighPacketDrops
         expr: rate(interface_out_discards[5m]) > 100
@@ -43,7 +43,7 @@ groups:
         annotations:
           summary: "High packet drops on {{ $labels.interface }}"
           description: "Interface {{ $labels.interface }} is dropping packets at a high rate"
-      
+
       # High error rate
       - alert: HighErrorRate
         expr: rate(interface_in_errors[5m]) > 10

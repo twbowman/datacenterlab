@@ -18,7 +18,7 @@
   register: vxlan_tunnel_result
   changed_when: true
   failed_when: vxlan_tunnel_result.rc != 0
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -42,7 +42,7 @@
   changed_when: true
   failed_when: vxlan_vni_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -71,7 +71,7 @@
   changed_when: true
   failed_when: macvrf_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -96,7 +96,7 @@
   changed_when: true
   failed_when: evpn_instance_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -115,7 +115,7 @@
   changed_when: true
   failed_when: bgp_vpn_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -144,7 +144,7 @@
   changed_when: true
   failed_when: evpn_routes_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
 
@@ -166,7 +166,7 @@
   register: vlan_tagging_result
   changed_when: true
   failed_when: vlan_tagging_result.rc != 0
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - client_interface is defined or 'ethernet-1/3' in (interfaces | map(attribute='name') | list)
@@ -193,7 +193,7 @@
   changed_when: true
   failed_when: client_interface_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - client_interface is defined or 'ethernet-1/3' in (interfaces | map(attribute='name') | list)
@@ -210,7 +210,7 @@
   changed_when: true
   failed_when: client_assoc_result.rc != 0
   loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - client_interface is defined or 'ethernet-1/3' in (interfaces | map(attribute='name') | list)
@@ -239,7 +239,7 @@
   changed_when: true
   failed_when: l3vni_vxlan_result.rc != 0
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - evpn_vxlan.l3vni is defined
@@ -265,7 +265,7 @@
   changed_when: true
   failed_when: ipvrf_result.rc != 0
   loop: "{{ evpn_vxlan.l3vni | default([]) }}"
-  when: 
+  when:
     - evpn_vxlan.enabled | default(false)
     - "'leaf' in inventory_hostname"
     - evpn_vxlan.l3vni is defined
