@@ -93,8 +93,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{oper_state=\"up\"}",
-          "legendFormat": "{{exported_source}} - {{network_instance_name}}",
+          "expr": "network_evpn_oper_state{oper_state=\"up\"}",
+          "legendFormat": "{{source}} - {{network_instance_name}}",
           "range": true,
           "refId": "A"
         }
@@ -173,8 +173,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state{oper_state=\"up\"}",
-          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}}",
+          "expr": "network_vxlan_oper_state{oper_state=\"up\"}",
+          "legendFormat": "{{source}} - VNI {{vxlan_interface_index}}",
           "range": true,
           "refId": "A"
         }
@@ -262,8 +262,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count by(exported_source) (gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{oper_state=\"up\"})",
-          "legendFormat": "{{exported_source}}",
+          "expr": "count by(source) (network_evpn_oper_state{oper_state=\"up\"})",
+          "legendFormat": "{{source}}",
           "range": true,
           "refId": "A"
         }
@@ -351,8 +351,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_multicast_destinations_multicast_destinations_multicast_limit_current_usage",
-          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}}",
+          "expr": "network_vxlan_multicast_limit",
+          "legendFormat": "{{source}} - VNI {{vxlan_interface_index}}",
           "range": true,
           "refId": "A"
         }
@@ -440,8 +440,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_mac_type_active_entries{mac_type_type=\"evpn\"}",
-          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}} - Active",
+          "expr": "network_vxlan_bridge_active_entries{mac_type_type=\"evpn\"}",
+          "legendFormat": "{{source}} - VNI {{vxlan_interface_index}} - Active",
           "range": true,
           "refId": "A"
         },
@@ -451,8 +451,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_mac_type_total_entries{mac_type_type=\"evpn\"}",
-          "legendFormat": "{{exported_source}} - VNI {{vxlan_interface_index}} - Total",
+          "expr": "network_vxlan_bridge_total_entries{mac_type_type=\"evpn\"}",
+          "legendFormat": "{{source}} - VNI {{vxlan_interface_index}} - Total",
           "range": true,
           "refId": "B"
         }
@@ -550,7 +550,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state",
+          "expr": "network_evpn_oper_state",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -562,7 +562,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_evi",
+          "expr": "network_evpn_evi",
           "format": "table",
           "hide": false,
           "legendFormat": "__auto",
@@ -575,7 +575,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_ecmp",
+          "expr": "network_evpn_ecmp",
           "format": "table",
           "hide": false,
           "legendFormat": "__auto",
@@ -606,7 +606,7 @@
               "Value #A": "Status",
               "Value #B": "EVI",
               "Value #C": "ECMP",
-              "exported_source": "Device",
+              "source": "Device",
               "network_instance_name": "MAC-VRF",
               "oper_state": "Status"
             }
@@ -705,7 +705,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state",
+          "expr": "network_vxlan_oper_state",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -730,7 +730,7 @@
             "indexByName": {},
             "renameByName": {
               "Value": "Status",
-              "exported_source": "Device",
+              "source": "Device",
               "oper_state": "Status",
               "vxlan_interface_index": "VNI"
             }

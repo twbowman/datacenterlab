@@ -82,6 +82,333 @@ subscriptions:
     stream-mode: sample
     sample-interval: 10s
 
+processors:
+  normalize-oc-interfaces:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_octets"
+            new: "network_interface_in_octets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_octets"
+            new: "network_interface_out_octets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_pkts"
+            new: "network_interface_in_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_pkts"
+            new: "network_interface_out_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_errors"
+            new: "network_interface_in_errors"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_errors"
+            new: "network_interface_out_errors"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_discards"
+            new: "network_interface_in_discards"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_discards"
+            new: "network_interface_out_discards"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_unicast_pkts"
+            new: "network_interface_in_unicast_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_unicast_pkts"
+            new: "network_interface_out_unicast_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_broadcast_pkts"
+            new: "network_interface_in_broadcast_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_broadcast_pkts"
+            new: "network_interface_out_broadcast_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_multicast_pkts"
+            new: "network_interface_in_multicast_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_out_multicast_pkts"
+            new: "network_interface_out_multicast_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_carrier_transitions"
+            new: "network_interface_carrier_transitions"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_counters_in_fcs_errors"
+            new: "network_interface_in_fcs_errors"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_oper_status"
+            new: "network_interface_oper_status"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_interface_stats_openconfig_interfaces_interfaces_interface_state_admin_status"
+            new: "network_interface_admin_status"
+
+  normalize-oc-bgp:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_session_state"
+            new: "network_bgp_session_state"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_established_transitions"
+            new: "network_bgp_established_transitions"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_last_established"
+            new: "network_bgp_last_established"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_peer_as"
+            new: "network_bgp_peer_as"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_local_as"
+            new: "network_bgp_local_as"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_enabled"
+            new: "network_bgp_enabled"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_neighbor_address"
+            new: "network_bgp_neighbor_address"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_peer_group"
+            new: "network_bgp_peer_group"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_peer_type"
+            new: "network_bgp_peer_type"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_queues_input"
+            new: "network_bgp_queues_input"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_queues_output"
+            new: "network_bgp_queues_output"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_received_UPDATE"
+            new: "network_bgp_messages_received_update"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_sent_UPDATE"
+            new: "network_bgp_messages_sent_update"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_received_NOTIFICATION"
+            new: "network_bgp_messages_received_notification"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_sent_NOTIFICATION"
+            new: "network_bgp_messages_sent_notification"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_remove_private_as"
+            new: "network_bgp_remove_private_as"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_supported_capabilities_.*"
+            new: "network_bgp_supported_capabilities"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_received_last_notification_.*"
+            new: "network_bgp_last_notification_received"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_bgp_neighbors_openconfig_network_instance_network_instances_network_instance_protocols_protocol_bgp_neighbors_neighbor_state_messages_sent_last_notification_.*"
+            new: "network_bgp_last_notification_sent"
+
+  normalize-oc-lldp:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_system_name"
+            new: "network_lldp_neighbor_system_name"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_port_id"
+            new: "network_lldp_neighbor_port_id"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_chassis_id"
+            new: "network_lldp_neighbor_chassis_id"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_port_description"
+            new: "network_lldp_neighbor_port_description"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_system_description"
+            new: "network_lldp_neighbor_system_description"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_chassis_id_type"
+            new: "network_lldp_neighbor_chassis_id_type"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_port_id_type"
+            new: "network_lldp_neighbor_port_id_type"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_age"
+            new: "network_lldp_neighbor_age"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_last_update"
+            new: "network_lldp_neighbor_last_update"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_lldp_openconfig_lldp_lldp_interfaces_interface_neighbors_neighbor_state_id"
+            new: "network_lldp_neighbor_id"
+
+  normalize-oc-qos:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_transmit_pkts"
+            new: "network_qos_transmit_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_transmit_octets"
+            new: "network_qos_transmit_octets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_dropped_pkts"
+            new: "network_qos_dropped_packets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_dropped_octets"
+            new: "network_qos_dropped_octets"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_max_queue_len"
+            new: "network_qos_max_queue_length"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_name"
+            new: "network_qos_queue_name"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_oc_qos_queues_openconfig_qos_qos_interfaces_interface_output_queues_queue_state_queue_management_profile"
+            new: "network_qos_queue_management_profile"
+
+  normalize-srl-ospf:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state"
+            new: "network_ospf_neighbor_state"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_retransmission_queue_length"
+            new: "network_ospf_retransmission_queue_length"
+
+  tag-srl-ospf:
+    event-add-tag:
+      condition:
+        value-names:
+          - "^network_ospf_.*"
+      add:
+        vendor: nokia
+
+  normalize-srl-evpn:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state"
+            new: "network_evpn_oper_state"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_evi"
+            new: "network_evpn_evi"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_ecmp"
+            new: "network_evpn_ecmp"
+
+  tag-srl-evpn:
+    event-add-tag:
+      condition:
+        value-names:
+          - "^network_evpn_.*"
+      add:
+        vendor: nokia
+
+  normalize-srl-vxlan:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state"
+            new: "network_vxlan_oper_state"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_index"
+            new: "network_vxlan_index"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_active_entries"
+            new: "network_vxlan_bridge_active_entries"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_total_entries"
+            new: "network_vxlan_bridge_total_entries"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_failed_entries"
+            new: "network_vxlan_bridge_failed_entries"
+        - replace:
+            apply-on: "name"
+            old: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_multicast_destinations_multicast_destinations_multicast_limit_current_usage"
+            new: "network_vxlan_multicast_limit"
+
+  tag-srl-vxlan:
+    event-add-tag:
+      condition:
+        value-names:
+          - "^network_vxlan_.*"
+      add:
+        vendor: nokia
+
 outputs:
   prom:
     type: prometheus
@@ -91,3 +418,16 @@ outputs:
     append-subscription-name: true
     export-timestamps: true
     strings-as-labels: true
+    event-processors:
+      # Tier 1: OpenConfig
+      - normalize-oc-interfaces
+      - normalize-oc-bgp
+      - normalize-oc-lldp
+      - normalize-oc-qos
+      # Tier 2: SR Linux native
+      - normalize-srl-ospf
+      - tag-srl-ospf
+      - normalize-srl-evpn
+      - tag-srl-evpn
+      - normalize-srl-vxlan
+      - tag-srl-vxlan

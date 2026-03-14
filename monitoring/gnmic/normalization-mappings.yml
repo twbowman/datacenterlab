@@ -38,6 +38,16 @@ interface_counters:
     - network_interface_out_errors
     - network_interface_in_discards
     - network_interface_out_discards
+    - network_interface_in_unicast_packets
+    - network_interface_out_unicast_packets
+    - network_interface_in_broadcast_packets
+    - network_interface_out_broadcast_packets
+    - network_interface_in_multicast_packets
+    - network_interface_out_multicast_packets
+    - network_interface_carrier_transitions
+    - network_interface_in_fcs_errors
+    - network_interface_oper_status
+    - network_interface_admin_status
 
   # Vendor-specific paths and mappings
   vendors:
@@ -235,12 +245,23 @@ bgp_metrics:
   normalized_metrics:
     - network_bgp_session_state
     - network_bgp_established_transitions
-    - network_bgp_received_routes
-    - network_bgp_sent_routes
-    - network_bgp_received_prefixes
-    - network_bgp_sent_prefixes
     - network_bgp_last_established
-    - network_bgp_keepalive_interval
+    - network_bgp_peer_as
+    - network_bgp_local_as
+    - network_bgp_enabled
+    - network_bgp_neighbor_address
+    - network_bgp_peer_group
+    - network_bgp_peer_type
+    - network_bgp_queues_input
+    - network_bgp_queues_output
+    - network_bgp_messages_received_update
+    - network_bgp_messages_sent_update
+    - network_bgp_messages_received_notification
+    - network_bgp_messages_sent_notification
+    - network_bgp_remove_private_as
+    - network_bgp_supported_capabilities
+    - network_bgp_last_notification_received
+    - network_bgp_last_notification_sent
 
   # Vendor-specific paths and mappings
   vendors:
@@ -374,7 +395,11 @@ lldp_metrics:
     - network_lldp_neighbor_chassis_id
     - network_lldp_neighbor_port_description
     - network_lldp_neighbor_system_description
-    - network_lldp_neighbor_management_address
+    - network_lldp_neighbor_chassis_id_type
+    - network_lldp_neighbor_port_id_type
+    - network_lldp_neighbor_age
+    - network_lldp_neighbor_last_update
+    - network_lldp_neighbor_id
 
   # Vendor-specific paths and mappings
   vendors:
@@ -502,6 +527,7 @@ ospf_metrics:
   # Normalized metric names (target output)
   normalized_metrics:
     - network_ospf_neighbor_state
+    - network_ospf_retransmission_queue_length
     - network_ospf_neighbor_priority
     - network_ospf_neighbor_dead_timer
     - network_ospf_area_lsa_count
@@ -520,7 +546,14 @@ ospf_metrics:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/state"
           native: "/network-instance/protocols/ospf/instance/area/interface/neighbor/adjacency-state"
           normalized: "network_ospf_neighbor_state"
+          gnmic_auto_name: "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state"
           notes: "Values: DOWN, ATTEMPT, INIT, 2WAY, EXSTART, EXCHANGE, LOADING, FULL"
+
+        retransmission_queue_length:
+          openconfig: "Not available in OpenConfig"
+          native: "/network-instance/protocols/ospf/instance/area/interface/neighbor/retransmission-queue-length"
+          normalized: "network_ospf_retransmission_queue_length"
+          gnmic_auto_name: "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_retransmission_queue_length"
 
         neighbor_priority:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/neighbors/neighbor/state/priority"
@@ -642,6 +675,286 @@ ospf_metrics:
           openconfig: "/network-instances/network-instance/protocols/protocol/ospfv2/areas/area/interfaces/interface/state/state"
           native: "/junos/routing/ospf/interface/state"
           normalized: "network_ospf_interface_state"
+
+# =============================================================================
+# QOS METRICS
+# =============================================================================
+# QoS queue statistics use OpenConfig paths
+# All vendors support OpenConfig /qos/interfaces/interface/output/queues/queue/state
+
+qos_metrics:
+  description: "QoS queue statistics (transmit, drops, queue depth)"
+  openconfig_support: "Good - all vendors support this path"
+
+  # Normalized metric names (target output)
+  normalized_metrics:
+    - network_qos_transmit_packets
+    - network_qos_transmit_octets
+    - network_qos_dropped_packets
+    - network_qos_dropped_octets
+    - network_qos_max_queue_length
+    - network_qos_queue_name
+    - network_qos_queue_management_profile
+
+  # Vendor-specific paths and mappings
+  vendors:
+    sr_linux:
+      openconfig_path: "/qos/interfaces/interface/output/queues/queue/state"
+      native_path: "/interface[name=*]/qos/output/queue-statistics"
+      recommendation: "Use OpenConfig path for universal compatibility"
+
+      mappings:
+        transmit_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-pkts"
+          native: "/interface/qos/output/queue-statistics/transmit-pkts"
+          normalized: "network_qos_transmit_packets"
+
+        transmit_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-octets"
+          native: "/interface/qos/output/queue-statistics/transmit-octets"
+          normalized: "network_qos_transmit_octets"
+
+        dropped_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-pkts"
+          native: "/interface/qos/output/queue-statistics/dropped-pkts"
+          normalized: "network_qos_dropped_packets"
+
+        dropped_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-octets"
+          native: "/interface/qos/output/queue-statistics/dropped-octets"
+          normalized: "network_qos_dropped_octets"
+
+        max_queue_length:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/max-queue-len"
+          native: "/interface/qos/output/queue-statistics/max-queue-len"
+          normalized: "network_qos_max_queue_length"
+
+        queue_name:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/name"
+          native: "/interface/qos/output/queue-statistics/name"
+          normalized: "network_qos_queue_name"
+
+        queue_management_profile:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/queue-management-profile"
+          native: "/interface/qos/output/queue-statistics/queue-management-profile"
+          normalized: "network_qos_queue_management_profile"
+
+    arista_eos:
+      openconfig_path: "/qos/interfaces/interface/output/queues/queue/state"
+      native_path: "/Sysdb/qos/output/queue"
+      recommendation: "Use OpenConfig path - good support"
+
+      mappings:
+        transmit_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-pkts"
+          native: "/Sysdb/qos/output/queue/*/transmitPkts"
+          normalized: "network_qos_transmit_packets"
+
+        transmit_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-octets"
+          native: "/Sysdb/qos/output/queue/*/transmitOctets"
+          normalized: "network_qos_transmit_octets"
+
+        dropped_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-pkts"
+          native: "/Sysdb/qos/output/queue/*/droppedPkts"
+          normalized: "network_qos_dropped_packets"
+
+        dropped_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-octets"
+          native: "/Sysdb/qos/output/queue/*/droppedOctets"
+          normalized: "network_qos_dropped_octets"
+
+        max_queue_length:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/max-queue-len"
+          native: "/Sysdb/qos/output/queue/*/maxQueueLen"
+          normalized: "network_qos_max_queue_length"
+
+        queue_name:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/name"
+          native: "/Sysdb/qos/output/queue/*/name"
+          normalized: "network_qos_queue_name"
+
+        queue_management_profile:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/queue-management-profile"
+          native: "/Sysdb/qos/output/queue/*/queueManagementProfile"
+          normalized: "network_qos_queue_management_profile"
+
+    sonic:
+      openconfig_path: "/qos/interfaces/interface/output/queues/queue/state"
+      native_path: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state"
+      recommendation: "Use OpenConfig path - good support"
+
+      mappings:
+        transmit_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-pkts"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/transmit-pkts"
+          normalized: "network_qos_transmit_packets"
+
+        transmit_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-octets"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/transmit-octets"
+          normalized: "network_qos_transmit_octets"
+
+        dropped_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-pkts"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/dropped-pkts"
+          normalized: "network_qos_dropped_packets"
+
+        dropped_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-octets"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/dropped-octets"
+          normalized: "network_qos_dropped_octets"
+
+        max_queue_length:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/max-queue-len"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/max-queue-len"
+          normalized: "network_qos_max_queue_length"
+
+        queue_name:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/name"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/name"
+          normalized: "network_qos_queue_name"
+
+        queue_management_profile:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/queue-management-profile"
+          native: "/sonic-qos:sonic-qos/QUEUE/QUEUE_LIST/state/queue-management-profile"
+          normalized: "network_qos_queue_management_profile"
+
+    juniper:
+      openconfig_path: "/qos/interfaces/interface/output/queues/queue/state"
+      native_path: "/junos/system/linecard/cos/queue"
+      recommendation: "Use OpenConfig path - good support"
+
+      mappings:
+        transmit_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-pkts"
+          native: "/junos/.../transmit-pkts"
+          normalized: "network_qos_transmit_packets"
+
+        transmit_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/transmit-octets"
+          native: "/junos/.../transmit-octets"
+          normalized: "network_qos_transmit_octets"
+
+        dropped_packets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-pkts"
+          native: "/junos/.../dropped-pkts"
+          normalized: "network_qos_dropped_packets"
+
+        dropped_octets:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/dropped-octets"
+          native: "/junos/.../dropped-octets"
+          normalized: "network_qos_dropped_octets"
+
+        max_queue_length:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/max-queue-len"
+          native: "/junos/.../max-queue-len"
+          normalized: "network_qos_max_queue_length"
+
+        queue_name:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/name"
+          native: "/junos/.../name"
+          normalized: "network_qos_queue_name"
+
+        queue_management_profile:
+          openconfig: "/qos/interfaces/interface/output/queues/queue/state/queue-management-profile"
+          native: "/junos/.../queue-management-profile"
+          normalized: "network_qos_queue_management_profile"
+
+# =============================================================================
+# EVPN METRICS (Tier 2 - SR Linux Native Only)
+# =============================================================================
+# EVPN is NOT available via OpenConfig - vendor-specific paths required
+# Currently only SR Linux is supported
+
+evpn_metrics:
+  description: "EVPN BGP instance state, EVI, and ECMP configuration"
+  openconfig_support: "None - vendor-specific paths only"
+
+  # Normalized metric names (target output)
+  normalized_metrics:
+    - network_evpn_oper_state
+    - network_evpn_evi
+    - network_evpn_ecmp
+
+  # Vendor-specific paths and mappings
+  vendors:
+    sr_linux:
+      native_path: "/network-instance/protocols/bgp-evpn/bgp-instance"
+      recommendation: "Use native path - no OpenConfig alternative"
+
+      mappings:
+        oper_state:
+          native: "/network-instance/protocols/bgp-evpn/bgp-instance/oper-state"
+          normalized: "network_evpn_oper_state"
+          gnmic_auto_name: "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state"
+
+        evi:
+          native: "/network-instance/protocols/bgp-evpn/bgp-instance/evi"
+          normalized: "network_evpn_evi"
+          gnmic_auto_name: "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_evi"
+
+        ecmp:
+          native: "/network-instance/protocols/bgp-evpn/bgp-instance/ecmp"
+          normalized: "network_evpn_ecmp"
+          gnmic_auto_name: "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_ecmp"
+
+# =============================================================================
+# VXLAN METRICS (Tier 2 - SR Linux Native Only)
+# =============================================================================
+# VXLAN is NOT available via OpenConfig - vendor-specific paths required
+# Currently only SR Linux is supported
+
+vxlan_metrics:
+  description: "VXLAN tunnel interface state, bridge table statistics, and multicast limits"
+  openconfig_support: "None - vendor-specific paths only"
+
+  # Normalized metric names (target output)
+  normalized_metrics:
+    - network_vxlan_oper_state
+    - network_vxlan_index
+    - network_vxlan_bridge_active_entries
+    - network_vxlan_bridge_total_entries
+    - network_vxlan_bridge_failed_entries
+    - network_vxlan_multicast_limit
+
+  # Vendor-specific paths and mappings
+  vendors:
+    sr_linux:
+      native_path: "/tunnel-interface[name=vxlan1]/vxlan-interface"
+      recommendation: "Use native path - no OpenConfig alternative"
+
+      mappings:
+        oper_state:
+          native: "/tunnel-interface/vxlan-interface/oper-state"
+          normalized: "network_vxlan_oper_state"
+          gnmic_auto_name: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state"
+
+        index:
+          native: "/tunnel-interface/vxlan-interface/index"
+          normalized: "network_vxlan_index"
+          gnmic_auto_name: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_index"
+
+        bridge_active_entries:
+          native: "/tunnel-interface/vxlan-interface/bridge-table/statistics/active-entries"
+          normalized: "network_vxlan_bridge_active_entries"
+          gnmic_auto_name: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_active_entries"
+
+        bridge_total_entries:
+          native: "/tunnel-interface/vxlan-interface/bridge-table/statistics/total-entries"
+          normalized: "network_vxlan_bridge_total_entries"
+          gnmic_auto_name: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_total_entries"
+
+        bridge_failed_entries:
+          native: "/tunnel-interface/vxlan-interface/bridge-table/statistics/failed-entries"
+          normalized: "network_vxlan_bridge_failed_entries"
+          gnmic_auto_name: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_failed_entries"
+
+        multicast_limit:
+          native: "/tunnel-interface/vxlan-interface/bridge-table/multicast-destinations/multicast-limit"
+          normalized: "network_vxlan_multicast_limit"
+          gnmic_auto_name: "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_multicast_destinations_multicast_destinations_multicast_limit_current_usage"
 
 # =============================================================================
 # IMPLEMENTATION NOTES

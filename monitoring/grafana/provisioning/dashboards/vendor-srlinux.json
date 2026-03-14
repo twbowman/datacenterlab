@@ -71,7 +71,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{source=~\"$device\"}",
+          "expr": "network_ospf_neighbor_state{source=~\"$device\"}",
           "legendFormat": "{{source}} {{interface_interface_name}} -> {{neighbor_router_id}}",
           "range": true,
           "refId": "A"
@@ -124,7 +124,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{source=~\"$device\"}",
+          "expr": "network_ospf_neighbor_state{source=~\"$device\"}",
           "format": "table",
           "legendFormat": "__auto",
           "instant": true,
@@ -133,7 +133,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_retransmission_queue_length{source=~\"$device\"}",
+          "expr": "network_ospf_retransmission_queue_length{source=~\"$device\"}",
           "format": "table",
           "legendFormat": "__auto",
           "instant": true,
@@ -150,7 +150,7 @@
             "excludeByName": {
               "Time": true, "__name__": true, "collector": true, "instance": true,
               "job": true, "subscription_name": true, "name": true, "vendor": true,
-              "fabric_type": true, "role": true, "exported_source": true
+              "fabric_type": true, "role": true
             },
             "indexByName": {
               "source": 0, "area_area_id": 1, "interface_interface_name": 2,
@@ -208,7 +208,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{source=~\"$device\"}",
+          "expr": "network_evpn_oper_state{source=~\"$device\"}",
           "legendFormat": "{{source}} {{network_instance_name}}",
           "range": true,
           "refId": "A"
@@ -251,7 +251,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state{source=~\"$device\"}",
+          "expr": "network_vxlan_oper_state{source=~\"$device\"}",
           "legendFormat": "{{source}} vxlan{{vxlan_interface_index}}",
           "range": true,
           "refId": "A"
@@ -295,7 +295,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{source=~\"$device\"}",
+          "expr": "network_evpn_oper_state{source=~\"$device\"}",
           "format": "table",
           "legendFormat": "__auto",
           "instant": true,
@@ -304,7 +304,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_evi{source=~\"$device\"}",
+          "expr": "network_evpn_evi{source=~\"$device\"}",
           "format": "table",
           "legendFormat": "__auto",
           "instant": true,
@@ -314,7 +314,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_ecmp{source=~\"$device\"}",
+          "expr": "network_evpn_ecmp{source=~\"$device\"}",
           "format": "table",
           "legendFormat": "__auto",
           "instant": true,
@@ -331,7 +331,7 @@
             "excludeByName": {
               "Time": true, "__name__": true, "collector": true, "instance": true,
               "job": true, "subscription_name": true, "name": true, "vendor": true,
-              "fabric_type": true, "role": true, "exported_source": true, "bgp_instance_id": true
+              "fabric_type": true, "role": true, "bgp_instance_id": true
             },
             "indexByName": {
               "source": 0, "network_instance_name": 1, "oper_state": 2,
@@ -385,7 +385,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_active_entries{source=~\"$device\"}",
+          "expr": "network_vxlan_bridge_active_entries{source=~\"$device\"}",
           "legendFormat": "{{source}} vxlan{{vxlan_interface_index}} active",
           "range": true,
           "refId": "A"
@@ -393,7 +393,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_total_entries{source=~\"$device\"}",
+          "expr": "network_vxlan_bridge_total_entries{source=~\"$device\"}",
           "legendFormat": "{{source}} vxlan{{vxlan_interface_index}} total",
           "range": true,
           "refId": "B"
@@ -434,7 +434,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_failed_entries{source=~\"$device\"}",
+          "expr": "network_vxlan_bridge_failed_entries{source=~\"$device\"}",
           "legendFormat": "{{source}} vxlan{{vxlan_interface_index}} failed",
           "range": true,
           "refId": "A"
@@ -542,10 +542,10 @@
       {
         "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state, source)",
+        "definition": "label_values(network_ospf_neighbor_state, source)",
         "hide": 0, "includeAll": true, "multi": true,
         "name": "device", "options": [],
-        "query": { "qryType": 1, "query": "label_values(gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state, source)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "query": { "qryType": 1, "query": "label_values(network_ospf_neighbor_state, source)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
         "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
       }
     ]
