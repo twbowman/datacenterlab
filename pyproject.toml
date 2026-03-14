@@ -3,7 +3,7 @@ name = "production-network-testing-lab"
 version = "0.1.0"
 description = "Production-grade multi-vendor network testing lab"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "requests>=2.28.0",
     "PyYAML>=6.0",
@@ -67,7 +67,7 @@ max_examples = 1000
 deadline = 10000
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
 
 [tool.ruff.lint]
@@ -98,7 +98,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
