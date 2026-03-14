@@ -98,6 +98,25 @@ else
 fi
 echo ""
 
+# Checkov IaC Security
+echo "🔒 Running Checkov IaC scan..."
+if command -v checkov &> /dev/null; then
+    if checkov -d .github/workflows --framework github_actions --quiet --compact 2>/dev/null; then
+        echo -e "${GREEN}✓ Checkov (GitHub Actions) passed${NC}"
+    else
+        echo -e "${RED}✗ Checkov (GitHub Actions) found issues${NC}"
+        FAILED=1
+    fi
+    if checkov -d ansible --framework ansible --quiet --compact --soft-fail 2>/dev/null; then
+        echo -e "${GREEN}✓ Checkov (Ansible) passed${NC}"
+    else
+        echo -e "${YELLOW}⚠ Checkov (Ansible) found issues${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ checkov not installed. Run: pip install checkov${NC}"
+fi
+echo ""
+
 echo "================================"
 if [ $FAILED -eq 0 ]; then
     echo -e "${GREEN}✓ All checks passed!${NC}"
