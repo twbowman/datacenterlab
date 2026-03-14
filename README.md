@@ -357,19 +357,29 @@ See [Developer Guide](docs/developer/contributing.md) for information on:
 
 ### Code Quality
 
-This project uses comprehensive linting and security scanning:
-- **Python**: Ruff (linter/formatter) + Mypy (type checking)
-- **YAML**: yamllint
-- **Ansible**: ansible-lint
-- **Shell**: ShellCheck
-- **Security**: Bandit, Trivy, Gitleaks
+This project uses a 3-stage CI pipeline and pre-commit hooks:
+
+**Pre-commit hooks (run locally before every commit):**
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+**CI Pipeline** (`.github/workflows/ci.yml`):
+1. Lint: Ruff, Mypy, yamllint, ShellCheck, ansible-lint
+2. Security: Bandit, Trivy, Checkov, Gitleaks
+3. Tests: Unit + Property-based (only after stages 1-2 pass)
 
 Run all checks locally:
 ```bash
+# Pre-commit checks (Stage 1)
+pre-commit run --all-files
+
+# Full linter suite
 ./scripts/run-linters.sh
 ```
 
-See [Linting & Security Guide](docs/LINTING-SECURITY.md) for details.
+See [Developer Guide](docs/developer/contributing.md) for details.
 
 ## License
 

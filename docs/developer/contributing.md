@@ -10,7 +10,7 @@ Thank you for your interest in contributing to the Production Network Testing La
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.10+
 - uv (Python package manager)
 - Ansible 2.10+
 - Docker 20.10+
@@ -34,10 +34,10 @@ uv sync --all-extras
 ansible-galaxy collection install -r ansible/requirements.yml
 
 # Install pre-commit hooks
-uv run pre-commit install
+pre-commit install
 
-# Verify installation
-./scripts/verify-environment.sh
+# Verify hooks work
+pre-commit run --all-files
 ```
 
 ### Project Structure
@@ -780,154 +780,130 @@ Thank you for contributing! Your efforts help make this lab better for everyone.
 
 ### Overview
 
-The project uses GitHub Actions for continuous integration and testing. The CI/CD pipeline runs automatically on pushes and pull requests to `main` and `develop` branches.
+The project uses a single unified GitHub Actions workflow (`.github/workflows/ci.yml`) with three serial stages. Each stage gates the next — tests won't run until lint and security both pass.
 
-### Test Suites
-
-The CI/CD pipeline runs three types of tests:
-
-#### 1. Unit Tests (Required for CI/CD)
-- **Purpose**: Test individual components in isolation
-- **Duration**: ~0.13 seconds for 122 tests
-- **Dependencies**: None (uses mocks)
-- **CI Status**: ✅ Runs in GitHub Actions
-
-```bash
-# Run locally
-pytest tests/unit/ -v
+```
+Stage 1: Lint (parallel)          Stage 2: Security (parallel)       Stage 3: Tests (parallel)
+┌─────────────────┐               ┌──────────────────┐               ┌─────────────────┐
+│ Python (Ruff)   │               │ Bandit           │               │ Unit Tests      │
+│ YAML            │──▶ lint-gate ─│ Trivy            │──▶ sec-gate ──│ Property Tests  │
+│ Ansible (soft)  │               │ Checkov          │               └─────────────────┘
+│ Shell           │               │ Gitleaks         │
+└─────────────────┘               └──────────────────┘
 ```
 
-#### 2. Property-Based Tests (Required for CI/CD)
-- **Purpose**: Validate correctness properties across many generated test cases
-- **Duration**: ~12 seconds for 15 tests
-- **Dependencies**: None (uses Hypothesis for test generation)
-- **CI Status**: ✅ Runs in GitHub Actions
+### Stage 1: Pre-commit Lint (also runs locally)
+
+These are the same checks that run via pre-commit hooks before every commit:
+
+| Check | Tool | Scope | Fail Mode |
+|-------|------|-------|-----------|
+| Python lint + format | Ruff | `*.py` | Hard fail |
+| Python type checking | Mypy | `scripts/`, `ansible/plugins/`, `ansible/filter_plugins/` | Hard fail |
+| YAML lint | yamllint | `*.yml` (excludes `.venv`, `grafana/provisioning`, `.github`) | Hard fail |
+| Ansible lint | ansible-lint | `ansible/` | Soft fail |
+| Shell lint | ShellCheck | `scripts/*.sh` | Hard fail |
+
+### Stage 2: Security Scans (CI-only)
+
+Heavier scans that run after lint passes:
+
+| Check | Tool | What it scans |
+|-------|------|---------------|
+| Python security | Bandit | `scripts/`, `ansible/plugins/`, `ansible/filter_plugins/` |
+| Vulnerability scan | Trivy | Filesystem + IaC config |
+| IaC security | Checkov | GitHub Actions workflows (hard fail), Ansible (soft fail) |
+| Secret detection | Gitleaks | Full git history |
+
+### Stage 3: Tests
+
+Run after both lint and security pass:
+
+| Test Suite | Duration | Dependencies | CI Status |
+|-----------|----------|--------------|-----------|
+| Unit tests | ~0.13s (122 tests) | None (mocked) | ✅ Runs in CI |
+| Property-based tests | ~12s (15 tests) | None (Hypothesis) | ✅ Runs in CI |
+| Integration tests | ~5-10 min | Containerlab + device images | ❌ Local only |
+
+### Pre-commit Hooks
+
+Pre-commit hooks run Stage 1 checks locally before every `git commit`, catching issues before they reach CI.
+
+#### Setup
 
 ```bash
-# Run locally
-pytest tests/property/ -v
+# Install pre-commit (if not already installed)
+pip install pre-commit
+
+# Install the git hooks
+pre-commit install
+
+# Verify everything passes
+pre-commit run --all-files
 ```
 
-#### 3. Integration Tests (Local Only)
-- **Purpose**: Test complete workflows with actual network devices
-- **Duration**: ~5-10 minutes
-- **Dependencies**: Containerlab, network device images, Docker
-- **CI Status**: ❌ Disabled in GitHub Actions (run locally only)
+#### What runs on commit
+
+The `.pre-commit-config.yaml` configures these hooks:
+
+1. `ruff` — lint with auto-fix
+2. `ruff-format` — code formatting
+3. `mypy` — type checking (scripts and plugins only)
+4. `yamllint` — YAML validation
+5. `shellcheck` — shell script analysis (`scripts/` only)
+
+#### Skipping hooks (when needed)
 
 ```bash
-# Run locally (requires lab deployment)
-pytest tests/integration/ -v -s
+# Skip all hooks for a single commit
+git commit --no-verify -m "wip: quick save"
+
+# Skip specific hooks
+SKIP=mypy git commit -m "fix: yaml only change"
 ```
 
-### Why Integration Tests Are Local-Only
-
-Integration tests require:
-- Containerlab deployment with actual network devices
-- Vendor-specific container images (SR Linux, Arista cEOS, etc.)
-- Significant compute resources and time
-- Docker with privileged access
-
-These requirements make integration tests impractical for CI/CD environments. Instead:
-- Unit and property tests provide fast feedback in CI/CD
-- Integration tests validate complete workflows locally
-- Developers run integration tests before submitting PRs
-
-### GitHub Actions Workflow
-
-The workflow (`.github/workflows/test.yml`) includes:
-
-1. **Unit Tests Job**
-   - Installs dependencies with uv
-   - Runs unit tests with coverage
-   - Uploads coverage reports
-   - Comments coverage on PRs
-
-2. **Property Tests Job**
-   - Runs property-based tests with Hypothesis
-   - Uses CI profile for faster execution
-   - Uploads Hypothesis database for reproducibility
-
-3. **Test Summary Job**
-   - Aggregates results from all test jobs
-   - Publishes test results summary
-   - Provides clear pass/fail status
-
-### Running Tests Locally
+#### Updating hook versions
 
 ```bash
-# Run all CI tests (unit + property)
-pytest tests/unit/ tests/property/ -v
+# Update all hooks to latest versions
+pre-commit autoupdate
 
-# Run with coverage
-pytest tests/unit/ --cov=scripts --cov=ansible/plugins --cov-report=term-missing
+# Test after updating
+pre-commit run --all-files
+```
 
-# Run integration tests (requires lab)
-./lab start
-pytest tests/integration/ -v -s
-./lab stop
+### Running Checks Locally
+
+```bash
+# Run all pre-commit checks (Stage 1)
+pre-commit run --all-files
+
+# Run the full local linter suite (Stage 1 + some Stage 2)
+./scripts/run-linters.sh
+
+# Run just the tests (Stage 3)
+uv run pytest tests/unit/ tests/property/ -v
 ```
 
 ### Test Requirements for PRs
 
 Before submitting a pull request:
 
-1. ✅ All unit tests must pass
-2. ✅ All property-based tests must pass
-3. ✅ Code coverage should not decrease
-4. ✅ Integration tests should pass locally (if modifying network functionality)
-5. ✅ No new linting errors
+1. ✅ `pre-commit run --all-files` passes
+2. ✅ All unit tests pass
+3. ✅ All property-based tests pass
+4. ✅ Code coverage should not decrease
+5. ✅ Integration tests pass locally (if modifying network functionality)
 
-### Viewing CI/CD Results
+### CI Configuration Files
 
-- **GitHub Actions**: Check the "Actions" tab in the repository
-- **Test Results**: Automatically commented on PRs
-- **Coverage Reports**: Uploaded as artifacts and commented on PRs
-- **Logs**: Available in GitHub Actions for debugging failures
-
-### Troubleshooting CI/CD Failures
-
-#### Unit Test Failures
-- Run tests locally: `pytest tests/unit/ -v`
-- Check for missing mocks or dependencies
-- Verify test isolation (tests should not depend on external state)
-
-#### Property Test Failures
-- Run with same seed: `pytest tests/property/ --hypothesis-seed=<seed>`
-- Check Hypothesis statistics for patterns
-- Review generated test cases in failure output
-
-#### CI Environment Issues
-- Verify `uv.lock` is committed (required for dependency caching)
-- Check Python version compatibility (3.9+)
-- Review GitHub Actions logs for specific errors
-
-### Adding New Tests
-
-When adding new functionality:
-
-1. **Add unit tests** for individual components
-   - Use mocks for external dependencies
-   - Ensure tests run in <1 second
-   - Place in `tests/unit/`
-
-2. **Add property tests** for correctness properties
-   - Use Hypothesis for test generation
-   - Define clear properties to validate
-   - Place in `tests/property/`
-
-3. **Add integration tests** for end-to-end workflows (optional)
-   - Test with actual lab deployment
-   - Document lab requirements
-   - Place in `tests/integration/`
-
-### CI/CD Configuration Files
-
-- `.github/workflows/test.yml` - Main test workflow
-- `pytest.ini` - Pytest configuration
-- `pyproject.toml` - Project dependencies and tool configuration
-- `uv.lock` - Locked dependency versions (must be committed)
-
-For more details on testing, see:
-- [Unit Tests README](../../tests/unit/README.md)
-- [Property Tests README](../../tests/property/README.md)
-- [Integration Tests README](../../tests/integration/README.md)
+| File | Purpose |
+|------|---------|
+| `.github/workflows/ci.yml` | Unified CI pipeline (lint → security → tests) |
+| `.pre-commit-config.yaml` | Pre-commit hook definitions |
+| `ruff.toml` | Ruff linter/formatter configuration |
+| `pyproject.toml` | Project deps, mypy, pytest, coverage config |
+| `.yamllint.yml` | YAML lint rules and ignores |
+| `.ansible-lint` | Ansible lint configuration |
+| `.gitleaks.toml` | Gitleaks secret detection rules |
+| `scripts/run-linters.sh` | Local linter runner script |
