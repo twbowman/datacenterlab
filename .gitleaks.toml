@@ -1,5 +1,14 @@
 # Gitleaks configuration for network lab
 # https://github.com/gitleaks/gitleaks
+#
+# SECURITY NOTE: This lab uses vendor-default credentials (e.g. NokiaSrl1!)
+# that are publicly documented by Nokia for containerlab environments.
+# These are NOT production secrets. The allowlist below scopes them to
+# specific lab files only — any NEW hardcoded credentials in other files
+# WILL be caught.
+#
+# FUTURE: Migrate to Infisical (https://infisical.com) for centralized
+# secret management. See docs/developer/contributing.md for the roadmap.
 
 title = "Gitleaks Configuration"
 
@@ -7,7 +16,7 @@ title = "Gitleaks Configuration"
 useDefault = true
 
 [allowlist]
-description = "Allowlist for lab credentials and test data"
+description = "Global path exclusions for non-source directories"
 paths = [
     '''\.hypothesis/''',
     '''clab-.*/''',
@@ -15,16 +24,58 @@ paths = [
     '''venv/''',
 ]
 
-# Lab default credentials (not production secrets)
-regexes = [
-    '''NokiaSrl1!''',  # SR Linux default lab password
-    '''admin:admin''', # Common lab credentials
-]
+# ---------------------------------------------------------------------------
+# Lab default credentials — scoped to specific files only
+#
+# NokiaSrl1! is the vendor-default SR Linux containerlab password.
+# These rules allow it ONLY in known lab config/inventory/doc files.
+# Any occurrence outside these paths will trigger a finding.
+# ---------------------------------------------------------------------------
 
-# Ignore test files and documentation
-files = [
-    '''(.*?)(test|spec)\.py$''',
-    '''README\.md$''',
-    '''CHANGELOG\.md$''',
-    '''\.md$''',
-]
+[[rules]]
+id = "lab-credential-inventory"
+description = "Allow vendor-default lab credentials in Ansible inventory files"
+path = '''ansible/inventory.*\.yml'''
+regex = '''NokiaSrl1!|password:\s*admin'''
+[rules.allowlist]
+regexes = ['''NokiaSrl1!''', '''password:\s*admin''']
+
+[[rules]]
+id = "lab-credential-role-defaults"
+description = "Allow vendor-default lab credentials in Ansible role defaults"
+path = '''ansible/roles/.*/defaults/main\.yml'''
+regex = '''NokiaSrl1!'''
+[rules.allowlist]
+regexes = ['''NokiaSrl1!''']
+
+[[rules]]
+id = "lab-credential-gnmic-config"
+description = "Allow vendor-default lab credentials in gNMIc configs"
+path = '''monitoring/gnmic/.*\.yml'''
+regex = '''NokiaSrl1!'''
+[rules.allowlist]
+regexes = ['''NokiaSrl1!''']
+
+[[rules]]
+id = "lab-credential-shell-scripts"
+description = "Allow vendor-default lab credentials in test/monitoring scripts"
+path = '''(test-openconfig-implementation|monitoring/test-openconfig-telemetry)\.sh'''
+regex = '''NokiaSrl1!'''
+[rules.allowlist]
+regexes = ['''NokiaSrl1!''']
+
+[[rules]]
+id = "lab-credential-docs"
+description = "Allow vendor-default lab credentials in documentation"
+path = '''(docs/|monitoring/.*\.md|configs/.*\.md|README\.md|CHANGELOG\.md|ansible/.*\.md)'''
+regex = '''NokiaSrl1!|admin:admin'''
+[rules.allowlist]
+regexes = ['''NokiaSrl1!''', '''admin:admin''']
+
+[[rules]]
+id = "lab-credential-normalization"
+description = "Allow vendor-default lab credentials in normalization mappings"
+path = '''monitoring/gnmic/normalization-mappings\.yml'''
+regex = '''NokiaSrl1!'''
+[rules.allowlist]
+regexes = ['''NokiaSrl1!''']

@@ -917,5 +917,22 @@ Before submitting a pull request:
 | `pyproject.toml` | Project deps, mypy, pytest, coverage config |
 | `.yamllint.yml` | YAML lint rules and ignores |
 | `.ansible-lint` | Ansible lint configuration |
-| `.gitleaks.toml` | Gitleaks secret detection rules |
+| `.gitleaks.toml` | Gitleaks secret detection rules (scoped per-file allowlists) |
 | `scripts/run-linters.sh` | Local linter runner script |
+
+### Secrets Management
+
+**Current state:** This lab uses vendor-default credentials (e.g. `NokiaSrl1!` for SR Linux) that are publicly documented by Nokia for containerlab environments. These are not production secrets. The `.gitleaks.toml` config allows them only in specific inventory, config, and documentation files — any new hardcoded credentials in other files will be caught by gitleaks.
+
+**Roadmap:** Migrate to [Infisical](https://infisical.com) for centralized secret management. This will:
+- Store all device credentials (including lab defaults) in Infisical
+- Inject secrets at runtime via Infisical CLI or SDK
+- Enable secret rotation and audit logging
+- Remove all plaintext credentials from the repository
+- Support both local development and CI/CD environments
+
+When this migration happens:
+1. Replace hardcoded passwords in inventory files with `{{ lookup('infisical', 'SRLINUX_PASSWORD') }}` or environment variable references
+2. Update gNMIc configs to use environment variable substitution
+3. Remove per-file allowlists from `.gitleaks.toml`
+4. Add Infisical integration to CI pipeline
