@@ -50,3 +50,19 @@ repos:
         args: [-c, pyproject.toml, --severity-level, medium]
         files: ^(scripts/|ansible/plugins/|ansible/filter_plugins/)
         additional_dependencies: ["bandit[toml]"]
+
+  - repo: local
+    hooks:
+      - id: detect-azure-credentials
+        name: detect azure credentials
+        language: pygrep
+        entry: '(?i)(AZURE_CLIENT_SECRET|AZURE_TENANT_ID|AZURE_STORAGE_KEY|AccountKey=|azure_storage_connection_string|DefaultEndpointsProtocol=.*AccountKey=)'
+        types: [text]
+        exclude: '(\.gitleaks\.toml|\.pre-commit-config\.yaml)$'
+
+      - id: detect-gcp-credentials
+        name: detect gcp credentials
+        language: pygrep
+        entry: '(?i)(private_key_id.*:.*["\x27][a-f0-9]{40}|"type"\s*:\s*"service_account"|GOOGLE_APPLICATION_CREDENTIALS|gcp_credentials|AIza[0-9A-Za-z_-]{35})'
+        types: [text]
+        exclude: '(\.gitleaks\.toml|\.pre-commit-config\.yaml)$'
