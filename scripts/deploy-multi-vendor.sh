@@ -1,6 +1,7 @@
 #!/bin/bash
 # Multi-Vendor ContainerLab deployment script
 # Supports SR Linux, Arista cEOS, SONiC, and Juniper devices
+# shellcheck disable=SC2155
 
 set -e
 
@@ -20,7 +21,6 @@ BOOT_TIME_SRLINUX=60
 BOOT_TIME_ARISTA=90
 BOOT_TIME_SONIC=120
 BOOT_TIME_JUNIPER=90
-BOOT_TIME_LINUX=10
 
 # Function to print colored messages
 print_info() {
@@ -301,7 +301,7 @@ main() {
     print_info "Waiting for devices to boot (${boot_time}s)..."
     for ((i=1; i<=boot_time; i++)); do
         printf "\r  Progress: [%-50s] %d%%" \
-               $(printf '#%.0s' $(seq 1 $((i*50/boot_time)))) \
+               "$(printf '#%.0s' $(seq 1 $((i*50/boot_time))))" \
                $((i*100/boot_time))
         sleep 1
     done

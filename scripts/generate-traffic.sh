@@ -1,6 +1,7 @@
 #!/bin/bash
 # Traffic Generation Script
 # Generates test traffic between clients to populate link utilization metrics
+# shellcheck disable=SC2155
 
 set -e
 
@@ -46,7 +47,6 @@ generate_client_traffic() {
     local src_client=$1
     local dst_ip=$2
     local duration=${3:-30}
-    local label=${4:-""}
     
     # Use ping with large packets to generate traffic
     docker exec -d "clab-gnmi-clos-$src_client" \
@@ -75,7 +75,6 @@ monitor_traffic() {
 }
 
 # Client IP addresses (EVPN-VXLAN subnet)
-CLIENT1_IP="10.10.100.1"
 CLIENT2_IP="10.10.100.2"
 CLIENT3_IP="10.10.100.3"
 CLIENT4_IP="10.10.100.4"

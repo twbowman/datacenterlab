@@ -27,6 +27,11 @@ htmlcov/
 .coverage
 .tox/
 *.cover
+test-results/
+
+# Cache directories
+.mypy_cache/
+.ruff_cache/
 
 # Backup files
 *.bak

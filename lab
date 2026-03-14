@@ -7,29 +7,29 @@ COMMAND="${1:-help}"
 case $COMMAND in
   start|deploy)
     echo "🚀 Deploying network lab..."
-    ./deploy.sh
+    ./scripts/deploy.sh
     ;;
     
   stop|destroy)
     echo "🛑 Destroying network lab..."
-    ./destroy.sh
+    ./scripts/destroy.sh
     ;;
     
   restart)
     echo "🔄 Restarting network lab..."
-    ./destroy.sh
+    ./scripts/destroy.sh
     sleep 2
-    ./deploy.sh
+    ./scripts/deploy.sh
     ;;
     
   mon-start)
     echo "🚀 Deploying monitoring stack..."
-    ./deploy-monitoring.sh
+    ./scripts/deploy-monitoring.sh
     ;;
     
   mon-stop)
     echo "🛑 Destroying monitoring stack..."
-    ./destroy-monitoring.sh
+    ./scripts/destroy-monitoring.sh
     ;;
     
   status)
@@ -98,17 +98,17 @@ case $COMMAND in
         echo ""
         exit 1
     fi
-    python3 analyze-link-utilization.py
+    python3 scripts/analyze-link-utilization.py
     ;;
     
   check-metrics)
     echo "🔍 Checking metrics availability..."
-    ./check-metrics.sh
+    ./scripts/check-metrics.sh
     ;;
     
   generate-traffic)
     echo "🚦 Generating test traffic..."
-    ./generate-traffic.sh
+    ./scripts/generate-traffic.sh
     ;;
     
   grafana)

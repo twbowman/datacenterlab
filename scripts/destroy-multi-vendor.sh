@@ -1,5 +1,6 @@
 #!/bin/bash
 # Multi-Vendor ContainerLab destroy script with cleanup verification
+# shellcheck disable=SC2155
 
 set -e
 
