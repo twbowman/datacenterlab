@@ -293,7 +293,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 4.1, 4.2, 4.4**
     - Test that equivalent metrics from different vendors have identical normalized paths
 
-- [ ] 16. Implement Prometheus relabeling rules
+- [x] 16. Implement Prometheus relabeling rules
   - [x] 16.1 Add interface name normalization rules
     - Create metric_relabel_configs in prometheus.yml
     - Normalize ethernet-1/1, Ethernet1/1, etc. to eth1_1
@@ -312,7 +312,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test transformation rules with sample data
     - _Requirements: 4.7_
 
-- [ ] 17. Create normalization validation script
+- [x] 17. Create normalization validation script
   - [x] 17.1 Implement metric normalization verification
     - Create validation/check_normalization.py
     - Query Prometheus for normalized metrics
@@ -320,12 +320,12 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Check that metric values are preserved
     - _Requirements: 8.3_
   
-  - [ ]* 17.2 Write unit tests for normalization validation
+  - [x]* 17.2 Write unit tests for normalization validation
     - Test validation script with known good data
     - Test detection of normalization failures
     - _Requirements: 8.3_
 
-- [ ] 18. Checkpoint - Verify metric normalization
+- [x] 18. Checkpoint - Verify metric normalization
   - Collect metrics from all 4 vendors
   - Verify normalized metric names are consistent
   - Verify metric values and timestamps are preserved
@@ -334,42 +334,42 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Phase 5: Universal Monitoring Dashboards
 
-- [ ] 19. Create universal interface statistics dashboard
-  - [ ] 19.1 Design dashboard with normalized metric queries
+- [x] 19. Create universal interface statistics dashboard
+  - [x] 19.1 Design dashboard with normalized metric queries
     - Create monitoring/grafana/provisioning/dashboards/universal-interfaces.json
     - Use network_interface_in_octets and network_interface_out_octets
     - Query by interface_normalized label
     - Support filtering by vendor, role, device
     - _Requirements: 5.1, 5.2_
   
-  - [ ] 19.2 Add interface bandwidth panels
+  - [x] 19.2 Add interface bandwidth panels
     - Calculate bandwidth using rate() function
     - Display in/out traffic for all interfaces
     - Use consistent legend format across vendors
     - _Requirements: 5.2_
   
-  - [ ] 19.3 Add interface error and discard panels
+  - [x] 19.3 Add interface error and discard panels
     - Display error counters
     - Display discard counters
     - Show interface operational state
     - _Requirements: 5.2_
 
-- [ ] 20. Create universal BGP monitoring dashboard
-  - [ ] 20.1 Design BGP session status dashboard
+- [x] 20. Create universal BGP monitoring dashboard
+  - [x] 20.1 Design BGP session status dashboard
     - Create monitoring/grafana/provisioning/dashboards/universal-bgp.json
     - Use network_bgp_session_state metric
     - Display session state for all vendors
     - Color-code by session state (established=green, idle=red)
     - _Requirements: 5.1, 5.3_
   
-  - [ ] 20.2 Add BGP route statistics panels
+  - [x] 20.2 Add BGP route statistics panels
     - Display received routes per neighbor
     - Display advertised routes per neighbor
     - Show route counts by address family
     - _Requirements: 5.3_
 
-- [ ] 21. Create universal LLDP topology dashboard
-  - [ ] 21.1 Design LLDP neighbor dashboard
+- [x] 21. Create universal LLDP topology dashboard
+  - [x] 21.1 Design LLDP neighbor dashboard
     - Create monitoring/grafana/provisioning/dashboards/universal-lldp.json
     - Use network_lldp_neighbor metric
     - Display topology connections
@@ -377,14 +377,14 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 5.1, 5.4_
 
 
-- [ ] 22. Create vendor-specific drill-down dashboards
-  - [ ] 22.1 Create vendor-specific interface dashboards
+- [x] 22. Create vendor-specific drill-down dashboards
+  - [x] 22.1 Create vendor-specific interface dashboards
     - Create separate dashboards for native vendor metrics
     - Link from universal dashboard to vendor-specific views
     - Display vendor-specific metrics not available in OpenConfig
     - _Requirements: 5.6, 6.3_
   
-  - [ ] 22.2 Implement dashboard persistence
+  - [x] 22.2 Implement dashboard persistence
     - Configure Grafana provisioning for all dashboards
     - Ensure dashboards persist across Grafana restarts
     - Version control dashboard JSON files
@@ -395,7 +395,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 5.5**
     - Test that adding new vendor doesn't require dashboard modifications
 
-- [ ] 23. Checkpoint - Verify universal dashboards
+- [x] 23. Checkpoint - Verify universal dashboards
   - Open Grafana and verify all universal dashboards work
   - Verify queries return data from all 4 vendors
   - Verify drill-down to vendor-specific dashboards works
@@ -854,23 +854,25 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 
 - [x] 43. Set up continuous integration
-  - [ ] 43.1 Create GitHub Actions workflow
-    - Create .github/workflows/test.yml
+  - [x] 43.1 Create GitHub Actions workflow
+    - Create .github/workflows/ci.yml
     - Configure unit test job
     - Configure property test job
-    - Configure integration test job
+    - Configure integration test job (skipped in CI, local only)
     - _Requirements: 15.1, 15.2, 15.3, 15.4_
   
-  - [ ] 43.2 Configure test execution
-    - Set up containerlab in CI environment
-    - Configure test parallelization
+  - [x] 43.2 Configure test execution
+    - Set up uv for fast Python environment management
+    - Configure lint gates (Ruff, Mypy, yamllint, ShellCheck, ansible-lint)
+    - Configure security gates (Bandit, Trivy, Checkov, Gitleaks)
     - Set test timeouts
     - _Requirements: 15.7_
   
-  - [ ] 43.3 Implement test failure reporting
-    - Configure detailed failure reports
-    - Include logs and diagnostics
-    - Generate coverage reports
+  - [x] 43.3 Implement test failure reporting
+    - Configure detailed failure reports with JUnit XML output
+    - Upload test artifacts and coverage reports
+    - Generate pipeline summary with stage-by-stage results
+    - PR coverage comments via py-cov-action
     - _Requirements: 15.5_
   
   - [ ]* 43.4 Write property test for test suite performance

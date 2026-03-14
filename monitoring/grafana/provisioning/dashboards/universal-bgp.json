@@ -1,0 +1,431 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["vendor-specific"],
+      "targetBlank": false,
+      "title": "Vendor Drill-Down",
+      "type": "dashboards"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            {
+              "options": {
+                "ESTABLISHED": { "color": "green", "index": 0, "text": "ESTABLISHED" },
+                "established": { "color": "green", "index": 1, "text": "ESTABLISHED" },
+                "IDLE": { "color": "red", "index": 2, "text": "IDLE" },
+                "idle": { "color": "red", "index": 3, "text": "IDLE" },
+                "ACTIVE": { "color": "yellow", "index": 4, "text": "ACTIVE" },
+                "active": { "color": "yellow", "index": 5, "text": "ACTIVE" },
+                "CONNECT": { "color": "orange", "index": 6, "text": "CONNECT" },
+                "connect": { "color": "orange", "index": 7, "text": "CONNECT" },
+                "OPENSENT": { "color": "blue", "index": 8, "text": "OPENSENT" },
+                "OPENCONFIRM": { "color": "purple", "index": 9, "text": "OPENCONFIRM" }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_bgp_session_state{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "legendFormat": "{{source}} - {{neighbor_address}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "BGP Session Status",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Established Sessions",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 2,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "count by(source) (network_bgp_session_state{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"} == 1)",
+          "legendFormat": "{{source}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "BGP Established Sessions Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Transitions/sec",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "line+area" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.01 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 3,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "rate(network_bgp_established_transitions{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}[5m])",
+          "legendFormat": "{{source}} - {{neighbor_address}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "BGP Established Transitions (Session Flaps)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Routes",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 4,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_bgp_received_routes{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "legendFormat": "{{source}} - {{neighbor_address}} received",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Received Routes per Neighbor",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Routes",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_bgp_sent_routes{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "legendFormat": "{{source}} - {{neighbor_address}} sent",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Sent Routes per Neighbor",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Session State" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "ESTABLISHED": { "color": "green", "index": 0, "text": "ESTABLISHED" },
+                      "established": { "color": "green", "index": 1, "text": "ESTABLISHED" },
+                      "IDLE": { "color": "red", "index": 2, "text": "IDLE" },
+                      "idle": { "color": "red", "index": 3, "text": "IDLE" },
+                      "ACTIVE": { "color": "yellow", "index": 4, "text": "ACTIVE" },
+                      "active": { "color": "yellow", "index": 5, "text": "ACTIVE" },
+                      "CONNECT": { "color": "orange", "index": 6, "text": "CONNECT" },
+                      "connect": { "color": "orange", "index": 7, "text": "CONNECT" }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background" }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "Device" }]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_bgp_session_state{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_bgp_received_routes{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": true,
+          "hide": false,
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_bgp_sent_routes{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": true,
+          "hide": false,
+          "refId": "C"
+        }
+      ],
+      "title": "BGP Neighbor Details",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "collector": true,
+              "instance": true,
+              "job": true,
+              "subscription_name": true,
+              "topology": false
+            },
+            "indexByName": {
+              "source": 0,
+              "neighbor_address": 1,
+              "vendor": 2,
+              "role": 3,
+              "Value #A": 4,
+              "Value #B": 5,
+              "Value #C": 6
+            },
+            "renameByName": {
+              "source": "Device",
+              "neighbor_address": "Neighbor",
+              "vendor": "Vendor",
+              "role": "Role",
+              "topology": "Topology",
+              "Value #A": "Session State",
+              "Value #B": "Received Routes",
+              "Value #C": "Sent Routes"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["network", "bgp", "universal", "multi-vendor"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_bgp_session_state, vendor)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "vendor", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_bgp_session_state, vendor)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_bgp_session_state, role)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "role", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_bgp_session_state, role)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_bgp_session_state{vendor=~\"$vendor\", role=~\"$role\"}, source)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "device", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_bgp_session_state{vendor=~\"$vendor\", role=~\"$role\"}, source)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Universal BGP Monitoring",
+  "uid": "universal-bgp",
+  "version": 0,
+  "weekStart": ""
+}

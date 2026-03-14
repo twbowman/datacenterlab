@@ -1,0 +1,360 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["vendor-specific"],
+      "targetBlank": false,
+      "title": "Vendor Drill-Down",
+      "type": "dashboards"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "count by(source) (network_lldp_neighbor_system_name{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"})",
+          "legendFormat": "{{source}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "LLDP Neighbor Count",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "Local Device" }]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_lldp_neighbor_system_name{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_lldp_neighbor_port_id{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "hide": false,
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_lldp_neighbor_chassis_id{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "hide": false,
+          "refId": "C"
+        }
+      ],
+      "title": "LLDP Neighbor Table",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "collector": true,
+              "instance": true,
+              "job": true,
+              "subscription_name": true,
+              "Value #B": true,
+              "Value #C": true,
+              "topology": false
+            },
+            "indexByName": {
+              "source": 0,
+              "interface_normalized": 1,
+              "Value #A": 2,
+              "vendor": 3,
+              "role": 4
+            },
+            "renameByName": {
+              "source": "Local Device",
+              "interface_normalized": "Local Interface",
+              "Value #A": "Neighbor System Name",
+              "vendor": "Vendor",
+              "role": "Role",
+              "topology": "Topology"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Neighbors",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 3,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "count by(source) (network_lldp_neighbor_system_name{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"})",
+          "legendFormat": "{{source}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "LLDP Neighbors Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 4,
+      "options": {
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"] },
+        "pieType": "pie",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "count by(vendor) (network_lldp_neighbor_system_name{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"})",
+          "legendFormat": "{{vendor}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Topology Connections by Vendor",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "Device" }]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "network_lldp_neighbor_port_id{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "LLDP Neighbor Details by Interface",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "collector": true,
+              "instance": true,
+              "job": true,
+              "subscription_name": true
+            },
+            "indexByName": {
+              "source": 0,
+              "interface_normalized": 1,
+              "Value": 2,
+              "vendor": 3
+            },
+            "renameByName": {
+              "source": "Device",
+              "interface_normalized": "Local Interface",
+              "Value": "Neighbor Port ID",
+              "vendor": "Vendor"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["network", "lldp", "topology", "universal", "multi-vendor"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_lldp_neighbor_system_name, vendor)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "vendor", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_lldp_neighbor_system_name, vendor)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_lldp_neighbor_system_name, role)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "role", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_lldp_neighbor_system_name, role)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_lldp_neighbor_system_name{vendor=~\"$vendor\", role=~\"$role\"}, source)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "device", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_lldp_neighbor_system_name{vendor=~\"$vendor\", role=~\"$role\"}, source)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Universal LLDP Topology",
+  "uid": "universal-lldp",
+  "version": 0,
+  "weekStart": ""
+}

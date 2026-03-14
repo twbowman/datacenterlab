@@ -1,0 +1,560 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true, "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts", "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true, "fiscalYearStartMonth": 0, "graphTooltip": 1,
+  "id": null, "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["universal"],
+      "targetBlank": false,
+      "title": "Universal Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "OSPF Neighbor State (Native)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            {
+              "options": {
+                "srl_nokia-ospf-types:full": { "color": "green", "index": 0, "text": "FULL" },
+                "srl_nokia-ospf-types:init": { "color": "yellow", "index": 1, "text": "INIT" },
+                "srl_nokia-ospf-types:two_way": { "color": "blue", "index": 2, "text": "2-WAY" },
+                "srl_nokia-ospf-types:exstart": { "color": "orange", "index": 3, "text": "EXSTART" },
+                "srl_nokia-ospf-types:exchange": { "color": "orange", "index": 4, "text": "EXCHANGE" },
+                "srl_nokia-ospf-types:loading": { "color": "purple", "index": 5, "text": "LOADING" },
+                "srl_nokia-ospf-types:down": { "color": "red", "index": 6, "text": "DOWN" }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{source=~\"$device\"}",
+          "legendFormat": "{{source}} {{interface_interface_name}} -> {{neighbor_router_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "OSPF Adjacency State",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Adjacency State" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "srl_nokia-ospf-types:full": { "color": "green", "index": 0, "text": "FULL" },
+                      "srl_nokia-ospf-types:init": { "color": "yellow", "index": 1, "text": "INIT" },
+                      "srl_nokia-ospf-types:down": { "color": "red", "index": 2, "text": "DOWN" }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 7 },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "Device" }]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state{source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_retransmission_queue_length{source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "hide": false,
+          "refId": "B"
+        }
+      ],
+      "title": "OSPF Neighbor Details",
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true, "__name__": true, "collector": true, "instance": true,
+              "job": true, "subscription_name": true, "name": true, "vendor": true,
+              "fabric_type": true, "role": true, "exported_source": true
+            },
+            "indexByName": {
+              "source": 0, "area_area_id": 1, "interface_interface_name": 2,
+              "neighbor_router_id": 3, "adjacency_state": 4, "Value #B": 5
+            },
+            "renameByName": {
+              "source": "Device", "area_area_id": "Area",
+              "interface_interface_name": "Interface", "neighbor_router_id": "Neighbor Router ID",
+              "adjacency_state": "Adjacency State", "network_instance_name": "VRF",
+              "instance_name": "OSPF Instance", "Value #B": "Retx Queue Length"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 101,
+      "title": "EVPN/VXLAN State (Native)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            {
+              "options": {
+                "up": { "color": "green", "index": 0, "text": "UP" },
+                "down": { "color": "red", "index": 1, "text": "DOWN" }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 16 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{source=~\"$device\"}",
+          "legendFormat": "{{source}} {{network_instance_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "EVPN Instance Oper State",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            {
+              "options": {
+                "up": { "color": "green", "index": 0, "text": "UP" },
+                "down": { "color": "red", "index": 1, "text": "DOWN" }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 16 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_oper_state{source=~\"$device\"}",
+          "legendFormat": "{{source}} vxlan{{vxlan_interface_index}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VXLAN Tunnel Oper State",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Oper State" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [{ "options": { "up": { "color": "green", "index": 0, "text": "UP" }, "down": { "color": "red", "index": 1, "text": "DOWN" } }, "type": "value" }]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "Device" }]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_oper_state{source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_evi{source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "hide": false,
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_evpn_srl_nokia_network_instance_network_instance_protocols_bgp_evpn_srl_nokia_bgp_evpn_bgp_instance_ecmp{source=~\"$device\"}",
+          "format": "table",
+          "legendFormat": "__auto",
+          "instant": true,
+          "hide": false,
+          "refId": "C"
+        }
+      ],
+      "title": "EVPN Instance Details",
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true, "__name__": true, "collector": true, "instance": true,
+              "job": true, "subscription_name": true, "name": true, "vendor": true,
+              "fabric_type": true, "role": true, "exported_source": true, "bgp_instance_id": true
+            },
+            "indexByName": {
+              "source": 0, "network_instance_name": 1, "oper_state": 2,
+              "Value #B": 3, "Value #C": 4
+            },
+            "renameByName": {
+              "source": "Device", "network_instance_name": "Network Instance",
+              "oper_state": "Oper State", "Value #B": "EVI", "Value #C": "ECMP"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+      "id": 102,
+      "title": "VXLAN Bridge Table Statistics (Native)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Entries",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+      "id": 6,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_active_entries{source=~\"$device\"}",
+          "legendFormat": "{{source}} vxlan{{vxlan_interface_index}} active",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_total_entries{source=~\"$device\"}",
+          "legendFormat": "{{source}} vxlan{{vxlan_interface_index}} total",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "VXLAN Bridge Table Entries",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Entries",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "gnmic_srl_vxlan_srl_nokia_tunnel_interfaces_tunnel_interface_vxlan_interface_bridge_table_srl_nokia_tunnel_interfaces_vxlan_interface_bridge_table_statistics_failed_entries{source=~\"$device\"}",
+          "legendFormat": "{{source}} vxlan{{vxlan_interface_index}} failed",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VXLAN Bridge Table Failed Entries",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "id": 103,
+      "title": "QoS Queue Statistics (OpenConfig)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "pps",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "pps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "id": 8,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "rate(network_qos_transmit_packets{source=~\"$device\"}[5m])",
+          "legendFormat": "{{source}} {{interface_name}} q{{queue_name}} tx",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "QoS Queue Transmit Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "pps",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "line+area" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.01 }] },
+          "unit": "pps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "id": 9,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "rate(network_qos_dropped_packets{source=~\"$device\"}[5m])",
+          "legendFormat": "{{source}} {{interface_name}} q{{queue_name}} drops",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "QoS Queue Drops",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["network", "srlinux", "nokia", "vendor-specific"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state, source)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "device", "options": [],
+        "query": { "qryType": 1, "query": "label_values(gnmic_srl_ospf_srl_nokia_network_instance_network_instance_protocols_srl_nokia_ospf_ospf_instance_area_interface_neighbor_adjacency_state, source)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "SR Linux Vendor Details",
+  "uid": "vendor-srlinux",
+  "version": 0,
+  "weekStart": ""
+}

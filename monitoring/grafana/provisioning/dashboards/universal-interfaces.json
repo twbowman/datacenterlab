@@ -1,0 +1,155 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true, "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts", "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true, "fiscalYearStartMonth": 0, "graphTooltip": 1,
+  "id": null, "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["vendor-specific"],
+      "targetBlank": false,
+      "title": "Vendor Drill-Down",
+      "type": "dashboards"
+    }
+  ], "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "tooltip": false, "viz": false, "legend": false }, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 80 }] }, "unit": "bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }, "id": 1,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_in_octets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m]) * 8", "legendFormat": "{{source}} - {{interface_normalized}} - in", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_out_octets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m]) * 8", "legendFormat": "{{source}} - {{interface_normalized}} - out", "range": true, "refId": "B" }
+      ],
+      "title": "Interface Bandwidth (In/Out)", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50 }, { "color": "orange", "value": 70 }, { "color": "red", "value": 80 }] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }, "id": 2,
+      "options": { "displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }, "showUnfilled": true, "text": {} },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "(rate(network_interface_out_octets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m]) * 8 / 10000000000) * 100", "legendFormat": "{{source}} - {{interface_normalized}}", "range": true, "refId": "A" }
+      ],
+      "title": "Link Utilization (%)", "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "tooltip": false, "viz": false, "legend": false }, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "line" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 80 }] }, "unit": "bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }, "id": 3,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_in_octets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m]) * 8", "legendFormat": "{{source}} - {{interface_normalized}} - in", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_out_octets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m]) * 8", "legendFormat": "{{source}} - {{interface_normalized}} - out", "range": true, "refId": "B" }
+      ],
+      "title": "Interface Bandwidth Over Time", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "hideFrom": { "tooltip": false, "viz": false, "legend": false } }, "mappings": [], "unit": "bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }, "id": 4,
+      "options": { "displayLabels": ["name", "percent"], "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"] }, "pieType": "pie", "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "sum by(source) (rate(network_interface_out_octets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m]) * 8)", "legendFormat": "{{source}}", "range": true, "refId": "A" }
+      ],
+      "title": "Traffic Distribution by Device", "type": "piechart"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 0, "gradientMode": "none", "hideFrom": { "tooltip": false, "viz": false, "legend": false }, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 80 }] }, "unit": "pps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }, "id": 5,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_in_packets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m])", "legendFormat": "{{source}} - {{interface_normalized}} - in", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_out_packets{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m])", "legendFormat": "{{source}} - {{interface_normalized}} - out", "range": true, "refId": "B" }
+      ],
+      "title": "Packet Rate (In/Out)", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 0, "gradientMode": "none", "hideFrom": { "tooltip": false, "viz": false, "legend": false }, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 80 }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }, "id": 6,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_in_errors{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m])", "legendFormat": "{{source}} - {{interface_normalized}} - in errors", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_out_errors{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m])", "legendFormat": "{{source}} - {{interface_normalized}} - out errors", "range": true, "refId": "B" }
+      ],
+      "title": "Interface Errors", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 0, "gradientMode": "none", "hideFrom": { "tooltip": false, "viz": false, "legend": false }, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 80 }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }, "id": 7,
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_in_discards{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m])", "legendFormat": "{{source}} - {{interface_normalized}} - in discards", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "rate(network_interface_out_discards{vendor=~\"$vendor\", role=~\"$role\", source=~\"$device\", interface_normalized=~\"$interface\"}[5m])", "legendFormat": "{{source}} - {{interface_normalized}} - out discards", "range": true, "refId": "B" }
+      ],
+      "title": "Interface Discards", "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["network", "interfaces", "universal", "multi-vendor"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_interface_in_octets, vendor)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "vendor", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_interface_in_octets, vendor)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_interface_in_octets, role)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "role", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_interface_in_octets, role)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_interface_in_octets{vendor=~\"$vendor\", role=~\"$role\"}, source)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "device", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_interface_in_octets{vendor=~\"$vendor\", role=~\"$role\"}, source)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(network_interface_in_octets{source=~\"$device\"}, interface_normalized)",
+        "hide": 0, "includeAll": true, "multi": true,
+        "name": "interface", "options": [],
+        "query": { "qryType": 1, "query": "label_values(network_interface_in_octets{source=~\"$device\"}, interface_normalized)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Universal Interface Statistics",
+  "uid": "universal-interfaces",
+  "version": 0,
+  "weekStart": ""
+}
