@@ -790,6 +790,10 @@ Stage 1: Lint (parallel)          Stage 2: Security (parallel)       Stage 3: Te
 │ Ansible (soft)  │               │ Checkov          │               └─────────────────┘
 │ Shell           │               │ Gitleaks         │
 └─────────────────┘               └──────────────────┘
+
+Pre-commit (local, runs before every commit):
+  Lint: ruff, ruff-format, mypy, yamllint, shellcheck
+  Security: detect-private-key, detect-aws-credentials, gitleaks, bandit
 ```
 
 ### Stage 1: Pre-commit Lint (also runs locally)
@@ -846,11 +850,19 @@ pre-commit run --all-files
 
 The `.pre-commit-config.yaml` configures these hooks:
 
+**Lint:**
 1. `ruff` — lint with auto-fix
 2. `ruff-format` — code formatting
 3. `mypy` — type checking (scripts and plugins only)
 4. `yamllint` — YAML validation
 5. `shellcheck` — shell script analysis (`scripts/` only)
+
+**Local Security:**
+6. `detect-private-key` — blocks commits containing private keys
+7. `detect-aws-credentials` — catches AWS credentials in code
+8. `check-added-large-files` — prevents files >500KB (may contain embedded secrets/data)
+9. `gitleaks` — scans staged changes for secrets using `.gitleaks.toml` rules
+10. `bandit` — Python security analysis (medium+ severity, scoped to `scripts/` and plugins)
 
 #### Skipping hooks (when needed)
 

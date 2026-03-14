@@ -365,6 +365,8 @@ pip install pre-commit
 pre-commit install
 ```
 
+Hooks include lint (Ruff, Mypy, yamllint, ShellCheck) and local security checks (gitleaks, bandit, detect-private-key, detect-aws-credentials, large file guard).
+
 **CI Pipeline** (`.github/workflows/ci.yml`):
 1. Lint: Ruff, Mypy, yamllint, ShellCheck, ansible-lint
 2. Security: Bandit, Trivy, Checkov, Gitleaks
