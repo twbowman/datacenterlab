@@ -209,8 +209,29 @@ Grafana dashboards:
 - OSPF adjacencies
 - LLDP topology
 - System health
+- Network Congestion Analysis
+- EVPN/VXLAN Stability
 
 Access Grafana at http://localhost:3000 (admin/admin)
+
+## Traffic Testing
+
+Separate Ansible-based fabric load testing using iperf3 across all client nodes via EVPN/VXLAN.
+
+All 4 clients share the same L2 subnet (10.10.100.0/24) bridged across the fabric via mac-vrf-100 (VNI 10100). Traffic between clients on different leafs traverses the full leaf-spine-leaf VXLAN path.
+
+```bash
+# Quick 30-second validation
+orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/quick-test.yml
+
+# Full 5-minute mesh test
+orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/full-mesh-traffic.yml
+
+# Stress test
+orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/stress-test.yml
+```
+
+See [Traffic Testing README](traffic-testing/README.md) for details.
 
 ## Verification
 
@@ -229,8 +250,8 @@ docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default protocol
 # Routing table
 docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default route-table"
 
-# Client connectivity
-docker exec clab-gnmi-clos-client1 ping -c 3 10.10.2.10
+# Client connectivity (via EVPN/VXLAN)
+docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.12
 ```
 
 ### Check Monitoring

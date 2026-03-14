@@ -1,0 +1,12 @@
+---
+# Quick Traffic Test - 30 second burst for fast validation
+#
+# Usage:
+#   ansible-playbook playbooks/quick-test.yml
+
+- name: Quick mesh traffic test
+  ansible.builtin.import_playbook: full-mesh-traffic.yml
+  vars:
+    iperf3_duration: 30
+    iperf3_parallel_streams: 2
+    iperf3_bandwidth: "10M"

@@ -1,0 +1,14 @@
+---
+# Stress Test - More streams, longer duration
+# Designed to push the fabric and expose congestion patterns
+#
+# Usage:
+#   ansible-playbook playbooks/stress-test.yml
+#   ansible-playbook playbooks/stress-test.yml -e iperf3_duration=600
+
+- name: Fabric stress test
+  ansible.builtin.import_playbook: full-mesh-traffic.yml
+  vars:
+    iperf3_duration: 300
+    iperf3_parallel_streams: 8
+    iperf3_bandwidth: "20M"

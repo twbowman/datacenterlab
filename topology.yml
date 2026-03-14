@@ -57,37 +57,39 @@ topology:
         - ./configs/leaf4:/config
     
     # === Client Nodes ===
+    # Clients - all on same L2 subnet via EVPN/VXLAN (mac-vrf-100, VNI 10100)
+    # MTU 1400 to fit within VXLAN encapsulation overhead (~50 bytes)
     client1:
       kind: linux
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.31
       exec:
-        - ip addr add 10.10.1.10/24 dev eth1
-        - ip route add 10.10.0.0/16 via 10.10.1.1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.11/24 dev eth1
     
     client2:
       kind: linux
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.32
       exec:
-        - ip addr add 10.10.2.10/24 dev eth1
-        - ip route add 10.10.0.0/16 via 10.10.2.1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.12/24 dev eth1
     
     client3:
       kind: linux
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.33
       exec:
-        - ip addr add 10.10.3.10/24 dev eth1
-        - ip route add 10.10.0.0/16 via 10.10.3.1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.13/24 dev eth1
     
     client4:
       kind: linux
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.34
       exec:
-        - ip addr add 10.10.4.10/24 dev eth1
-        - ip route add 10.10.0.0/16 via 10.10.4.1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.14/24 dev eth1
 
   links:
     # Spine1 to all Leafs

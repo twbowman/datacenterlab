@@ -1,0 +1,34 @@
+---
+# Traffic Testing Inventory - Separate from network switch management
+# All clients on same L2 subnet (10.10.100.0/24) via EVPN/VXLAN
+
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # iperf3 defaults
+    iperf3_duration: 300        # 5 minutes default
+    iperf3_parallel_streams: 4  # multiple streams per pair
+    iperf3_bandwidth: "10M"     # target bandwidth per stream (keep low for emulated VXLAN)
+    iperf3_port_base: 5201      # starting port for iperf3 servers
+    iperf3_udp: true            # UDP mode (avoids VXLAN TCP MSS issues)
+    iperf3_pkt_len: 1300        # UDP packet length (fits within VXLAN MTU)
+
+  children:
+    clients:
+      hosts:
+        client1:
+          ansible_host: clab-gnmi-clos-client1
+          ansible_connection: community.docker.docker
+          client_ip: 10.10.100.11
+        client2:
+          ansible_host: clab-gnmi-clos-client2
+          ansible_connection: community.docker.docker
+          client_ip: 10.10.100.12
+        client3:
+          ansible_host: clab-gnmi-clos-client3
+          ansible_connection: community.docker.docker
+          client_ip: 10.10.100.13
+        client4:
+          ansible_host: clab-gnmi-clos-client4
+          ansible_connection: community.docker.docker
+          client_ip: 10.10.100.14

@@ -1,0 +1,135 @@
+---
+# Full Mesh Traffic Generator
+# Runs iperf3 between all client pairs simultaneously to load the fabric
+#
+# Usage:
+#   ansible-playbook playbooks/full-mesh-traffic.yml
+#   ansible-playbook playbooks/full-mesh-traffic.yml -e iperf3_duration=60
+#   ansible-playbook playbooks/full-mesh-traffic.yml -e iperf3_parallel_streams=8
+#   ansible-playbook playbooks/full-mesh-traffic.yml -e iperf3_bandwidth=500M
+
+- name: Verify client connectivity
+  hosts: clients
+  gather_facts: false
+  tasks:
+    - name: Check iperf3 is available
+      ansible.builtin.command: which iperf3
+      changed_when: false
+
+    - name: Ping all other clients
+      ansible.builtin.command: "ping -c 1 -W 2 {{ hostvars[item].client_ip }}"
+      loop: "{{ groups['clients'] | difference([inventory_hostname]) }}"
+      changed_when: false
+
+- name: Kill any existing iperf3 processes
+  hosts: clients
+  gather_facts: false
+  tasks:
+    - name: Stop existing iperf3 processes
+      ansible.builtin.shell: killall iperf3 2>/dev/null || true
+      changed_when: false
+
+- name: Start iperf3 servers
+  hosts: clients
+  gather_facts: false
+  tasks:
+    # Each host runs one server per possible source, using port = 5201 + source_index
+    # client1=idx0, client2=idx1, client3=idx2, client4=idx3
+    - name: Start iperf3 server for each source client
+      ansible.builtin.shell: >
+        iperf3 -s -D
+        -p {{ 5201 + groups['clients'].index(item) }}
+        --logfile /tmp/iperf3-server-from-{{ item }}.log
+      loop: "{{ groups['clients'] | difference([inventory_hostname]) }}"
+      loop_control:
+        label: "listening on port {{ 5201 + groups['clients'].index(item) }} for {{ item }}"
+      changed_when: true
+
+- name: Run full mesh iperf3 traffic
+  hosts: clients
+  gather_facts: false
+  tasks:
+    - name: "Generate traffic ({{ iperf3_duration }}s, {{ iperf3_parallel_streams }} streams, {{ iperf3_bandwidth }}/stream)"
+      ansible.builtin.shell: >
+        iperf3
+        -c {{ hostvars[item].client_ip }}
+        -p {{ 5201 + groups['clients'].index(inventory_hostname) }}
+        -t {{ iperf3_duration }}
+        -P {{ iperf3_parallel_streams }}
+        -b {{ iperf3_bandwidth }}
+        {{ '-u -l ' ~ iperf3_pkt_len if iperf3_udp | default(true) else '' }}
+        --json
+        > /tmp/iperf3-to-{{ item }}.json 2>&1 &
+      loop: "{{ groups['clients'] | difference([inventory_hostname]) }}"
+      loop_control:
+        label: "{{ inventory_hostname }} -> {{ item }} (port {{ 5201 + groups['clients'].index(inventory_hostname) }})"
+      changed_when: true
+
+    - name: Show active iperf3 processes
+      ansible.builtin.shell: "ps aux | grep '[i]perf3 -c' | wc -l"
+      changed_when: false
+      register: proc_count
+
+    - name: Report
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ proc_count.stdout }} iperf3 client streams active"
+
+- name: Wait for traffic to complete
+  hosts: clients[0]
+  gather_facts: false
+  tasks:
+    - name: "Waiting {{ iperf3_duration }}s for traffic generation..."
+      ansible.builtin.pause:
+        seconds: "{{ iperf3_duration | int + 5 }}"
+
+- name: Collect results
+  hosts: clients
+  gather_facts: false
+  tasks:
+    - name: Extract summary from iperf3 results
+      ansible.builtin.shell: |
+        python3 -c "
+        import json, sys
+        try:
+            data = json.load(open('/tmp/iperf3-to-{{ item }}.json'))
+            end = data.get('end', {})
+            if 'sum' in end:
+                # UDP mode
+                s = end['sum']
+                bps = s.get('bits_per_second', 0) / 1e6
+                lost = s.get('lost_packets', 0)
+                total = s.get('packets', 0)
+                jitter = s.get('jitter_ms', 0)
+                loss_pct = (lost/total*100) if total > 0 else 0
+                print(f'{bps:.1f} Mbps, Jitter={jitter:.3f}ms, Loss={lost}/{total} ({loss_pct:.1f}%)')
+            else:
+                # TCP mode
+                tx = end.get('sum_sent', {}).get('bits_per_second', 0) / 1e6
+                rx = end.get('sum_received', {}).get('bits_per_second', 0) / 1e6
+                retrans = end.get('sum_sent', {}).get('retransmits', 'N/A')
+                print(f'TX={tx:.1f} Mbps, RX={rx:.1f} Mbps, Retransmits={retrans}')
+        except Exception as e:
+            print(f'Error: {e}')
+        "
+      loop: "{{ groups['clients'] | difference([inventory_hostname]) }}"
+      loop_control:
+        label: "{{ inventory_hostname }} -> {{ item }}"
+      register: results
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display results
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} -> {{ item.item }}: {{ item.stdout }}"
+      loop: "{{ results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: item.stdout is defined
+
+- name: Cleanup
+  hosts: clients
+  gather_facts: false
+  tasks:
+    - name: Stop all iperf3 processes
+      ansible.builtin.shell: killall iperf3 2>/dev/null || true
+      changed_when: false
