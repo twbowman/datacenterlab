@@ -37,8 +37,8 @@ class TopologyValidator:
     def __init__(self, topology_file: str):
         self.topology_file = Path(topology_file)
         self.topology = None
-        self.errors = []
-        self.warnings = []
+        self.errors: list[ValidationError] = []
+        self.warnings: list[str] = []
 
     def validate(self) -> bool:
         """Run all validation checks"""

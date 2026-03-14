@@ -23,10 +23,10 @@ from version import (
 )
 
 
-def load_snapshot(filepath: str) -> dict:
+def load_snapshot(filepath: str) -> dict:  # type: ignore[type-arg]
     """Load snapshot from YAML file."""
     with open(filepath) as f:
-        return yaml.safe_load(f)
+        return yaml.safe_load(f)  # type: ignore[no-any-return]
 
 
 def check_snapshot(filepath: str, verbose: bool = False) -> bool:
@@ -76,7 +76,7 @@ def check_snapshot(filepath: str, verbose: bool = False) -> bool:
         if "lab_version" in snapshot:
             print(f"  Created with lab version: {snapshot['lab_version']}")
 
-        if result.upgrade_available:
+        if result.upgrade_available and result.upgrade_path:
             print(f"  Upgrade path: {' → '.join(result.upgrade_path)}")
 
         if "metadata" in snapshot:

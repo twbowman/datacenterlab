@@ -272,7 +272,7 @@ def check_dependency_versions() -> dict[str, CompatibilityResult]:
     return results
 
 
-def get_version_info() -> dict[str, str]:
+def get_version_info() -> dict[str, str | dict[str, str]]:
     """
     Get version information for all components.
 
@@ -294,6 +294,8 @@ def format_version_info() -> str:
         Formatted version information
     """
     info = get_version_info()
+    min_deps = info["minimum_dependencies"]
+    assert isinstance(min_deps, dict)
 
     output = [
         f"Production Network Testing Lab v{info['lab_version']}",
@@ -305,10 +307,10 @@ def format_version_info() -> str:
         f"  API Version: {info['api_version']}",
         "",
         "Minimum Dependencies:",
-        f"  Python: {info['minimum_dependencies']['python']}",
-        f"  Containerlab: {info['minimum_dependencies']['containerlab']}",
-        f"  Ansible: {info['minimum_dependencies']['ansible']}",
-        f"  gNMIc: {info['minimum_dependencies']['gnmic']}",
+        f"  Python: {min_deps['python']}",
+        f"  Containerlab: {min_deps['containerlab']}",
+        f"  Ansible: {min_deps['ansible']}",
+        f"  gNMIc: {min_deps['gnmic']}",
     ]
 
     return "\n".join(output)

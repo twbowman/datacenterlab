@@ -107,10 +107,10 @@ def migrate_snapshot(snapshot: dict, from_version: str, to_version: str) -> dict
     return migrated
 
 
-def load_snapshot(filepath: str) -> dict:
+def load_snapshot(filepath: str) -> dict:  # type: ignore[type-arg]
     """Load snapshot from YAML file."""
     with open(filepath) as f:
-        return yaml.safe_load(f)
+        return yaml.safe_load(f)  # type: ignore[no-any-return]
 
 
 def save_snapshot(snapshot: dict, filepath: str):

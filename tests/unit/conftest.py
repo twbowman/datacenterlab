@@ -157,7 +157,7 @@ def mock_yaml_load(monkeypatch):
 
     def mock_load(stream):
         # If stream is a string or StringIO, parse it normally
-        if isinstance(stream, (str, StringIO)):
+        if isinstance(stream, str | StringIO):
             return yaml.safe_load(stream)
         # If it's a file handle, return mock topology data
         return {
