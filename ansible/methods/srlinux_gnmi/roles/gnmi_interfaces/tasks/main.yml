@@ -1,54 +1,51 @@
 ---
-# tasks file for srlinux_interfaces (OpenConfig paths)
-- name: Configure interfaces via gnmic (OpenConfig)
+# tasks file for srlinux_interfaces
+# Uses native SR Linux paths with srl_nokia origin throughout
+# (OpenConfig SET is not supported on SR Linux)
+
+- name: Configure interfaces via gnmic (native SR Linux path)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /interfaces/interface[name={{ item.name }}]/config/name \
-      --update-value {{ item.name }} \
-      --update-path /interfaces/interface[name={{ item.name }}]/config/type \
-      --update-value iana-if-type:ethernetCsmacd \
-      --update-path /interfaces/interface[name={{ item.name }}]/config/enabled \
-      --update-value true \
-      --update-path /interfaces/interface[name={{ item.name }}]/subinterfaces/subinterface[index=0]/config/index \
-      --update-value 0 \
-      --update-path /interfaces/interface[name={{ item.name }}]/subinterfaces/subinterface[index=0]/ipv4/addresses/address[ip={{ item.ip | ipaddr('address') }}]/config/ip \
-      --update-value {{ item.ip | ipaddr('address') }} \
-      --update-path /interfaces/interface[name={{ item.name }}]/subinterfaces/subinterface[index=0]/ipv4/addresses/address[ip={{ item.ip | ipaddr('address') }}]/config/prefix-length \
-      --update-value {{ item.ip | ipaddr('prefix') }}
+      --update-path 'srl_nokia:/interface[name={{ item.name }}]/admin-state' \
+      --update-value enable \
+      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/admin-state' \
+      --update-value enable \
+      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/admin-state' \
+      --update-value enable \
+      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/address[ip-prefix={{ item.ip }}]' \
+      --update-value '{}' \
+      --encoding json_ietf
   loop: "{{ interfaces }}"
   when: item.ip is defined
   delegate_to: localhost
   register: interface_result
-  changed_when: "'success' in interface_result.stdout or 'ok' in interface_result.stdout"
+  changed_when: "'UPDATE' in interface_result.stdout"
   failed_when: interface_result.rc != 0
 
-- name: Configure system0 loopback via gnmic (OpenConfig)
+- name: Configure system0 loopback via gnmic (native SR Linux path)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /interfaces/interface[name=system0]/config/name \
-      --update-value system0 \
-      --update-path /interfaces/interface[name=system0]/config/type \
-      --update-value iana-if-type:softwareLoopback \
-      --update-path /interfaces/interface[name=system0]/config/enabled \
-      --update-value true \
-      --update-path /interfaces/interface[name=system0]/subinterfaces/subinterface[index=0]/config/index \
-      --update-value 0 \
-      --update-path /interfaces/interface[name=system0]/subinterfaces/subinterface[index=0]/ipv4/addresses/address[ip={{ loopback_ip | ipaddr('address') }}]/config/ip \
-      --update-value {{ loopback_ip | ipaddr('address') }} \
-      --update-path /interfaces/interface[name=system0]/subinterfaces/subinterface[index=0]/ipv4/addresses/address[ip={{ loopback_ip | ipaddr('address') }}]/config/prefix-length \
-      --update-value {{ loopback_ip | ipaddr('prefix') }}
+      --update-path 'srl_nokia:/interface[name=system0]/admin-state' \
+      --update-value enable \
+      --update-path 'srl_nokia:/interface[name=system0]/subinterface[index=0]/admin-state' \
+      --update-value enable \
+      --update-path 'srl_nokia:/interface[name=system0]/subinterface[index=0]/ipv4/admin-state' \
+      --update-value enable \
+      --update-path 'srl_nokia:/interface[name=system0]/subinterface[index=0]/ipv4/address[ip-prefix={{ loopback_ip }}]' \
+      --update-value '{}' \
+      --encoding json_ietf
   when: loopback_ip is defined
   delegate_to: localhost
   register: loopback_result
-  changed_when: "'success' in loopback_result.stdout or 'ok' in loopback_result.stdout"
+  changed_when: "'UPDATE' in loopback_result.stdout"
   failed_when: loopback_result.rc != 0
 
 # Add interfaces to default network-instance (required for OSPF/BGP)
@@ -69,23 +66,6 @@
   changed_when: "'UPDATE' in ni_interface_result.stdout"
   failed_when: ni_interface_result.rc != 0
 
-- name: Enable IPv4 on subinterfaces
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/admin-state' \
-      --update-value enable \
-      --encoding json_ietf
-  loop: "{{ interfaces }}"
-  when: item.ip is defined
-  delegate_to: localhost
-  register: ipv4_enable_result
-  changed_when: "'UPDATE' in ipv4_enable_result.stdout"
-  failed_when: ipv4_enable_result.rc != 0
-
 - name: Add system0 to default network-instance
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
@@ -102,18 +82,3 @@
   changed_when: "'UPDATE' in ni_loopback_result.stdout"
   failed_when: ni_loopback_result.rc != 0
 
-- name: Enable IPv4 on system0
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path 'srl_nokia:/interface[name=system0]/subinterface[index=0]/ipv4/admin-state' \
-      --update-value enable \
-      --encoding json_ietf
-  when: loopback_ip is defined
-  delegate_to: localhost
-  register: ipv4_loopback_enable_result
-  changed_when: "'UPDATE' in ipv4_loopback_enable_result.stdout"
-  failed_when: ipv4_loopback_enable_result.rc != 0

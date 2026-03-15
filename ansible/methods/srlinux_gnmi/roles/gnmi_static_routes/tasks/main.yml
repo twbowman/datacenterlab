@@ -1,7 +1,7 @@
 ---
 # tasks file for srlinux_static_routes
 # Add static /32 host routes for BGP next-hop resolution
-# This allows BGP to install routes with next-hops that are part of connected /31 subnets
+# Uses native SR Linux paths with srl_nokia origin
 
 - name: Add static /32 host routes for BGP neighbors
   ansible.builtin.shell: |
@@ -10,8 +10,9 @@
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /network-instance[name=default]/static-routes/route[prefix={{ iface.neighbor_ip }}/32]/next-hop[index=0]/ip-address \
-      --update-value {{ iface.neighbor_ip }}
+      --update-path 'srl_nokia:/network-instance[name=default]/static-routes/route[prefix={{ iface.neighbor_ip }}/32]/next-hop[index=0]/ip-address' \
+      --update-value {{ iface.neighbor_ip }} \
+      --encoding json_ietf
   loop: "{{ interfaces }}"
   loop_control:
     loop_var: iface
