@@ -18,7 +18,21 @@ This is a production-grade datacenter network lab that lets you deploy, configur
 
 **Key question to pose**: "How do you test a BGP configuration change across 4 different vendor types before pushing to production?"
 
-### 2. What This Project Is (3 min)
+### 2. Unmet Needs in the Market (3 min)
+
+This project isn't a new tool — it's a working, integrated, open-source reference architecture that fills gaps the industry hasn't addressed well:
+
+- **Multi-vendor gNMI automation with a unified pattern.** Most teams use vendor CLIs, vendor-specific APIs, or NETCONF. gNMI adoption for configuration (not just telemetry) is still early, and there's very little reference material showing how to do it across 4 vendors with a single dispatcher pattern. Vendor docs show single-vendor examples. This project shows the cross-vendor reality — including the ugly parts like SR Linux rate limits and OpenConfig gaps.
+
+- **Telemetry normalization across vendors.** Everyone talks about "vendor-neutral monitoring" but the actual work of mapping vendor-specific metric names to universal names barely exists as reusable, documented examples. The gNMIc normalization pipeline here is a practical reference implementation.
+
+- **Validation as code, not just configuration as code.** The industry has embraced config-as-code (Ansible, Terraform, Nornir), but validation is still mostly "SSH in and check." The `gnmi_validate` module compares gNMI GET state against expected state from inventory variables, with structured diffs and remediation hints — a pattern most teams haven't built yet.
+
+- **A laptop-runnable multi-vendor lab that mirrors production.** Containerlab made this possible, but most examples are single-vendor or topology-only. A full stack — deploy, configure, monitor, validate — running on macOS ARM with real NOS containers, where the same playbooks work in production by swapping an inventory file, is a reference architecture people are looking for and not finding.
+
+**Positioning note**: This project isn't competing with CloudVision, Apstra, or NSO. It's showing what's possible with open-source tools and gNMI when you put the integration work in. The individual tools (Ansible, Grafana, Prometheus, gNMIc) aren't novel — the integration across vendors is.
+
+### 3. What This Project Is (3 min)
 
 A containerized datacenter network running real network operating systems:
 
@@ -29,7 +43,7 @@ A containerized datacenter network running real network operating systems:
 
 **Demo opportunity**: Show `./lab start` and `./lab status` — containers come up in ~2 minutes.
 
-### 3. Architecture Walkthrough (5 min)
+### 4. Architecture Walkthrough (5 min)
 
 ```mermaid
 graph TD
@@ -59,7 +73,7 @@ Key points to highlight:
 - Ansible dispatcher pattern auto-routes to vendor-specific roles based on OS detection
 - Everything is infrastructure-as-code, version controlled
 
-### 4. Multi-Vendor Dispatcher Pattern (5 min)
+### 5. Multi-Vendor Dispatcher Pattern (5 min)
 
 This is the core automation innovation. Walk through how it works:
 
@@ -81,7 +95,7 @@ This is the core automation innovation. Walk through how it works:
 
 **Demo opportunity**: Run `ansible-playbook -i inventory.yml site.yml` and show it configuring interfaces → LLDP → OSPF → BGP → EVPN across all devices.
 
-### 5. EVPN/VXLAN Fabric (5 min)
+### 6. EVPN/VXLAN Fabric (5 min)
 
 Explain the overlay architecture:
 - OSPF provides underlay reachability between loopbacks
@@ -93,7 +107,7 @@ Data model is in `group_vars/leafs.yml` — change the YAML, re-run the playbook
 
 **Demo opportunity**: `docker exec clab-gnmi-clos-client1 ping 10.10.100.12` — traffic traverses leaf1 → spine → leaf2 via VXLAN.
 
-### 6. Telemetry and Monitoring (5 min)
+### 7. Telemetry and Monitoring (5 min)
 
 Two-tier telemetry approach:
 - Tier 1: OpenConfig paths for vendor-neutral metrics (interfaces, BGP, LLDP)
@@ -112,7 +126,7 @@ Metric normalization pipeline:
 
 **Demo opportunity**: Open Grafana at localhost:3000, show the Universal Interfaces dashboard with data from all devices. Then drill into vendor-specific view.
 
-### 7. Validation Framework (5 min)
+### 8. Validation Framework (5 min)
 
 Custom `gnmi_validate` Ansible module:
 - Uses pygnmi to query device state via gNMI GET
@@ -130,7 +144,7 @@ Callback plugin aggregates results into a JSON report.
 
 **Demo opportunity**: Run `ansible-playbook playbooks/validate.yml`, show the structured output. Then intentionally break something (shut an interface) and re-run to show failure detection with remediation suggestions.
 
-### 8. Production Portability (3 min)
+### 9. Production Portability (3 min)
 
 This is the key differentiator. Everything built here transfers directly to production:
 
@@ -144,7 +158,7 @@ This is the key differentiator. Everything built here transfers directly to prod
 
 Migration path: develop in lab → validate → update inventory → run same playbook against production.
 
-### 9. Engineering Challenges (3 min)
+### 10. Engineering Challenges (3 min)
 
 Interesting problems solved along the way:
 
@@ -154,7 +168,7 @@ Interesting problems solved along the way:
 
 - **Metric normalization at scale**: 4 vendors × different path formats × different naming conventions. Built a normalization pipeline in gNMIc that produces identical metric names regardless of source vendor.
 
-### 10. CI/CD and Testing (2 min)
+### 11. CI/CD and Testing (2 min)
 
 3-stage GitHub Actions pipeline:
 1. Lint: Ruff, Mypy, yamllint, ShellCheck, ansible-lint
@@ -168,7 +182,7 @@ Test structure:
 - Property-based tests: state management invariants, telemetry properties
 - Integration tests: end-to-end workflows, multi-vendor, monitoring stack
 
-### 11. Live Demo Sequence (optional, 10 min)
+### 12. Live Demo Sequence (optional, 10 min)
 
 If doing a live demo, suggested order:
 
