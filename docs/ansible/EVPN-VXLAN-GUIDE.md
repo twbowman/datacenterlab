@@ -180,6 +180,16 @@ routing-instances {
 
 ### Common Issues
 
+#### 0. gNMI Rate Limit Exceeded (SR Linux)
+
+**Symptoms**: `rpc error: code = ResourceExhausted desc = Max number of connections per minute (rate-limit) reached (max: 60)`
+
+SR Linux limits gNMI to 60 connections per minute per device. The EVPN/VXLAN role configures multiple VLANs/VNIs, and if each is a separate `gnmic` call, the budget is exhausted quickly — especially since earlier roles (interfaces, OSPF, BGP) have already consumed connections.
+
+**Solution**: All roles in this project batch operations into single `gnmic set` calls using Jinja2 loops with multiple `--update-path`/`--update-value` pairs. If you modify the roles or add new tasks, follow the same batching pattern. See `docs/user/troubleshooting.md` for the full pattern and connection budget guidance.
+
+**Quick recovery**: Wait 60 seconds (rate limit resets), then re-run with `--tags evpn,vxlan`.
+
 #### 1. EVPN Routes Not Advertised
 
 **Symptoms**: No EVPN routes in BGP table

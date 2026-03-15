@@ -141,6 +141,38 @@ gnmic set \
 
 **Conclusion:** While OpenConfig BGP configuration is technically possible for basic IPv4/IPv6 unicast, the lack of EVPN support and increased complexity make SR Linux native paths the better choice for configuration.
 
+### SR Linux gNMI Rate Limit (60 connections/minute)
+
+SR Linux enforces a hard rate limit of 60 gNMI connections per minute per device. Each `gnmic set` or `gnmic get` invocation opens a new gRPC connection, so Ansible loops that call gnmic once per iteration will quickly exhaust this budget.
+
+**Symptoms**: `rpc error: code = ResourceExhausted desc = Max number of connections per minute (rate-limit) reached (max: 60)`
+
+**Required pattern — batch operations**: Always use a single `gnmic set` call with multiple `--update-path`/`--update-value` pairs instead of looping individual calls. Use Jinja2 `{% for %}` loops inside the shell command to build the argument list.
+
+```yaml
+# CORRECT — one connection for all VLANs
+- name: Configure all MAC-VRFs (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]' \
+      --update-value '{ "type": "srl_nokia-network-instance:mac-vrf", "admin-state": "enable" }' \
+    {% endfor %}
+
+# WRONG — one connection per VLAN, hits rate limit with 5+ VLANs across roles
+- name: Create MAC-VRF
+  ansible.builtin.shell: |
+    gnmic ... set --update-path '...[name=mac-vrf-{{ item.vlan_id }}]' ...
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+```
+
+**Connection budget**: With 6 roles in site.yml, aim for ~15-20 total gnmic calls per host (well under 60). The current batched roles use ~15-17 calls per host.
+
+**When adding new roles or tasks**: Always count the total gnmic invocations across all roles for a single host. If a new role would push the total past ~40, batch more aggressively or add `pause` tasks between role groups.
+
 ### Important Notes
 
 - **Always use OpenConfig paths for telemetry collection** - This ensures dashboards work across multiple vendors

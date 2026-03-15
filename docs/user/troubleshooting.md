@@ -945,6 +945,59 @@ sudo containerlab deploy -t topology.yml --debug
 - **SR Linux Discord**: https://discord.gg/tZvgjQ6PZf
 - **Network to Code Slack**: https://networktocode.slack.com
 
+## gNMI Rate Limiting
+
+### Issue: SR Linux "ResourceExhausted" / Max Connections Per Minute
+
+**Symptoms**:
+- Ansible playbook fails partway through configuration
+- Error: `rpc error: code = ResourceExhausted desc = Max number of connections per minute (rate-limit) reached (max: 60)`
+- Failures appear mid-run, often in the EVPN/VXLAN role or later roles
+- Earlier roles (interfaces, OSPF) may succeed while later ones fail
+
+**Root Cause**:
+
+SR Linux enforces a hard limit of 60 gNMI connections per minute per device. Each `gnmic` CLI invocation opens a new gRPC connection. When Ansible tasks use `loop:` to call gnmic once per item (per VLAN, per neighbor, per interface), the connection count adds up fast across all roles in a playbook run.
+
+Example: 4 interfaces × 2 calls + 4 BGP neighbors × 2 calls + 5 VLANs × 6 EVPN tasks = 46 calls per host — dangerously close to the limit, and any retries or additional tasks push it over.
+
+**Solution — Batch gNMI operations**:
+
+All SR Linux gNMI roles in this project use batched `gnmic set` calls with multiple `--update-path`/`--update-value` pairs in a single command. This is done via Jinja2 `{% for %}` loops inside the `ansible.builtin.shell` task, so one connection handles all items.
+
+```yaml
+# Batched pattern (correct) — 1 connection for all VLANs
+- name: Create all MAC-VRFs (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]' \
+      --update-value '{ ... }' \
+    {% endfor %}
+```
+
+```yaml
+# Per-item loop (wrong) — 1 connection per VLAN, hits rate limit
+- name: Create MAC-VRF
+  ansible.builtin.shell: |
+    gnmic ... set --update-path '...[name=mac-vrf-{{ item.vlan_id }}]' ...
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+```
+
+**If you hit this error after modifying roles**:
+1. Count total `gnmic` invocations across all roles for a single host
+2. Target ~15-20 calls total (current roles use ~15-17)
+3. Batch any loops using the Jinja2 pattern above
+4. If needed, add `ansible.builtin.pause: seconds=5` between role groups
+
+**If you hit this error without modifying roles**:
+1. Wait 60 seconds and re-run the playbook — the rate limit resets each minute
+2. Run with `--forks=1` to serialize hosts (reduces concurrent connections)
+3. Use `--tags` to run only the failed role: `--tags evpn,vxlan`
+
 ## Common Error Messages
 
 ### "Error: failed to create container"
