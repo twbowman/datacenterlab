@@ -587,61 +587,287 @@ rate(network_interface_in_octets{vendor="nokia",interface="ethernet-1/1"}[5m]) *
 
 ### 6. Validation Engine
 
-**Purpose**: Verify deployed configurations match expected state
+**Purpose**: Verify deployed configurations match expected state using gNMI with dual-schema support (OpenConfig + vendor-native YANG models)
 
-**Implementation**: Ansible playbooks with gNMI get operations
+**Implementation**: Ansible playbooks with a custom `gnmi_validate` module backed by pygnmi, leveraging the existing Ansible inventory for device targeting, credentials, vendor OS detection, and expected-state variables. Telemetry validation (Prometheus queries) remains standalone Python.
 
-**Key Files**:
-- `ansible/methods/srlinux_gnmi/playbooks/verify.yml` - Verification playbook
-- `ansible/methods/srlinux_gnmi/playbooks/verify-detailed.yml` - Detailed verification
+**Design Constraints**:
+- Multi-vendor: SR Linux, Arista cEOS, SONiC, Juniper
+- gNMI/gRPC transport only (no CLI scraping, no SNMP)
+- Must work with both OpenConfig YANG models and vendor-native YANG models via the gNMI `origin` field
 
-**Validation Checks**:
+**Architecture**:
 
-```yaml
-# ansible/methods/srlinux_gnmi/playbooks/verify.yml
-- name: Verify BGP sessions
-  gnmi_get:
-    path: /network-instance[name=default]/protocols/bgp/neighbor
-  register: bgp_state
-  
-- name: Check BGP session state
-  assert:
-    that:
-      - bgp_state.neighbor[item].session_state == "ESTABLISHED"
-    fail_msg: "BGP session to {{ item }} is not established"
-  loop: "{{ expected_bgp_neighbors }}"
+```
+┌─────────────────────────────────────────────────────┐
+│  ansible-playbook -i inventory.yml validate.yml     │
+│  (leverages inventory: hosts, groups, credentials,  │
+│   bgp_neighbors, interfaces, evpn_vxlan vars)       │
+├─────────────────────────────────────────────────────┤
+│  Validation Playbooks (per check category)          │
+│  ┌──────────┐ ┌──────────┐ ┌──────┐ ┌───────────┐  │
+│  │ BGP      │ │ EVPN     │ │ LLDP │ │ Interface │  │
+│  │ validate │ │ validate │ │ val. │ │ validate  │  │
+│  └────┬─────┘ └────┬─────┘ └──┬───┘ └─────┬─────┘  │
+│       │             │          │            │        │
+│  ┌────▼─────────────▼──────────▼────────────▼─────┐  │
+│  │  gnmi_validate module (ansible/library/)       │  │
+│  │  - pygnmi gNMI client (origin field support)   │  │
+│  │  - dictdiffer for expected vs actual comparison │  │
+│  │  - Structured pass/fail/diff results           │  │
+│  └────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│  validation_report callback plugin                  │
+│  (aggregates per-host results into JSON report)     │
+└─────────────────────────────────────────────────────┘
 ```
 
+**Key Files**:
+- `ansible/library/gnmi_validate.py` - Custom Ansible module wrapping pygnmi
+- `ansible/playbooks/validate.yml` - Master validation playbook (includes all checks)
+- `ansible/playbooks/validate-bgp.yml` - BGP session validation
+- `ansible/playbooks/validate-evpn.yml` - EVPN route validation
+- `ansible/playbooks/validate-lldp.yml` - LLDP neighbor validation
+- `ansible/playbooks/validate-interfaces.yml` - Interface state validation
+- `ansible/callback_plugins/validation_report.py` - JSON report aggregator
+- `validation/check_normalization.py` - Telemetry/Prometheus validation (existing, standalone)
+
+**gNMI Origin Field for Dual-Schema Access**:
+
+The `origin` field in the gNMI Path message controls which YANG schema tree is queried. This is the mechanism that enables mixed OpenConfig + vendor-native validation in the same playbook run.
+
+| Vendor | OpenConfig Origin | Native Origin | Use Native For |
+|--------|------------------|---------------|----------------|
+| SR Linux | `openconfig` (default) | `srl_nokia` | EVPN, OSPF, VXLAN, platform |
+| Arista EOS | `openconfig` (default) | `eos_native` | EVPN, platform-specific |
+| Juniper | `openconfig` (default) | `juniper` | Vendor-specific features |
+| SONiC | `openconfig` (default) | N/A | Primarily OpenConfig |
+
+**Custom Ansible Module (`gnmi_validate`)**:
+
+```python
+# ansible/library/gnmi_validate.py
+from pygnmi.client import gNMIclient
+import dictdiffer
+
+class GnmiValidateModule(AnsibleModule):
+    """
+    Custom Ansible module that performs gNMI Get queries and compares
+    actual device state against expected state from inventory variables.
+    
+    Supports the gNMI origin field for querying both OpenConfig and
+    vendor-native YANG models in the same validation run.
+    """
+    
+    argument_spec = dict(
+        host=dict(required=True, type='str'),
+        port=dict(required=True, type='int'),
+        username=dict(required=True, type='str'),
+        password=dict(required=True, type='str', no_log=True),
+        skip_verify=dict(default=True, type='bool'),
+        check_name=dict(required=True, type='str'),
+        path=dict(required=True, type='str'),
+        origin=dict(default=None, type='str'),  # openconfig, srl_nokia, eos_native, juniper
+        encoding=dict(default='json_ietf', type='str'),
+        expected=dict(required=True, type='dict'),
+        remediation_hint=dict(default='', type='str'),
+    )
+    
+    def run(self):
+        # Connect via pygnmi with origin support
+        with gNMIclient(
+            target=(self.params['host'], self.params['port']),
+            username=self.params['username'],
+            password=self.params['password'],
+            insecure=self.params['skip_verify']
+        ) as gc:
+            # gNMI Get with optional origin for schema selection
+            actual = gc.get(
+                path=[self.params['path']],
+                encoding=self.params['encoding']
+            )
+        
+        # Compare actual vs expected using dictdiffer
+        diffs = list(dictdiffer.diff(self.params['expected'], actual))
+        
+        result = {
+            'check_name': self.params['check_name'],
+            'status': 'pass' if not diffs else 'fail',
+            'expected': self.params['expected'],
+            'actual': actual,
+            'diffs': diffs,
+            'remediation': self.params['remediation_hint'] if diffs else '',
+        }
+        
+        return result
+```
+
+**Validation Playbook Examples**:
+
+```yaml
+# ansible/playbooks/validate-bgp.yml
+- name: Validate BGP sessions across all vendors
+  hosts: all
+  gather_facts: false
+  tasks:
+    # Cross-vendor check using OpenConfig path
+    - name: Validate BGP neighbor sessions (OpenConfig)
+      gnmi_validate:
+        host: "{{ ansible_host }}"
+        port: "{{ gnmi_port }}"
+        username: "{{ gnmi_username }}"
+        password: "{{ gnmi_password }}"
+        check_name: "bgp_sessions"
+        path: "/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/bgp/neighbors/neighbor/state"
+        origin: "openconfig"
+        expected:
+          neighbors: "{{ bgp_neighbors }}"
+          session_state: "ESTABLISHED"
+        remediation_hint: "Check BGP configuration, verify peer reachability via OSPF underlay"
+      register: bgp_result
+
+    # Vendor-specific EVPN check using native paths (leafs only)
+    - name: Validate EVPN address family (SR Linux native)
+      gnmi_validate:
+        host: "{{ ansible_host }}"
+        port: "{{ gnmi_port }}"
+        username: "{{ gnmi_username }}"
+        password: "{{ gnmi_password }}"
+        check_name: "evpn_afi"
+        path: "/network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state"
+        origin: "srl_nokia"
+        expected:
+          admin_state: "enable"
+        remediation_hint: "Enable EVPN address family in BGP configuration"
+      when:
+        - ansible_network_os == 'nokia.srlinux'
+        - evpn_vxlan.bgp_evpn.enabled | default(false)
+      register: evpn_result
+```
+
+```yaml
+# ansible/playbooks/validate.yml (master playbook)
+- name: Run all validation checks
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Include BGP validation
+      ansible.builtin.include_tasks: validate-bgp.yml
+
+    - name: Include EVPN validation
+      ansible.builtin.include_tasks: validate-evpn.yml
+      when: evpn_vxlan.enabled | default(false)
+
+    - name: Include LLDP validation
+      ansible.builtin.include_tasks: validate-lldp.yml
+
+    - name: Include interface validation
+      ansible.builtin.include_tasks: validate-interfaces.yml
+```
+
+**Vendor-Specific Path Dispatch via Group Vars**:
+
+```yaml
+# ansible/group_vars/srlinux_devices.yml (validation paths)
+validate_paths:
+  bgp_neighbors:
+    path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
+    origin: "openconfig"
+  evpn_state:
+    path: "/network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state"
+    origin: "srl_nokia"
+  ospf_neighbors:
+    path: "/network-instance[name=default]/protocols/ospf/instance[name=main]/neighbor"
+    origin: "srl_nokia"  # OSPF not available via OpenConfig on SR Linux
+  lldp_neighbors:
+    path: "/lldp/interfaces/interface/neighbors/neighbor/state"
+    origin: "openconfig"
+  interface_state:
+    path: "/interfaces/interface/state"
+    origin: "openconfig"
+
+# ansible/group_vars/arista_devices.yml (validation paths)
+validate_paths:
+  bgp_neighbors:
+    path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
+    origin: "openconfig"
+  evpn_state:
+    path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi[afi-safi-name=L2VPN_EVPN]/state"
+    origin: "openconfig"
+  ospf_neighbors:
+    path: "/network-instances/network-instance/protocols/protocol[identifier=OSPF]/ospf/areas/area/interfaces/interface/neighbors/neighbor/state"
+    origin: "openconfig"
+  lldp_neighbors:
+    path: "/lldp/interfaces/interface/neighbors/neighbor/state"
+    origin: "openconfig"
+  interface_state:
+    path: "/interfaces/interface/state"
+    origin: "openconfig"
+```
+
+**gnmic Complementary Role**:
+
+gnmic remains in the stack for operations that don't need Ansible inventory:
+- `gnmic diff` for comparing state between two devices or pre/post change snapshots
+- Ad-hoc operational queries during troubleshooting
+- Telemetry streaming (already in place for monitoring)
+
+**Telemetry Validation (Standalone Python)**:
+
+Prometheus/telemetry validation stays as standalone Python (`validation/check_normalization.py` pattern) since it queries Prometheus, not individual devices. No inventory needed.
+
 **Validation Report Format**:
+
+The `validation_report` callback plugin aggregates per-host results from all playbook tasks into a single structured JSON report:
 
 ```json
 {
   "timestamp": "2024-01-15T10:30:00Z",
-  "device": "spine1",
-  "checks": {
-    "bgp_sessions": {
-      "status": "pass",
-      "expected": 4,
-      "actual": 4,
-      "details": ["10.0.0.11", "10.0.0.12", "10.0.0.13", "10.0.0.14"]
-    },
-    "interface_states": {
-      "status": "pass",
-      "expected": 8,
-      "actual": 8
-    },
-    "lldp_neighbors": {
-      "status": "fail",
-      "expected": 4,
-      "actual": 3,
-      "missing": ["leaf4"],
-      "remediation": "Check physical connectivity to leaf4"
+  "inventory": "inventory.yml",
+  "devices": [
+    {
+      "name": "spine1",
+      "vendor": "nokia",
+      "os": "srlinux",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/.../neighbor/state",
+          "origin": "openconfig",
+          "expected": {"neighbors": 4, "session_state": "ESTABLISHED"},
+          "actual": {"neighbors": 4, "session_state": "ESTABLISHED"},
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/.../neighbor/state",
+          "origin": "openconfig",
+          "expected": {"neighbors": ["leaf1", "leaf2", "leaf3", "leaf4"]},
+          "actual": {"neighbors": ["leaf1", "leaf2", "leaf3"]},
+          "diffs": [["remove", "neighbors", [["leaf4"]]]],
+          "remediation": "Check physical connectivity to leaf4"
+        }
+      ],
+      "summary": {"total": 5, "passed": 4, "failed": 1}
     }
-  },
-  "overall_status": "fail",
-  "duration_seconds": 12
+  ],
+  "summary": {
+    "total_devices": 6,
+    "total_checks": 30,
+    "passed": 28,
+    "failed": 2,
+    "duration_seconds": 12
+  }
 }
 ```
+
+**Dependencies**:
+- `pygnmi` - Python gNMI client with origin field support (Nokia-maintained)
+- `dictdiffer` - Dict comparison for expected vs actual state diffing
+- `gnmic` - Already present, used for diff/ad-hoc operations
 
 ## Data Models
 
@@ -2234,108 +2460,109 @@ jobs:
 
 ### Phase 6: Validation Framework (Weeks 11-12)
 
-**Goal**: Implement automated configuration and telemetry validation
+**Goal**: Implement automated configuration and telemetry validation using Ansible-wrapped gNMI with dual-schema support (OpenConfig + vendor-native YANG)
 
 **Current State**:
-- ✅ Basic verification playbooks
-- ⚠️ No structured validation framework
+- ✅ Basic verification playbooks (SR Linux-specific, shell out to gnmic CLI)
+- ✅ Metric normalization validation script (validation/check_normalization.py)
+- ⚠️ No structured multi-vendor validation framework
+- ⚠️ No gNMI origin field usage for mixed schema queries
+- ⚠️ No structured validation reports
+
+**Design Constraints**:
+- Multi-vendor (SR Linux, Arista cEOS, SONiC, Juniper)
+- gNMI/gRPC transport only
+- Must work with both OpenConfig and vendor-native YANG models
+- Must leverage existing Ansible inventory for device targeting and expected state
 
 **Tasks**:
 
-1. **Create Validation Engine**
+1. **Create `gnmi_validate` Custom Ansible Module**
    ```python
-   # validation/engine.py
-   class ValidationEngine:
-       def __init__(self, topology, expected_state):
-           self.topology = topology
-           self.expected_state = expected_state
-           self.results = []
-       
-       def validate_all(self):
-           """Run all validation checks"""
-           self.validate_deployment()
-           self.validate_configuration()
-           self.validate_telemetry()
-           return self.generate_report()
-       
-       def validate_deployment(self):
-           """Validate all devices are deployed and reachable"""
-           for device in self.topology.devices:
-               result = self.check_device_reachable(device)
-               self.results.append(result)
-       
-       def validate_configuration(self):
-           """Validate configurations match expected state"""
-           for device in self.topology.devices:
-               bgp_result = self.validate_bgp_sessions(device)
-               interface_result = self.validate_interfaces(device)
-               lldp_result = self.validate_lldp_neighbors(device)
-               self.results.extend([bgp_result, interface_result, lldp_result])
-       
-       def validate_telemetry(self):
-           """Validate telemetry collection is working"""
-           for device in self.topology.devices:
-               streaming_result = self.check_telemetry_streaming(device)
-               prometheus_result = self.check_prometheus_metrics(device)
-               self.results.extend([streaming_result, prometheus_result])
+   # ansible/library/gnmi_validate.py
+   # Custom module wrapping pygnmi with origin field support
+   # - Accepts: host, port, credentials, gNMI path, origin, expected state
+   # - Uses pygnmi for gNMI Get with origin field (schema selection)
+   # - Uses dictdiffer for expected vs actual state comparison
+   # - Returns: structured pass/fail result with diffs and remediation
    ```
 
-2. **Implement Validation Checks**
-   ```python
-   # validation/checks.py
-   def validate_bgp_sessions(device, expected_neighbors):
-       """Validate BGP sessions are established"""
-       actual = gnmi_get(device, "/network-instance[name=default]/protocols/bgp/neighbor")
-       
-       missing = set(expected_neighbors) - set(actual.keys())
-       unexpected = set(actual.keys()) - set(expected_neighbors)
-       
-       not_established = [
-           n for n, state in actual.items()
-           if state.session_state != "ESTABLISHED"
-       ]
-       
-       if missing or unexpected or not_established:
-           return ValidationResult(
-               status="fail",
-               check="bgp_sessions",
-               device=device.name,
-               expected=expected_neighbors,
-               actual=list(actual.keys()),
-               missing=list(missing),
-               unexpected=list(unexpected),
-               not_established=not_established,
-               remediation=generate_bgp_remediation(missing, unexpected, not_established)
-           )
-       
-       return ValidationResult(status="pass", check="bgp_sessions", device=device.name)
+   Module parameters:
+   - `host`, `port`, `username`, `password`, `skip_verify` - connection params (from inventory)
+   - `check_name` - human-readable check identifier
+   - `path` - gNMI path to query
+   - `origin` - gNMI origin field (`openconfig`, `srl_nokia`, `eos_native`, `juniper`, or null)
+   - `encoding` - gNMI encoding (default: `json_ietf`)
+   - `expected` - dict of expected state (from inventory variables)
+   - `remediation_hint` - suggestion text if check fails
+
+2. **Create Vendor-Specific Validation Path Variables**
+   ```yaml
+   # ansible/group_vars/srlinux_devices.yml
+   validate_paths:
+     bgp_neighbors:
+       path: "/network-instances/.../neighbor/state"
+       origin: "openconfig"
+     evpn_state:
+       path: "/network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state"
+       origin: "srl_nokia"  # EVPN not available via OpenConfig on SR Linux
+     ospf_neighbors:
+       path: "/network-instance[name=default]/protocols/ospf/instance[name=main]/neighbor"
+       origin: "srl_nokia"  # OSPF not available via OpenConfig on SR Linux
+     lldp_neighbors:
+       path: "/lldp/interfaces/interface/neighbors/neighbor/state"
+       origin: "openconfig"
+     interface_state:
+       path: "/interfaces/interface/state"
+       origin: "openconfig"
    ```
 
-3. **Create Validation CLI**
+   Each vendor group gets its own `validate_paths` with appropriate origin values. Cross-vendor checks (BGP, LLDP, interfaces) use OpenConfig origin. Vendor-specific checks (EVPN, OSPF on SR Linux) use native origin.
+
+3. **Create Validation Playbooks**
+   ```yaml
+   # ansible/playbooks/validate.yml - Master validation playbook
+   # ansible/playbooks/validate-bgp.yml - BGP session checks
+   # ansible/playbooks/validate-evpn.yml - EVPN route checks (leafs only)
+   # ansible/playbooks/validate-lldp.yml - LLDP neighbor checks
+   # ansible/playbooks/validate-interfaces.yml - Interface state checks
+   ```
+
+   Playbooks use `gnmi_validate` module with inventory variables as expected state:
+   - `bgp_neighbors` from inventory → expected BGP peers
+   - `interfaces` from inventory → expected interface states
+   - `evpn_vxlan` from group_vars → expected EVPN/VXLAN state
+   - `validate_paths` from group_vars → vendor-specific gNMI paths with origin
+
+4. **Create Validation Report Callback Plugin**
+   ```python
+   # ansible/callback_plugins/validation_report.py
+   # Aggregates per-host gnmi_validate results into structured JSON report
+   # Output: validation-report.json with per-device checks, diffs, remediation
+   ```
+
+5. **Telemetry Validation (Standalone Python)**
+   
+   Prometheus/telemetry checks remain standalone Python (no Ansible inventory needed):
+   - `validation/check_normalization.py` - existing metric normalization validation
+   - `validation/check_telemetry.py` - new: verify all devices streaming, check latency
+   - `validation/check_universal_queries.py` - new: verify universal queries return all vendors
+
+6. **Create Validation CLI Wrapper**
    ```bash
-   # validate-lab.sh
-   #!/bin/bash
-   
-   python3 validation/engine.py \
-       --topology topology.yml \
-       --expected-state expected-state.yml \
-       --output validation-report.json \
-       --format json
-   
-   # Check exit code
-   if [ $? -eq 0 ]; then
-       echo "✅ All validation checks passed"
-   else
-       echo "❌ Validation failed, see validation-report.json"
-       cat validation-report.json | jq '.failed_checks'
-   fi
+   # scripts/validate-lab.sh
+   # Runs: ansible-playbook -i inventory.yml playbooks/validate.yml
+   # Then: python3 validation/check_telemetry.py
+   # Merges results into single validation-report.json
    ```
 
 **Deliverables**:
-- Validation engine
-- Validation checks for all requirements
-- Validation CLI tool
-- Structured validation reports
+- `gnmi_validate` custom Ansible module (pygnmi + dictdiffer)
+- Vendor-specific validation path variables (group_vars per vendor)
+- Validation playbooks for BGP, EVPN, LLDP, interfaces
+- Validation report callback plugin (JSON output)
+- Telemetry validation scripts (Prometheus queries)
+- Validation CLI wrapper script
 
 ### Phase 7: State Management (Weeks 13-14)
 
@@ -2567,14 +2794,19 @@ jobs:
 - OrbStack/Linux: Host environment
 
 **Automation**:
-- Ansible: Configuration management
+- Ansible: Configuration management and validation orchestration
 - Python: Scripting and validation
 - Bash: Deployment scripts
 
 **Telemetry**:
-- gNMIc: Telemetry collection
+- gNMIc: Telemetry collection and ad-hoc gNMI operations
 - Prometheus: Metric storage
 - Grafana: Visualization
+
+**Validation**:
+- pygnmi: Python gNMI client with origin field support (custom Ansible module)
+- dictdiffer: Expected vs actual state comparison
+- gnmic: Complementary diff/ad-hoc operations
 
 **Testing**:
 - pytest: Test framework
@@ -2626,6 +2858,21 @@ production-network-testing-lab/
 │   │   ├── eos_*/
 │   │   ├── sonic_*/
 │   │   └── junos_*/
+│   ├── library/
+│   │   └── gnmi_validate.py          # Custom module (pygnmi + dictdiffer)
+│   ├── callback_plugins/
+│   │   └── validation_report.py      # JSON report aggregator
+│   ├── playbooks/
+│   │   ├── validate.yml              # Master validation playbook
+│   │   ├── validate-bgp.yml          # BGP session checks
+│   │   ├── validate-evpn.yml         # EVPN route checks
+│   │   ├── validate-lldp.yml         # LLDP neighbor checks
+│   │   └── validate-interfaces.yml   # Interface state checks
+│   ├── group_vars/
+│   │   ├── srlinux_devices.yml       # Includes validate_paths with origins
+│   │   ├── arista_devices.yml        # Includes validate_paths with origins
+│   │   ├── sonic_devices.yml         # Includes validate_paths with origins
+│   │   └── juniper_devices.yml       # Includes validate_paths with origins
 │   ├── filter_plugins/
 │   └── plugins/
 │       └── inventory/
@@ -2634,9 +2881,9 @@ production-network-testing-lab/
 │   ├── prometheus/
 │   └── grafana/
 ├── validation/
-│   ├── engine.py
-│   ├── checks.py
-│   └── reports.py
+│   ├── check_normalization.py        # Existing: metric normalization checks
+│   ├── check_telemetry.py            # New: telemetry streaming checks
+│   └── check_universal_queries.py    # New: universal query checks
 ├── state/
 │   ├── export.py
 │   ├── restore.py
@@ -2656,7 +2903,7 @@ production-network-testing-lab/
 ├── scripts/
 │   ├── deploy.sh
 │   ├── destroy.sh
-│   └── validate-lab.sh
+│   └── validate-lab.sh              # Runs ansible validate + python telemetry checks
 └── topologies/
     ├── 2spine-4leaf.yml
     ├── multi-vendor.yml

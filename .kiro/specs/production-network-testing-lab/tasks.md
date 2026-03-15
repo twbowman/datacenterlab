@@ -401,92 +401,103 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
   - Verify drill-down to vendor-specific dashboards works
   - Ensure all tests pass, ask user if questions arise
 
-### Phase 6: Validation Framework
+### Phase 6: Validation Framework (Ansible-wrapped gNMI with dual-schema support)
 
-- [ ] 24. Create validation engine core
-  - [ ] 24.1 Implement ValidationEngine class
-    - Create validation/engine.py with ValidationEngine class
-    - Implement validate_all() method orchestrating all checks
-    - Implement validate_deployment() for device reachability
-    - Implement validate_configuration() for config state
-    - Implement validate_telemetry() for metric collection
-    - _Requirements: 7.1, 7.2, 7.3, 7.4, 8.1, 8.2_
+- [x] 24. Create gnmi_validate custom Ansible module
+  - [x] 24.1 Implement gnmi_validate module with pygnmi
+    - Create ansible/library/gnmi_validate.py
+    - Use pygnmi gNMIclient for gNMI Get operations
+    - Support origin field parameter for OpenConfig vs vendor-native schema selection
+    - Support json_ietf encoding
+    - Accept expected state dict and compare against actual using dictdiffer
+    - Return structured result: check_name, status (pass/fail), expected, actual, diffs, remediation
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 16.6_
   
-  - [ ] 24.2 Implement ValidationResult data model
-    - Create structured result format with status, message, remediation
-    - Support pass/fail/warning/error states
-    - Include expected vs actual values
+  - [x] 24.2 Create validation report callback plugin
+    - Create ansible/callback_plugins/validation_report.py
+    - Aggregate per-host gnmi_validate results across all tasks
+    - Output structured JSON report with per-device checks, diffs, remediation
+    - Include summary statistics (total checks, passed, failed, duration)
+    - Include timestamps
     - _Requirements: 7.7, 8.7_
   
-  - [ ] 24.3 Create validation report generator
-    - Implement generate_report() method
-    - Output structured JSON format
-    - Include summary statistics (total, passed, failed)
-    - Add timestamps and duration
-    - _Requirements: 7.7, 8.7_
+  - [x] 24.3 Add vendor-specific validation path variables
+    - Create validate_paths dict in ansible/group_vars/ for each vendor group
+    - SR Linux: OpenConfig origin for BGP/LLDP/interfaces, srl_nokia origin for EVPN/OSPF
+    - Arista: OpenConfig origin for most checks, eos_native for vendor-specific
+    - SONiC: OpenConfig origin (primarily OpenConfig-based)
+    - Juniper: OpenConfig origin for most checks, juniper origin for vendor-specific
+    - Include remediation hints per vendor per check
+    - _Requirements: 7.5, 16.6_
 
-
-- [ ] 25. Implement configuration validation checks
-  - [ ] 25.1 Create BGP session validation
-    - Implement validate_bgp_sessions() in validation/checks.py
-    - Query BGP neighbor state via gNMI
-    - Compare actual vs expected neighbors
+- [x] 25. Implement configuration validation playbooks
+  - [x] 25.1 Create BGP session validation playbook
+    - Create ansible/playbooks/validate-bgp.yml
+    - Use gnmi_validate module with OpenConfig BGP neighbor path
+    - Compare actual BGP neighbor states against bgp_neighbors inventory variable
+    - Verify all sessions are ESTABLISHED
     - Identify missing, unexpected, and non-established sessions
-    - Generate remediation suggestions
+    - Use validate_paths[bgp_neighbors] for vendor-appropriate path and origin
     - _Requirements: 7.1, 7.5_
   
-  - [ ] 25.2 Create EVPN route validation
-    - Implement validate_evpn_routes()
-    - Query EVPN routing table
-    - Verify routes are advertised and received
-    - Check route targets and distinguishers
+  - [x] 25.2 Create EVPN route validation playbook
+    - Create ansible/playbooks/validate-evpn.yml
+    - Use gnmi_validate module with vendor-native EVPN paths (origin per vendor)
+    - Verify EVPN address family enabled, routes advertised and received
+    - Check VNI mappings against evpn_vxlan inventory variable
+    - Run only on leafs group (when: evpn_vxlan.enabled)
     - _Requirements: 7.2, 7.5_
   
-  - [ ] 25.3 Create LLDP neighbor validation
-    - Implement validate_lldp_neighbors()
-    - Query LLDP neighbor information
-    - Compare against topology definition
+  - [x] 25.3 Create LLDP neighbor validation playbook
+    - Create ansible/playbooks/validate-lldp.yml
+    - Use gnmi_validate module with OpenConfig LLDP path
+    - Compare actual LLDP neighbors against topology link definitions
     - Identify missing or unexpected neighbors
     - _Requirements: 7.3, 7.5_
   
-  - [ ] 25.4 Create interface state validation
-    - Implement validate_interface_states()
-    - Query interface operational states
-    - Compare against expected states
-    - Check admin state vs operational state mismatches
+  - [x] 25.4 Create interface state validation playbook
+    - Create ansible/playbooks/validate-interfaces.yml
+    - Use gnmi_validate module with OpenConfig interface state path
+    - Compare actual interface oper-status against interfaces inventory variable
+    - Detect admin-up/oper-down mismatches
     - _Requirements: 7.4, 7.5_
   
-  - [ ]* 25.5 Write property test for validation performance
+  - [x] 25.5 Create master validation playbook
+    - Create ansible/playbooks/validate.yml
+    - Include all validation playbooks (BGP, EVPN, LLDP, interfaces)
+    - Use Ansible include_tasks with conditional execution
+    - Support running individual check categories via tags
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+  
+  - [ ]* 25.6 Write property test for validation performance
     - **Property 26: Validation Performance**
     - **Validates: Requirements 7.6**
     - Test that validation completes within 60 seconds for various topology sizes
 
-- [ ] 26. Implement telemetry validation checks
-  - [ ] 26.1 Create telemetry streaming verification
-    - Implement check_telemetry_streaming() in validation/checks.py
-    - Verify gNMI subscriptions are active
-    - Check subscription state for each device
-    - Detect devices not streaming telemetry
-    - _Requirements: 8.1, 8.5_
+- [x] 26. Implement telemetry validation checks (standalone Python)
+  - [x] 26.1 Create telemetry streaming verification
+    - Create validation/check_telemetry.py
+    - Query Prometheus for recent metrics from each device (last 60 seconds)
+    - Identify devices not streaming telemetry
+    - Check telemetry collection latency is below 10 seconds
+    - _Requirements: 8.1, 8.5, 8.6_
   
-  - [ ] 26.2 Create Prometheus metric verification
-    - Implement check_prometheus_metrics()
+  - [x] 26.2 Create Prometheus metric verification
+    - Extend validation/check_telemetry.py
     - Query Prometheus for metrics from each device
     - Verify metrics were received in last 60 seconds
     - Identify devices with missing metrics
     - _Requirements: 8.2, 8.5_
 
-
-  - [ ] 26.3 Create metric normalization verification
-    - Implement check_metric_normalization()
-    - Query Prometheus for normalized metric names
+  - [x] 26.3 Enhance metric normalization verification
+    - Extend existing validation/check_normalization.py
     - Verify all vendors produce expected OpenConfig paths
-    - Check for missing normalizations
+    - Check for missing normalizations per vendor
     - _Requirements: 8.3, 8.5_
   
-  - [ ] 26.4 Create universal query validation
-    - Implement check_universal_queries()
-    - Execute universal query patterns
+  - [x] 26.4 Create universal query validation
+    - Create validation/check_universal_queries.py
+    - Execute universal query patterns against Prometheus
     - Verify data returned from all vendors
     - Check for vendor-specific query failures
     - _Requirements: 8.4, 8.5_
@@ -496,12 +507,13 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test error handling and remediation generation
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 27. Create validation CLI tool
-  - [ ] 27.1 Implement validate-lab.sh script
+- [x] 27. Create validation CLI and deployment integration
+  - [x] 27.1 Implement validate-lab.sh script
     - Create scripts/validate-lab.sh
-    - Accept topology and expected state as inputs
-    - Call validation engine
-    - Output results in JSON format
+    - Run ansible-playbook validate.yml for config validation (uses inventory)
+    - Run python3 validation/check_telemetry.py for telemetry validation
+    - Run python3 validation/check_normalization.py for normalization validation
+    - Merge results into single validation-report.json
     - Exit with appropriate status code
     - _Requirements: 7.7, 8.7_
   
@@ -512,24 +524,26 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Show remediation suggestions for failures
     - _Requirements: 7.5, 7.7_
   
-  - [ ] 27.3 Integrate validation into deployment workflow
+  - [x] 27.3 Integrate validation into deployment workflow
     - Add validation step to deploy.sh
-    - Run validation after configuration deployment
+    - Run ansible-playbook validate.yml after configuration deployment
     - Fail deployment if critical validations fail
     - _Requirements: 7.6_
 
-- [ ] 28. Checkpoint - Verify validation framework
-  - Run validation on deployed lab
-  - Verify all validation checks execute
+- [x] 28. Checkpoint - Verify validation framework
+  - Run validation on deployed lab with all vendors
+  - Verify gnmi_validate module works with OpenConfig and vendor-native origins
+  - Verify validation playbooks leverage inventory variables as expected state
   - Introduce intentional failures and verify detection
   - Verify remediation suggestions are helpful
+  - Verify JSON validation report is generated correctly
   - Ensure all tests pass, ask user if questions arise
 
 
-### Phase 7: State Management
+### Phase 7: State Management (deprioritized — existing tools cover immediate needs)
 
-- [ ] 29. Implement lab state export
-  - [ ] 29.1 Create state export module
+- [ ]* 29. Implement lab state export
+  - [ ]* 29.1 Create state export module
     - Create state/export.py with export_lab_state() function
     - Export topology definition
     - Export device configurations via gNMI get
@@ -537,13 +551,13 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Include metadata (timestamp, version, description)
     - _Requirements: 12.1, 12.3_
   
-  - [ ] 29.2 Implement configuration export for all vendors
+  - [ ]* 29.2 Implement configuration export for all vendors
     - Query full configuration from each device
     - Store vendor and OS information
     - Handle vendor-specific configuration formats
     - _Requirements: 12.1_
   
-  - [ ] 29.3 Implement Prometheus snapshot export
+  - [ ]* 29.3 Implement Prometheus snapshot export
     - Create Prometheus snapshot using admin API
     - Store snapshot path in state file
     - Include time range information
@@ -554,8 +568,8 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 12.1**
     - Test that exported state includes topology, configs, and metrics
 
-- [ ] 30. Implement lab state restore
-  - [ ] 30.1 Create state restore module
+- [ ]* 30. Implement lab state restore (deprioritized — export-only workflow sufficient for now; restore can be done manually via clab deploy + Ansible)
+  - [ ]* 30.1 Create state restore module
     - Create state/restore.py with restore_lab_state() function
     - Validate snapshot before restoration
     - Deploy topology from snapshot
@@ -563,7 +577,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Optionally restore Prometheus metrics
     - _Requirements: 12.2, 12.4_
   
-  - [ ] 30.2 Implement snapshot validation
+  - [ ]* 30.2 Implement snapshot validation
     - Create validate_snapshot() function
     - Check required fields are present
     - Validate topology structure
@@ -572,7 +586,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 12.4_
 
 
-  - [ ] 30.3 Implement configuration restoration for all vendors
+  - [ ]* 30.3 Implement configuration restoration for all vendors
     - Apply configurations using vendor-specific methods
     - Handle vendor differences in configuration format
     - Verify configuration applied successfully
@@ -583,30 +597,30 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 12.2**
     - Test that exporting then restoring produces equivalent lab state
 
-- [ ] 31. Implement state comparison
-  - [ ] 31.1 Create state comparison module
+- [ ]* 31. Implement state comparison (deprioritized — gnmic diff, gnmi_validate, and git diff cover most use cases)
+  - [ ]* 31.1 Create state comparison module
     - Create state/compare.py with compare_snapshots() function
     - Compare topology definitions
     - Compare device configurations
     - Compare metric snapshots
     - _Requirements: 12.6_
   
-  - [ ] 31.2 Implement configuration diff generation
+  - [ ]* 31.2 Implement configuration diff generation
     - Create diff_configurations() function
     - Generate structured diff showing changes
     - Support vendor-specific configuration formats
     - Highlight added, removed, and modified sections
     - _Requirements: 11.7, 12.6_
   
-  - [ ] 31.3 Create state comparison CLI tool
+  - [ ]* 31.3 Create state comparison CLI tool
     - Create scripts/compare-states.sh
     - Accept two snapshot files as input
     - Display human-readable diff
     - Output structured diff in JSON
     - _Requirements: 12.6_
 
-- [ ] 32. Implement incremental state updates
-  - [ ] 32.1 Create incremental update module
+- [ ]* 32. Implement incremental state updates (deprioritized — Ansible idempotency handles incremental config changes already)
+  - [ ]* 32.1 Create incremental update module
     - Implement apply_state_update() function
     - Calculate diff between current and target state
     - Apply only changed configurations
@@ -620,27 +634,27 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 12.5_
 
 
-- [ ] 33. Create state management CLI tools
-  - [ ] 33.1 Create export-lab-state.sh script
+- [ ]* 33. Create state management CLI tools (deprioritized — depends on Tasks 29-32 which are mostly optional)
+  - [ ]* 33.1 Create export-lab-state.sh script
     - Accept lab name and output file as parameters
     - Call state export module
     - Display export summary
     - _Requirements: 12.1_
   
-  - [ ] 33.2 Create restore-lab-state.sh script
+  - [ ]* 33.2 Create restore-lab-state.sh script
     - Accept snapshot file as parameter
     - Validate snapshot before restoration
     - Call state restore module
     - Display restoration progress
     - _Requirements: 12.2_
   
-  - [ ] 33.3 Ensure state files are version control friendly
+  - [ ]* 33.3 Ensure state files are version control friendly
     - Use YAML format for state snapshots
     - Format with consistent indentation
     - Sort keys alphabetically where possible
     - _Requirements: 12.7_
 
-- [ ] 34. Checkpoint - Verify state management
+- [ ]* 34. Checkpoint - Verify state management
   - Export lab state to snapshot file
   - Destroy lab
   - Restore lab from snapshot
@@ -648,10 +662,10 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
   - Compare two snapshots and verify diff generation
   - Ensure all tests pass, ask user if questions arise
 
-### Phase 8: Performance Benchmarking
+### Phase 8: Performance Benchmarking (deprioritized — switch performance is observable via existing gNMI telemetry + Prometheus + Grafana; custom framework not needed)
 
-- [ ] 35. Create benchmarking framework
-  - [ ] 35.1 Implement BenchmarkRunner class
+- [ ]* 35. Create benchmarking framework
+  - [ ]* 35.1 Implement BenchmarkRunner class
     - Create benchmarks/framework.py with BenchmarkRunner class
     - Implement benchmark_deployment() method
     - Implement benchmark_configuration() method
@@ -659,33 +673,33 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Store results with timestamps
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
   
-  - [ ] 35.2 Implement deployment time benchmarking
+  - [ ]* 35.2 Implement deployment time benchmarking
     - Measure time from containerlab deploy to all devices ready
     - Test with various topology sizes (2, 4, 8, 16 devices)
     - Record per-device boot time
     - _Requirements: 9.4_
   
-  - [ ] 35.3 Implement configuration time benchmarking
+  - [ ]* 35.3 Implement configuration time benchmarking
     - Measure time to apply full configuration
     - Test with various configuration complexities
     - Record per-device configuration time
     - _Requirements: 9.4_
 
 
-- [ ] 36. Implement resource utilization measurement
-  - [ ] 36.1 Create device CPU utilization measurement
+- [ ]* 36. Implement resource utilization measurement
+  - [ ]* 36.1 Create device CPU utilization measurement
     - Query CPU usage from devices via gNMI
     - Measure during idle and under telemetry load
     - Verify telemetry collection uses <5% CPU
     - _Requirements: 3.7, 9.1_
   
-  - [ ] 36.2 Create collector resource measurement
+  - [ ]* 36.2 Create collector resource measurement
     - Measure gNMIc CPU and memory usage
     - Monitor resource usage over time
     - Identify resource consumption patterns
     - _Requirements: 9.2_
   
-  - [ ] 36.3 Create metric ingestion rate measurement
+  - [ ]* 36.3 Create metric ingestion rate measurement
     - Query Prometheus ingestion rate
     - Measure metrics per second per device
     - Calculate total lab metric throughput
@@ -696,22 +710,22 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 3.7**
     - Test that telemetry collection uses <5% device CPU
 
-- [ ] 37. Create performance reporting
-  - [ ] 37.1 Implement performance report generator
+- [ ]* 37. Create performance reporting
+  - [ ]* 37.1 Implement performance report generator
     - Create benchmarks/reports.py with generate_performance_report()
     - Aggregate benchmark results
     - Calculate statistics (mean, median, p95, p99)
     - Generate summary report
     - _Requirements: 9.5_
   
-  - [ ] 37.2 Implement vendor performance comparison
+  - [ ]* 37.2 Implement vendor performance comparison
     - Create compare_vendor_performance() function
     - Compare deployment time across vendors
     - Compare configuration time across vendors
     - Compare resource usage across vendors
     - _Requirements: 9.5_
   
-  - [ ] 37.3 Implement performance trend tracking
+  - [ ]* 37.3 Implement performance trend tracking
     - Store benchmark results in time-series database
     - Track performance metrics over time
     - Detect performance degradation
@@ -719,15 +733,15 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 9.7_
 
 
-- [ ] 38. Create benchmarking CLI tools
-  - [ ] 38.1 Create run-benchmarks.sh script
+- [ ]* 38. Create benchmarking CLI tools
+  - [ ]* 38.1 Create run-benchmarks.sh script
     - Accept benchmark type as parameter (deployment, config, telemetry, all)
     - Run selected benchmarks
     - Generate performance report
     - Output results in JSON and human-readable format
     - _Requirements: 9.5_
   
-  - [ ] 38.2 Implement bottleneck identification
+  - [ ]* 38.2 Implement bottleneck identification
     - Analyze benchmark results
     - Identify performance bottlenecks
     - Provide optimization recommendations
@@ -739,7 +753,7 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test vendor comparison
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 39. Checkpoint - Verify performance benchmarking
+- [ ]* 39. Checkpoint - Verify performance benchmarking
   - Run all benchmarks on deployed lab
   - Verify performance reports are generated
   - Review vendor comparison results
@@ -998,21 +1012,21 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ## Additional High-Priority Tasks
 
-### Monitoring Stack Reliability
+### Monitoring Stack Reliability (deprioritized — lab environment doesn't need production-grade HA/alerting yet)
 
-- [ ] 49. Implement monitoring stack health checks
-  - [ ] 49.1 Create health check endpoints
+- [ ]* 49. Implement monitoring stack health checks
+  - [ ]* 49.1 Create health check endpoints
     - Implement health checks for Prometheus
     - Implement health checks for Grafana
     - Implement health checks for gNMIc
     - _Requirements: 14.3_
   
-  - [ ] 49.2 Implement storage capacity monitoring
+  - [ ]* 49.2 Implement storage capacity monitoring
     - Monitor Prometheus storage usage
     - Alert when storage reaches 80% capacity
     - _Requirements: 14.2_
   
-  - [ ] 49.3 Implement collector failure alerting
+  - [ ]* 49.3 Implement collector failure alerting
     - Detect gNMIc collector failures
     - Alert within 60 seconds of failure
     - _Requirements: 14.4_
@@ -1022,13 +1036,13 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 14.1**
     - Test that metrics persist across Prometheus restarts
 
-- [ ] 50. Implement monitoring stack backup and restore
-  - [ ] 50.1 Create Prometheus backup functionality
+- [ ]* 50. Implement monitoring stack backup and restore
+  - [ ]* 50.1 Create Prometheus backup functionality
     - Implement automated Prometheus snapshots
     - Store snapshots with retention policy
     - _Requirements: 14.6_
   
-  - [ ] 50.2 Create Prometheus restore functionality
+  - [ ]* 50.2 Create Prometheus restore functionality
     - Implement restore from snapshot
     - Verify data integrity after restore
     - _Requirements: 14.6_
@@ -1041,15 +1055,15 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Configuration Parsing and Validation
 
-- [ ] 51. Implement configuration parsing
-  - [ ] 51.1 Create configuration parser
+- [ ]* 51. Implement configuration parsing (deprioritized — gNMI-based config management doesn't require standalone parsing)
+  - [ ]* 51.1 Create configuration parser
     - Implement parse_configuration() function
     - Parse vendor-specific configuration formats
     - Convert to structured format
     - Handle syntax errors with descriptive messages
     - _Requirements: 11.1, 11.2_
   
-  - [ ] 51.2 Create configuration formatter
+  - [ ]* 51.2 Create configuration formatter
     - Implement format_configuration() function
     - Generate valid vendor-specific syntax
     - Support all vendor configuration formats
@@ -1060,14 +1074,14 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - **Validates: Requirements 11.4**
     - Test parse-format-parse produces equivalent object
 
-- [ ] 52. Implement configuration validation
-  - [ ] 52.1 Create schema validation
+- [ ]* 52. Implement configuration validation (deprioritized — Ansible pre-deployment checks and gnmi_validate cover immediate needs)
+  - [ ]* 52.1 Create schema validation
     - Implement validate_configuration() function
     - Validate against vendor-specific schemas
     - Check for required fields
     - _Requirements: 11.5_
   
-  - [ ] 52.2 Create conflict detection
+  - [ ]* 52.2 Create conflict detection
     - Detect duplicate IP addresses
     - Detect overlapping VLAN ranges
     - Detect BGP AS conflicts
@@ -1081,8 +1095,8 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
 
 ### Vendor Extension Framework
 
-- [ ] 53. Create vendor extension framework
-  - [ ] 53.1 Create vendor integration template
+- [ ]* 53. Create vendor extension framework (deprioritized — existing role patterns and docs serve as de facto templates)
+  - [ ]* 53.1 Create vendor integration template
     - Create templates/vendor-integration/ directory
     - Provide role templates for new vendors
     - Include configuration examples
@@ -1090,13 +1104,13 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - _Requirements: 10.1, 10.2_
 
 
-  - [ ] 53.2 Create vendor capability detection
+  - [ ]* 53.2 Create vendor capability detection
     - Implement detect_vendor_capabilities() function
     - Query device for supported features
     - Report missing capabilities
     - _Requirements: 10.5_
   
-  - [ ] 53.3 Create vendor module validation
+  - [ ]* 53.3 Create vendor module validation
     - Implement validate_vendor_module() function
     - Check required components are present
     - Validate role structure
@@ -1109,18 +1123,20 @@ This lab runs on macOS with ARM processor using ORB. All containerlab, docker, a
     - Test integration template usage
     - _Requirements: 10.1, 10.2, 10.3, 10.5_
 
-- [ ] 54. Create metric normalizer configuration schema
-  - [ ] 54.1 Define normalization configuration schema
+- [x] 54. Create metric normalizer configuration schema
+  - [x] 54.1 Define normalization configuration schema
     - Create schema for vendor metric mappings
     - Define transformation rule format
     - Document schema with examples
     - _Requirements: 10.4_
+    - _Completed: monitoring/gnmic/normalization-mappings.yml defines all vendor mappings_
   
-  - [ ] 54.2 Implement schema validation
+  - [x] 54.2 Implement schema validation
     - Validate normalization configurations at startup
     - Check for missing or invalid mappings
     - Provide clear error messages
     - _Requirements: 10.4_
+    - _Completed: validate-*-normalization.sh scripts and monitoring/tests/validate_normalization.py_
 
 ## Notes
 
@@ -1177,10 +1193,12 @@ The implementation will be considered complete when:
 - Implement vendor-specific drill-down dashboards
 
 ### Phase 6: Validation Framework (Tasks 24-28)
-- Create validation engine core
-- Implement configuration validation checks (BGP, EVPN, LLDP, interfaces)
-- Implement telemetry validation checks
-- Create validation CLI tools
+- Create gnmi_validate custom Ansible module (pygnmi + dictdiffer + origin field support)
+- Create vendor-specific validation path variables (group_vars per vendor with origin)
+- Implement configuration validation playbooks (BGP, EVPN, LLDP, interfaces)
+- Implement telemetry validation checks (standalone Python, Prometheus queries)
+- Create validation CLI wrapper and deployment integration
+- Create validation report callback plugin (JSON output)
 
 ### Phase 7: State Management (Tasks 29-34)
 - Implement lab state export (topology, configs, metrics)

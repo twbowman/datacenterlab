@@ -1,12 +1,35 @@
 #!/bin/bash
 # ContainerLab deployment script - Network lab only
+#
+# Usage:
+#   ./scripts/deploy.sh              # Deploy only
+#   ./scripts/deploy.sh --validate   # Deploy + run validation after config
 
 set -e
 
 # Colors
 GREEN='\033[0;32m'
+RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
+
+# Parse arguments
+RUN_VALIDATE=0
+for arg in "$@"; do
+    case "$arg" in
+        --validate)
+            RUN_VALIDATE=1
+            ;;
+        --help|-h)
+            echo "Usage: $0 [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --validate   Run configuration validation after deployment"
+            echo "  --help, -h   Show this help message"
+            exit 0
+            ;;
+    esac
+done
 
 echo -e "${GREEN}Deploying SR Linux CLOS network topology...${NC}"
 
@@ -56,4 +79,35 @@ echo "  ./deploy-monitoring.sh"
 echo ""
 echo "View topology:"
 echo "  containerlab inspect -t topology.yml"
+
+# ─────────────────────────────────────────────────────────────
+# Optional: Run validation after deployment
+# ─────────────────────────────────────────────────────────────
+if [ "$RUN_VALIDATE" -eq 1 ]; then
+    echo ""
+    echo -e "${YELLOW}Running post-deployment validation...${NC}"
+    echo ""
+
+    # Determine which inventory to use
+    VALIDATE_INVENTORY="ansible/inventory.yml"
+    if [ -f "ansible/inventory-dynamic.yml" ]; then
+        VALIDATE_INVENTORY="ansible/inventory-dynamic.yml"
+    fi
+
+    if [ -f "ansible/playbooks/validate.yml" ]; then
+        if ANSIBLE_CALLBACK_PLUGINS=ansible/callback_plugins \
+           ANSIBLE_CALLBACKS_ENABLED=validation_report \
+           ansible-playbook -i "$VALIDATE_INVENTORY" ansible/playbooks/validate.yml; then
+            echo ""
+            echo -e "${GREEN}✔ Post-deployment validation passed${NC}"
+        else
+            echo ""
+            echo -e "${RED}✘ Post-deployment validation failed - critical checks did not pass${NC}"
+            echo -e "${RED}  Review validation-report.json for details${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}⚠ ansible/playbooks/validate.yml not found, skipping validation${NC}"
+    fi
+fi
 

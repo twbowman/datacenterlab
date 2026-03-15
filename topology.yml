@@ -64,6 +64,8 @@ topology:
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.31
       exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.11/24 dev eth1
 
@@ -72,6 +74,8 @@ topology:
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.32
       exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.12/24 dev eth1
 
@@ -80,6 +84,8 @@ topology:
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.33
       exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.13/24 dev eth1
 
@@ -88,6 +94,8 @@ topology:
       image: nicolaka/netshoot:latest
       mgmt-ipv4: 172.20.20.34
       exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
         - ip link set eth1 mtu 1400
         - ip addr add 10.10.100.14/24 dev eth1
 

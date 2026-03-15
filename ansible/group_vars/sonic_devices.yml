@@ -1,0 +1,29 @@
+---
+# SONiC validation paths
+# Primarily OpenConfig-based — all checks use openconfig origin
+
+validate_paths:
+  bgp_neighbors:
+    path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
+    origin: "openconfig"
+    remediation_hint: "Check BGP configuration via SONiC CLI: show bgp summary"
+
+  evpn_state:
+    path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/afi-safis/afi-safi[afi-safi-name=L2VPN_EVPN]/state"
+    origin: "openconfig"
+    remediation_hint: "Enable EVPN address family in FRR BGP configuration"
+
+  ospf_neighbors:
+    path: "/network-instances/network-instance/protocols/protocol[identifier=OSPF]/ospf/areas/area/interfaces/interface/neighbors/neighbor/state"
+    origin: "openconfig"
+    remediation_hint: "Verify OSPF is enabled in FRR and interfaces are in the correct area"
+
+  lldp_neighbors:
+    path: "/lldp/interfaces/interface/neighbors/neighbor/state"
+    origin: "openconfig"
+    remediation_hint: "Verify LLDP is enabled: config lldp global admin_status up"
+
+  interface_state:
+    path: "/interfaces/interface/state"
+    origin: "openconfig"
+    remediation_hint: "Check physical cabling and interface admin status via SONiC CLI"

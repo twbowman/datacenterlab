@@ -6,9 +6,13 @@ This script validates that metric normalization is working correctly by:
 1. Querying Prometheus for normalized metrics
 2. Verifying all vendors produce expected metric names
 3. Checking that metric values are preserved
-4. Providing clear pass/fail output with details
+4. Verifying vendor-specific OpenConfig path normalization completeness
+5. Providing clear pass/fail output with details
 
-Requirements: 8.3
+Run from ORB VM context:
+  orb -m clab python3 validation/check_normalization.py
+
+Requirements: 8.3, 8.5
 """
 
 import json
@@ -336,6 +340,84 @@ class MetricNormalizationValidator:
         )
         return passed
 
+    # Vendor-specific source paths that SHOULD be normalized to OpenConfig paths.
+    # This represents the expected normalization rules per vendor.
+    VENDOR_OPENCONFIG_MAPPINGS = {
+        "nokia": {
+            "network_interface_in_octets": "/interface/statistics/in-octets",
+            "network_interface_out_octets": "/interface/statistics/out-octets",
+            "network_bgp_session_state": "/network-instance/protocols/bgp/neighbor/session-state",
+        },
+        "arista": {
+            "network_interface_in_octets": "/interfaces/interface/state/counters/in-octets",
+            "network_interface_out_octets": "/interfaces/interface/state/counters/out-octets",
+            "network_bgp_session_state": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state",
+        },
+        "dellemc": {
+            "network_interface_in_octets": "/openconfig-interfaces:interfaces/interface/state/counters/in-octets",
+            "network_interface_out_octets": "/openconfig-interfaces:interfaces/interface/state/counters/out-octets",
+        },
+        "juniper": {
+            "network_interface_in_octets": "/interfaces/interface/state/counters/in-octets",
+            "network_interface_out_octets": "/interfaces/interface/state/counters/out-octets",
+        },
+    }
+
+    def check_vendor_normalization_completeness(self) -> bool:
+        """Verify each vendor produces all expected normalized metrics from OpenConfig paths.
+
+        For each vendor, queries Prometheus for each expected normalized metric
+        with a vendor filter and identifies which normalizations are missing.
+        Reports per-vendor normalization completeness.
+        """
+        vendor_results = {}
+        all_complete = True
+
+        for vendor, expected_metrics in self.VENDOR_OPENCONFIG_MAPPINGS.items():
+            found = []
+            missing = []
+
+            for metric_name, _source_path in expected_metrics.items():
+                data = self.query_prometheus(f'{metric_name}{{vendor="{vendor}"}}')
+                if data and data["result"]:
+                    found.append(metric_name)
+                else:
+                    missing.append(metric_name)
+
+            total = len(expected_metrics)
+            completeness_pct = (len(found) / total * 100) if total > 0 else 0
+            vendor_results[vendor] = {
+                "found": found,
+                "missing": missing,
+                "total_expected": total,
+                "completeness_percent": round(completeness_pct, 1),
+            }
+
+            if missing:
+                all_complete = False
+
+        details = {"vendor_results": vendor_results}
+
+        if all_complete:
+            message = "All vendors have complete normalization coverage"
+        else:
+            incomplete = [
+                f"{v} (missing {len(r['missing'])})"
+                for v, r in vendor_results.items()
+                if r["missing"]
+            ]
+            message = f"Incomplete normalization for: {', '.join(incomplete)}"
+
+        self.checks.append(
+            NormalizationCheck(
+                name="Vendor Normalization Completeness",
+                passed=all_complete,
+                message=message,
+                details=details,
+            )
+        )
+        return all_complete
+
     def run_all_checks(self) -> bool:
         """Run all validation checks"""
         print("=" * 70)
@@ -350,6 +432,7 @@ class MetricNormalizationValidator:
 
         self.check_normalized_metrics_exist()
         self.check_vendor_coverage()
+        self.check_vendor_normalization_completeness()
         self.check_metric_values_preserved()
         self.check_interface_name_normalization()
         self.check_cross_vendor_consistency()

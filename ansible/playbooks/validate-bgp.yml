@@ -1,0 +1,63 @@
+---
+# BGP Session Validation Playbook
+# Uses gnmi_validate module with OpenConfig BGP neighbor path to verify
+# all expected BGP sessions are ESTABLISHED.
+#
+# Requirements: 7.1, 7.5
+# Inventory variables used: bgp_neighbors, validate_paths.bgp_neighbors
+
+- name: Validate BGP sessions
+  hosts: all
+  gather_facts: false
+  tags:
+    - bgp
+
+  tasks:
+    - name: Build expected BGP neighbor state
+      ansible.builtin.set_fact:
+        expected_bgp:
+          neighbor-address: >-
+            {{
+              bgp_neighbors | map(attribute='peer_address') | list
+            }}
+          session-state: "ESTABLISHED"
+      tags:
+        - bgp
+
+    - name: Validate BGP neighbor sessions via gNMI
+      gnmi_validate:
+        host: "{{ ansible_host }}"
+        port: "{{ gnmi_port }}"
+        username: "{{ gnmi_username }}"
+        password: "{{ gnmi_password }}"
+        skip_verify: "{{ gnmi_skip_verify | default(true) }}"
+        check_name: "bgp_sessions"
+        path: "{{ validate_paths.bgp_neighbors.path }}"
+        origin: "{{ validate_paths.bgp_neighbors.origin | default(omit) }}"
+        expected: "{{ expected_bgp }}"
+        remediation_hint: "{{ validate_paths.bgp_neighbors.remediation_hint | default('Check BGP configuration and verify underlay reachability') }}"
+      register: bgp_result
+      tags:
+        - bgp
+
+    - name: Report BGP validation result
+      ansible.builtin.debug:
+        msg: >-
+          BGP validation {{ bgp_result.result.status | upper }}
+          on {{ inventory_hostname }}:
+          expected neighbors={{ expected_bgp['neighbor-address'] }},
+          diffs={{ bgp_result.result.diffs }}
+      tags:
+        - bgp
+
+    - name: Assert BGP sessions are healthy
+      ansible.builtin.assert:
+        that:
+          - bgp_result.result.status == 'pass'
+        fail_msg: >-
+          BGP validation FAILED on {{ inventory_hostname }}.
+          {{ bgp_result.result.remediation }}
+          Diffs: {{ bgp_result.result.diffs }}
+        success_msg: "All BGP sessions ESTABLISHED on {{ inventory_hostname }}"
+      tags:
+        - bgp

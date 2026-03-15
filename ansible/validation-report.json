@@ -1,0 +1,1950 @@
+{
+  "timestamp": "2026-03-15T03:15:33Z",
+  "inventory": "/Users/toddbowman/Documents/projects/grpc/containerlab/ansible/inventory.yml",
+  "devices": [
+    {
+      "name": "spine2",
+      "vendor": "unknown",
+      "os": "unknown",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "neighbor-address": [
+              "10.0.1.1",
+              "10.0.1.2",
+              "10.0.1.3",
+              "10.0.1.4"
+            ],
+            "session-state": "ESTABLISHED"
+          },
+          "actual": {
+            "network-instance": [
+              {
+                "name": "default",
+                "protocols": {
+                  "protocol": [
+                    {
+                      "identifier": "openconfig-policy-types:BGP",
+                      "name": "BGP",
+                      "bgp": {
+                        "neighbors": {
+                          "neighbor": [
+                            {
+                              "neighbor-address": "10.0.1.1",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.1",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "4",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "1",
+                                    "last-notification-time": "1773525648800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.1.2",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.2",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "4",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "4",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.1.3",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.3",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "7",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.1.4",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.4",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "4",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "2",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "2",
+                                    "last-notification-time": "1773527556800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/interfaces/interface/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "system-name": "LLDP_CHECK"
+          },
+          "actual": {
+            "interface": [
+              {
+                "name": "ethernet-1/1",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/2",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/2",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/2",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/3",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/2",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/4",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/2",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "mgmt0",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [
+            {
+              "field": "system-name",
+              "issue": "value_mismatch",
+              "expected": "LLDP_CHECK",
+              "actual": [
+                "leaf1",
+                "leaf2",
+                "leaf3",
+                "leaf4",
+                "leaf3",
+                "leaf4",
+                "leaf2",
+                "leaf1",
+                "spine1"
+              ]
+            }
+          ],
+          "remediation": "Verify LLDP is enabled globally and on the expected interfaces"
+        }
+      ],
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    {
+      "name": "leaf3",
+      "vendor": "unknown",
+      "os": "unknown",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "neighbor-address": [
+              "10.0.0.1",
+              "10.0.0.2"
+            ],
+            "session-state": "ESTABLISHED"
+          },
+          "actual": {
+            "network-instance": [
+              {
+                "name": "default",
+                "protocols": {
+                  "protocol": [
+                    {
+                      "identifier": "openconfig-policy-types:BGP",
+                      "name": "BGP",
+                      "bgp": {
+                        "neighbors": {
+                          "neighbor": [
+                            {
+                              "neighbor-address": "10.0.0.1",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.1",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "6",
+                                    "last-notification-time": "1773527556800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.0.2",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.2",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "8",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "1",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/interfaces/interface/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "system-name": "LLDP_CHECK"
+          },
+          "actual": {
+            "interface": [
+              {
+                "name": "ethernet-1/1",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/3",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/2",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/3",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "mgmt0",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [
+            {
+              "field": "system-name",
+              "issue": "value_mismatch",
+              "expected": "LLDP_CHECK",
+              "actual": [
+                "spine1",
+                "spine2",
+                "leaf4",
+                "spine2",
+                "leaf2",
+                "leaf1",
+                "spine1"
+              ]
+            }
+          ],
+          "remediation": "Verify LLDP is enabled globally and on the expected interfaces"
+        }
+      ],
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    {
+      "name": "leaf2",
+      "vendor": "unknown",
+      "os": "unknown",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "neighbor-address": [
+              "10.0.0.1",
+              "10.0.0.2"
+            ],
+            "session-state": "ESTABLISHED"
+          },
+          "actual": {
+            "network-instance": [
+              {
+                "name": "default",
+                "protocols": {
+                  "protocol": [
+                    {
+                      "identifier": "openconfig-policy-types:BGP",
+                      "name": "BGP",
+                      "bgp": {
+                        "neighbors": {
+                          "neighbor": [
+                            {
+                              "neighbor-address": "10.0.0.1",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.1",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "7",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "1",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.0.2",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.2",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901500000000",
+                                "established-transitions": "4",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "4",
+                                    "last-notification-time": "1773542146800000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/interfaces/interface/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "system-name": "LLDP_CHECK"
+          },
+          "actual": {
+            "interface": [
+              {
+                "name": "ethernet-1/1",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/2",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/2",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/2",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "mgmt0",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [
+            {
+              "field": "system-name",
+              "issue": "value_mismatch",
+              "expected": "LLDP_CHECK",
+              "actual": [
+                "spine1",
+                "spine2",
+                "leaf3",
+                "leaf4",
+                "spine2",
+                "leaf1",
+                "spine1"
+              ]
+            }
+          ],
+          "remediation": "Verify LLDP is enabled globally and on the expected interfaces"
+        }
+      ],
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    {
+      "name": "leaf1",
+      "vendor": "unknown",
+      "os": "unknown",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "neighbor-address": [
+              "10.0.0.1",
+              "10.0.0.2"
+            ],
+            "session-state": "ESTABLISHED"
+          },
+          "actual": {
+            "network-instance": [
+              {
+                "name": "default",
+                "protocols": {
+                  "protocol": [
+                    {
+                      "identifier": "openconfig-policy-types:BGP",
+                      "name": "BGP",
+                      "bgp": {
+                        "neighbors": {
+                          "neighbor": [
+                            {
+                              "neighbor-address": "10.0.0.1",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.1",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901100000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "8",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.0.2",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.2",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901100000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "8",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/interfaces/interface/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "system-name": "LLDP_CHECK"
+          },
+          "actual": {
+            "interface": [
+              {
+                "name": "ethernet-1/1",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/1",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/2",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/1",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "mgmt0",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [
+            {
+              "field": "system-name",
+              "issue": "value_mismatch",
+              "expected": "LLDP_CHECK",
+              "actual": [
+                "spine1",
+                "spine2",
+                "leaf3",
+                "leaf4",
+                "spine2",
+                "leaf2",
+                "spine1"
+              ]
+            }
+          ],
+          "remediation": "Verify LLDP is enabled globally and on the expected interfaces"
+        }
+      ],
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    {
+      "name": "spine1",
+      "vendor": "unknown",
+      "os": "unknown",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "neighbor-address": [
+              "10.0.1.1",
+              "10.0.1.2",
+              "10.0.1.3",
+              "10.0.1.4"
+            ],
+            "session-state": "ESTABLISHED"
+          },
+          "actual": {
+            "network-instance": [
+              {
+                "name": "default",
+                "protocols": {
+                  "protocol": [
+                    {
+                      "identifier": "openconfig-policy-types:BGP",
+                      "name": "BGP",
+                      "bgp": {
+                        "neighbors": {
+                          "neighbor": [
+                            {
+                              "neighbor-address": "10.0.1.1",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.1",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901000000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "6",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.1.2",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.2",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901000000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "4",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "1",
+                                    "last-notification-time": "1773527557300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.1.3",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.3",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901000000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "5",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "1",
+                                    "last-notification-time": "1773525649300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.1.4",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.1.4",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901000000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "5",
+                                    "last-notification-time": "1773527556300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/interfaces/interface/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "system-name": "LLDP_CHECK"
+          },
+          "actual": {
+            "interface": [
+              {
+                "name": "ethernet-1/1",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/1",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/2",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/1",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/3",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/1",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/4",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/1",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "mgmt0",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:58:07:FF:00:00",
+                      "state": {
+                        "system-name": "leaf4",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf4 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:58:07:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:58:07:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [
+            {
+              "field": "system-name",
+              "issue": "value_mismatch",
+              "expected": "LLDP_CHECK",
+              "actual": [
+                "leaf1",
+                "leaf2",
+                "leaf3",
+                "leaf4",
+                "leaf3",
+                "leaf4",
+                "spine2",
+                "leaf2",
+                "leaf1"
+              ]
+            }
+          ],
+          "remediation": "Verify LLDP is enabled globally and on the expected interfaces"
+        }
+      ],
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    {
+      "name": "leaf4",
+      "vendor": "unknown",
+      "os": "unknown",
+      "checks": [
+        {
+          "name": "bgp_sessions",
+          "status": "pass",
+          "path": "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "neighbor-address": [
+              "10.0.0.1",
+              "10.0.0.2"
+            ],
+            "session-state": "ESTABLISHED"
+          },
+          "actual": {
+            "network-instance": [
+              {
+                "name": "default",
+                "protocols": {
+                  "protocol": [
+                    {
+                      "identifier": "openconfig-policy-types:BGP",
+                      "name": "BGP",
+                      "bgp": {
+                        "neighbors": {
+                          "neighbor": [
+                            {
+                              "neighbor-address": "10.0.0.1",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.1",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901100000000",
+                                "established-transitions": "5",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "7",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:HOLD_TIMER_EXPIRED"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            },
+                            {
+                              "neighbor-address": "10.0.0.2",
+                              "state": {
+                                "peer-group": "ibgp",
+                                "neighbor-address": "10.0.0.2",
+                                "enabled": true,
+                                "peer-as": 65000,
+                                "local-as": 65000,
+                                "peer-type": "INTERNAL",
+                                "remove-private-as": "openconfig-bgp-types:PRIVATE_AS_REPLACE_ALL",
+                                "session-state": "ESTABLISHED",
+                                "last-established": "1773541901100000000",
+                                "established-transitions": "4",
+                                "supported-capabilities": [
+                                  "openconfig-bgp-types:ASN32",
+                                  "openconfig-bgp-types:GRACEFUL_RESTART",
+                                  "openconfig-bgp-types:MPBGP",
+                                  "openconfig-bgp-types:ROUTE_REFRESH"
+                                ],
+                                "messages": {
+                                  "sent": {
+                                    "UPDATE": "9",
+                                    "NOTIFICATION": "6",
+                                    "last-notification-time": "1773542146300000000",
+                                    "last-notification-error-code": "openconfig-bgp-types:CEASE",
+                                    "last-notification-error-subcode": "openconfig-bgp-types:CONN_COLLISION_RESOLUTION"
+                                  },
+                                  "received": {
+                                    "UPDATE": "21",
+                                    "NOTIFICATION": "0"
+                                  }
+                                },
+                                "queues": {
+                                  "input": 0,
+                                  "output": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [],
+          "remediation": ""
+        },
+        {
+          "name": "lldp_neighbors",
+          "status": "fail",
+          "path": "/lldp/interfaces/interface/neighbors/neighbor/state",
+          "origin": "openconfig",
+          "expected": {
+            "system-name": "LLDP_CHECK"
+          },
+          "actual": {
+            "interface": [
+              {
+                "name": "ethernet-1/1",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/4",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "ethernet-1/2",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "ethernet-1/4",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "mgmt0",
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "id": "1A:56:06:FF:00:00",
+                      "state": {
+                        "system-name": "leaf3",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf3 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:56:06:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:56:06:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:59:09:FF:00:00",
+                      "state": {
+                        "system-name": "spine2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:59:09:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:59:09:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:C4:05:FF:00:00",
+                      "state": {
+                        "system-name": "leaf2",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf2 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:C4:05:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:C4:05:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:CD:04:FF:00:00",
+                      "state": {
+                        "system-name": "leaf1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b leaf1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:CD:04:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:CD:04:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    },
+                    {
+                      "id": "1A:E2:08:FF:00:00",
+                      "state": {
+                        "system-name": "spine1",
+                        "system-description": "SRLinux-v25.10.2-527-g7cdf631f55b spine1 6.17.8-orbstack-00308-g8f9c941121b1 #1 SMP PREEMPT Thu Nov 20 09:34:02 UTC 2025",
+                        "chassis-id": "1A:E2:08:FF:00:00",
+                        "chassis-id-type": "MAC_ADDRESS",
+                        "id": "1A:E2:08:FF:00:00",
+                        "age": "2629",
+                        "last-update": "13",
+                        "port-id": "mgmt0",
+                        "port-id-type": "INTERFACE_NAME",
+                        "port-description": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "diffs": [
+            {
+              "field": "system-name",
+              "issue": "value_mismatch",
+              "expected": "LLDP_CHECK",
+              "actual": [
+                "spine1",
+                "spine2",
+                "leaf3",
+                "spine2",
+                "leaf2",
+                "leaf1",
+                "spine1"
+              ]
+            }
+          ],
+          "remediation": "Verify LLDP is enabled globally and on the expected interfaces"
+        }
+      ],
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      }
+    }
+  ],
+  "summary": {
+    "total_devices": 6,
+    "total_checks": 12,
+    "passed": 6,
+    "failed": 6,
+    "duration_seconds": 3.79
+  }
+}

@@ -1,0 +1,38 @@
+---
+# Master Validation Playbook
+# Imports all validation playbooks (BGP, EVPN, LLDP, interfaces).
+# Supports running individual categories via tags:
+#   ansible-playbook validate.yml --tags bgp
+#   ansible-playbook validate.yml --tags evpn
+#   ansible-playbook validate.yml --tags lldp
+#   ansible-playbook validate.yml --tags interfaces
+#   ansible-playbook validate.yml  (runs all)
+#
+# Requirements: 7.1, 7.2, 7.3, 7.4
+# The validation_report callback plugin automatically collects
+# gnmi_validate results into a JSON report.
+
+- name: Validate BGP sessions
+  ansible.builtin.import_playbook: validate-bgp.yml
+  tags:
+    - bgp
+
+- name: Validate LLDP neighbors
+  ansible.builtin.import_playbook: validate-lldp.yml
+  tags:
+    - lldp
+
+- name: Validate interface states
+  ansible.builtin.import_playbook: validate-interfaces.yml
+  tags:
+    - interfaces
+
+- name: Validate EVPN state
+  ansible.builtin.import_playbook: validate-evpn.yml
+  tags:
+    - evpn
+
+- name: Validate client LLDP neighbors
+  ansible.builtin.import_playbook: validate-client-lldp.yml
+  tags:
+    - client-lldp
