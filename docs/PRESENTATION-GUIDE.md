@@ -184,6 +184,8 @@ This project was built in partnership with an AI coding assistant (Kiro). Worth 
 
 - **Honest feedback loop.** AI can challenge assumptions — like pointing out that "no platform ties these together" is a claim that won't survive audience scrutiny. That kind of review normally requires a colleague who knows the space.
 
+- **Clean commit discipline.** Every change is committed and pushed with descriptive, conventional commit messages (`feat:`, `fix:`, `docs:`, `refactor:`). The git log reads like a changelog — not a wall of "WIP" and "fix stuff." AI handles the commit message formatting, pre-commit hook compliance, and push cycle automatically after each logical change, so the codebase stays clean without the developer breaking flow to think about git hygiene.
+
 **Key takeaway**: AI didn't replace the network engineering expertise needed to design this architecture. It amplified the ability to execute across multiple technology domains simultaneously, turning an 18-week project into a 4-day sprint.
 
 ### 12. CI/CD and Testing (2 min)
