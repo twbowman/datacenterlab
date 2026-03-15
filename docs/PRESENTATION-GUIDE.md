@@ -172,6 +172,8 @@ Interesting problems solved along the way:
 
 This project was built in partnership with an AI coding assistant (Kiro). Worth discussing how AI changes the game for network automation projects like this:
 
+- **18 weeks estimated, ~4 days actual.** The design spec estimated 18 weeks of human effort across 9 phases (multi-vendor deployment, configuration roles, EVPN/VXLAN, telemetry normalization, dashboards, validation framework, state management, benchmarking, testing/docs). With AI-assisted development, the project went from first commit to production-ready in ~4 calendar days, with 50 commits across 12 March–15 March 2026.
+
 - **Cross-domain knowledge on tap.** This project spans Ansible, gNMI, YANG models, 4 vendor CLIs, Jinja2, Python, Prometheus, Grafana, Docker, and Containerlab. No single engineer is an expert in all of these. AI bridges the knowledge gaps in real time — you don't have to context-switch between vendor documentation tabs.
 
 - **Faster iteration on vendor-specific quirks.** Discovering that SR Linux enforces a 60 conn/min gNMI rate limit, understanding why, and rewriting 5 roles to batch operations — that research-and-refactor cycle happened in a single session instead of days of trial-and-error with vendor docs and support tickets.
@@ -182,7 +184,7 @@ This project was built in partnership with an AI coding assistant (Kiro). Worth 
 
 - **Honest feedback loop.** AI can challenge assumptions — like pointing out that "no platform ties these together" is a claim that won't survive audience scrutiny. That kind of review normally requires a colleague who knows the space.
 
-**Key takeaway**: AI didn't replace the network engineering expertise needed to design this architecture. It amplified the ability to execute across multiple technology domains simultaneously, and dramatically reduced the time from idea to working implementation.
+**Key takeaway**: AI didn't replace the network engineering expertise needed to design this architecture. It amplified the ability to execute across multiple technology domains simultaneously, turning an 18-week project into a 4-day sprint.
 
 ### 12. CI/CD and Testing (2 min)
 
