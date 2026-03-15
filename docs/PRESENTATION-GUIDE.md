@@ -168,7 +168,23 @@ Interesting problems solved along the way:
 
 - **Metric normalization at scale**: 4 vendors × different path formats × different naming conventions. Built a normalization pipeline in gNMIc that produces identical metric names regardless of source vendor.
 
-### 11. CI/CD and Testing (2 min)
+### 11. Building with AI (3 min)
+
+This project was built in partnership with an AI coding assistant (Kiro). Worth discussing how AI changes the game for network automation projects like this:
+
+- **Cross-domain knowledge on tap.** This project spans Ansible, gNMI, YANG models, 4 vendor CLIs, Jinja2, Python, Prometheus, Grafana, Docker, and Containerlab. No single engineer is an expert in all of these. AI bridges the knowledge gaps in real time — you don't have to context-switch between vendor documentation tabs.
+
+- **Faster iteration on vendor-specific quirks.** Discovering that SR Linux enforces a 60 conn/min gNMI rate limit, understanding why, and rewriting 5 roles to batch operations — that research-and-refactor cycle happened in a single session instead of days of trial-and-error with vendor docs and support tickets.
+
+- **Documentation that stays current.** Every code change was immediately followed by documentation updates — steering files for AI context, troubleshooting guides for humans, README updates. AI makes "document as you go" nearly free, which means docs don't rot.
+
+- **Spec-driven development.** Complex features (telemetry normalization, validation framework, EVPN/VXLAN) were built using structured specs — requirements → design → tasks — with AI helping refine each stage before writing code. This catches design issues before they become code issues.
+
+- **Honest feedback loop.** AI can challenge assumptions — like pointing out that "no platform ties these together" is a claim that won't survive audience scrutiny. That kind of review normally requires a colleague who knows the space.
+
+**Key takeaway**: AI didn't replace the network engineering expertise needed to design this architecture. It amplified the ability to execute across multiple technology domains simultaneously, and dramatically reduced the time from idea to working implementation.
+
+### 12. CI/CD and Testing (2 min)
 
 3-stage GitHub Actions pipeline:
 1. Lint: Ruff, Mypy, yamllint, ShellCheck, ansible-lint
@@ -182,7 +198,7 @@ Test structure:
 - Property-based tests: state management invariants, telemetry properties
 - Integration tests: end-to-end workflows, multi-vendor, monitoring stack
 
-### 12. Live Demo Sequence (optional, 10 min)
+### 13. Live Demo Sequence (optional, 10 min)
 
 If doing a live demo, suggested order:
 
