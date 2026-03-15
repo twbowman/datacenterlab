@@ -1,18 +1,17 @@
 ---
-# tasks file for srlinux_lldp (OpenConfig paths)
-# Note: LLDP is already enabled globally in the system role
+# tasks file for srlinux_lldp
+# Uses native SR Linux paths (OpenConfig SET is not supported on SR Linux)
+# Global LLDP is enabled in the gnmi_system role
 
-- name: Enable LLDP on interfaces via gnmic (OpenConfig)
+- name: Enable LLDP on interfaces via gnmic (native SR Linux path)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /lldp/interfaces/interface[name={{ item.name }}]/config/name \
-      --update-value {{ item.name }} \
-      --update-path /lldp/interfaces/interface[name={{ item.name }}]/config/enabled \
-      --update-value true
+      --update-path /system/lldp/interface[name={{ item.name }}]/admin-state \
+      --update-value enable
   loop: "{{ interfaces }}"
   when: item.ip is defined
   delegate_to: localhost
