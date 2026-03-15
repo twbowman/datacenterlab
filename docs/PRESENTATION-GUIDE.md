@@ -14,7 +14,7 @@ This is a production-grade datacenter network lab that lets you deploy, configur
 - Testing network changes in production is risky — no safe place to iterate
 - Monitoring across vendors requires vendor-specific dashboards and queries
 - Configuration validation is manual and error-prone
-- There's no single platform that ties deployment, configuration, telemetry, and validation together
+- Existing platforms that integrate these functions are typically vendor-locked, proprietary, or require significant infrastructure investment
 
 **Key question to pose**: "How do you test a BGP configuration change across 4 different vendor types before pushing to production?"
 
