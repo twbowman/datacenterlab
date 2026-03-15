@@ -5,6 +5,7 @@
     },
     "gnmi-server": {
       "admin-state": "enable",
+      "rate-limit": 600,
       "network-instance": [
         {
           "name": "mgmt"
