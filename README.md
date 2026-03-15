@@ -6,13 +6,13 @@ A production-grade multi-vendor network testing lab for developing and validatin
 
 ```bash
 # Deploy network lab
-./deploy.sh
+./scripts/deploy.sh
 
 # Configure network with Ansible
 ansible-playbook -i ansible/inventory.yml ansible/site.yml
 
 # Deploy monitoring (optional, separate)
-./deploy-monitoring.sh
+./scripts/deploy-monitoring.sh
 
 # Verify configuration
 ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
@@ -35,14 +35,18 @@ Complete documentation is organized in the `docs/` directory:
 - **[Troubleshooting](docs/user/troubleshooting.md)** - Common issues and solutions
 - **[Developer Guide](docs/developer/contributing.md)** - Contributing and testing
 - **[Architecture](docs/developer/architecture.md)** - System design and components
+- **[Multi-Vendor Deployment](docs/MULTI-VENDOR-DEPLOYMENT.md)** - Multi-vendor setup guide
 
 ## Overview
 
 This lab provides a production-grade datacenter network with:
+- **Multi-vendor support** for SR Linux, Arista EOS, SONiC, and Juniper
 - **OSPF underlay** for fast convergence and next-hop reachability
 - **iBGP overlay** with route reflectors for application routing and EVPN
+- **EVPN/VXLAN fabric** for L2 overlay across the CLOS topology
 - **Separate monitoring stack** that persists across network lab rebuilds
-- **Ansible automation** using native SR Linux YANG paths via gNMI
+- **Ansible automation** with multi-vendor dispatcher pattern via gNMI
+- **OpenConfig telemetry** for vendor-neutral monitoring
 - **All tools designed for production datacenter use** - only difference is containerized vs physical hardware
 
 ## Architecture
@@ -71,12 +75,23 @@ This lab provides a production-grade datacenter network with:
      └───────┘ └───────┘ └───────┘  └───────┘
 ```
 
+### Topologies
+
+- **`topology.yml`** - SR Linux single-vendor CLOS (default)
+- **`topology-multi-vendor.yml`** - Multi-vendor CLOS (SR Linux, Arista cEOS, SONiC, Juniper cRPD)
+- **`topology-monitoring.yml`** - Monitoring stack (Grafana, Prometheus, gNMIc)
+
 ### Components
 
 **Network Lab** (`topology.yml`):
-- 2 Spine switches (SR Linux)
+- 2 Spine switches (SR Linux, route reflectors)
 - 4 Leaf switches (SR Linux)
-- 4 Client nodes (netshoot)
+- 4 Client nodes (netshoot, EVPN/VXLAN bridged on 10.10.100.0/24)
+
+**Multi-Vendor Lab** (`topology-multi-vendor.yml`):
+- SR Linux spine + Arista cEOS spine
+- SR Linux leaf + Arista cEOS leaf + SONiC leaf + Juniper cRPD leaf
+- 4 Client nodes
 
 **Monitoring Stack** (`topology-monitoring.yml` - separate):
 - Grafana: http://localhost:3000 (admin/admin)
@@ -88,7 +103,7 @@ This lab provides a production-grade datacenter network with:
 - Spines: 172.20.20.10-11
 - Leafs: 172.20.20.21-24
 - Clients: 172.20.20.31-34
-- Monitoring: 172.20.20.2-5
+- Monitoring: 172.20.20.2 (Grafana), 172.20.20.3 (Prometheus), 172.20.20.5 (gNMIc)
 
 ## Deployment
 
@@ -96,29 +111,45 @@ This lab provides a production-grade datacenter network with:
 
 ```bash
 # Deploy network devices
-./deploy.sh
+./scripts/deploy.sh
 
-# Configure with Ansible (OSPF + BGP)
+# Deploy with post-deployment validation
+./scripts/deploy.sh --validate
+
+# Configure with Ansible (multi-vendor dispatcher)
 ansible-playbook -i ansible/inventory.yml ansible/site.yml
 
 # Verify
 ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
 
 # Destroy
-./destroy.sh
+./scripts/destroy.sh
+```
+
+### Multi-Vendor Lab
+
+```bash
+# Deploy multi-vendor topology
+./scripts/deploy-multi-vendor.sh
+
+# Configure with multi-vendor inventory
+ansible-playbook -i ansible/inventory-multi-vendor.yml ansible/site.yml
+
+# Destroy
+./scripts/destroy-multi-vendor.sh
 ```
 
 ### Monitoring Stack (Optional)
 
 ```bash
 # Deploy monitoring (separate from network)
-./deploy-monitoring.sh
+./scripts/deploy-monitoring.sh
 
 # Check status
-./check-monitoring.sh
+./scripts/check-monitoring.sh
 
 # Destroy monitoring
-./destroy-monitoring.sh
+./scripts/destroy-monitoring.sh
 ```
 
 ### Lab Management Script
@@ -129,56 +160,103 @@ ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks
 ./lab configure      # Configure with Ansible
 ./lab verify         # Verify configuration
 ./lab stop           # Destroy network
+./lab restart        # Restart network lab
 
 # Monitoring
 ./lab mon-start      # Deploy monitoring
 ./lab mon-stop       # Destroy monitoring
 
 # Status and access
-./lab status         # Show all containers
+./lab status         # Show all containers and access URLs
 ./lab sr_cli spine1  # Access SR Linux CLI
+./lab shell spine1   # Open bash shell
 ./lab logs leaf1     # View logs
+
+# Monitoring tools
+./lab check-metrics     # Verify metrics collection
+./lab analyze-links     # Analyze link utilization and ECMP balance
+./lab generate-traffic  # Generate test traffic between clients
+./lab grafana           # Open Grafana in browser
+./lab prometheus        # Open Prometheus in browser
 ```
 
 ## Ansible Automation
 
-### Configuration Method
+### Multi-Vendor Dispatcher Pattern
 
-Uses **srlinux_gnmi method** with native SR Linux YANG paths:
-- gNMI protocol via gnmic CLI tool
-- Native SR Linux paths (not OpenConfig)
-- True idempotency via gNMI
+The main `site.yml` uses a dispatcher pattern that routes configuration to vendor-specific roles based on `ansible_network_os`. Supported vendors:
+- **Nokia SR Linux** (`nokia.srlinux` / `srlinux`)
+- **Arista EOS** (`arista.eos` / `eos`)
+- **SONiC** (`dellemc.sonic` / `sonic`)
+- **Juniper** (`juniper.junos` / `junos`)
 
-**Why native paths?** SR Linux only supports OpenConfig for read operations (monitoring). Configuration requires native SR Linux YANG paths.
+### Configuration Methods
+
+- **srlinux_gnmi** (`methods/srlinux_gnmi/`) - Uses gnmic CLI with native SR Linux YANG paths
+- **OpenConfig** (`site-openconfig.yml`) - Uses OpenConfig YANG models for vendor-neutral config
+
+**Why native paths for SR Linux?** SR Linux only supports OpenConfig for read operations (monitoring). Configuration requires native SR Linux YANG paths.
 
 ### Playbooks
 
 ```bash
 cd ansible
 
-# Full configuration (interfaces → LLDP → OSPF → BGP)
+# Full configuration via dispatcher (interfaces → LLDP → OSPF → BGP → EVPN)
 ansible-playbook -i inventory.yml site.yml
 
+# OpenConfig-based configuration
+ansible-playbook -i inventory.yml site-openconfig.yml
+
+# SR Linux gNMI method directly
+ansible-playbook methods/srlinux_gnmi/site.yml
+
 # Individual components
-ansible-playbook -i inventory.yml methods/srlinux_gnmi/playbooks/configure-interfaces.yml
-ansible-playbook -i inventory.yml methods/srlinux_gnmi/playbooks/configure-lldp.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/configure-interfaces.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/configure-lldp.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/configure-bgp.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/configure-evpn.yml
 
 # Verification
-ansible-playbook -i inventory.yml methods/srlinux_gnmi/playbooks/verify.yml
-ansible-playbook -i inventory.yml methods/srlinux_gnmi/playbooks/verify-detailed.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/verify.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/verify-detailed.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/verify-evpn.yml
+
+# Validation playbooks (shared)
+ansible-playbook playbooks/validate.yml
+ansible-playbook playbooks/validate-bgp.yml
+ansible-playbook playbooks/validate-interfaces.yml
+ansible-playbook playbooks/validate-lldp.yml
+ansible-playbook playbooks/validate-evpn.yml
+ansible-playbook playbooks/validate-client-lldp.yml
 
 # Use tags
 ansible-playbook -i inventory.yml site.yml --tags interfaces
 ansible-playbook -i inventory.yml site.yml --tags ospf
 ansible-playbook -i inventory.yml site.yml --tags bgp
+ansible-playbook -i inventory.yml site.yml --tags evpn
 ```
 
 ### Roles
 
+**SR Linux gNMI roles** (`methods/srlinux_gnmi/roles/`):
+- `gnmi_system` - System configuration
 - `gnmi_interfaces` - Interface and IP configuration
 - `gnmi_lldp` - LLDP neighbor discovery
 - `gnmi_ospf` - OSPF underlay routing
 - `gnmi_bgp` - BGP overlay routing
+- `gnmi_evpn_vxlan` - EVPN/VXLAN fabric overlay
+- `gnmi_static_routes` - Static route configuration
+
+**Vendor-specific roles** (`roles/`):
+- Arista EOS: `eos_interfaces`, `eos_ospf`, `eos_bgp`, `eos_evpn_vxlan`
+- Juniper: `junos_interfaces`, `junos_ospf`, `junos_bgp`, `junos_evpn_vxlan`
+- SONiC: `sonic_interfaces`, `sonic_ospf`, `sonic_bgp`, `sonic_evpn_vxlan`
+- OpenConfig: `openconfig_interfaces`, `openconfig_lldp`, `openconfig_ospf`, `openconfig_bgp`
+
+**Utility roles** (`roles/`):
+- `config_validation` - Pre-deployment configuration syntax validation
+- `config_rollback` - Configuration state capture and rollback
 
 See `ansible/README.md` and `ansible/methods/srlinux_gnmi/README.md` for details.
 
@@ -186,13 +264,20 @@ See `ansible/README.md` and `ansible/methods/srlinux_gnmi/README.md` for details
 
 ### Telemetry Collection
 
-gNMIc collects from all switches:
-- Interface statistics (10s interval)
-- Interface operational state (30s)
-- BGP neighbor statistics (30s)
-- OSPF neighbor state (30s)
+gNMIc collects from all switches using a two-tier approach:
+
+**Tier 1 - OpenConfig (vendor-neutral):**
+- Interface statistics and state (10s interval)
+- BGP neighbor state (30s)
 - LLDP neighbors (60s)
-- System resources (30s)
+- QoS queue statistics (10s)
+
+**Tier 2 - SR Linux native (vendor-specific):**
+- OSPF neighbor state (30s)
+- EVPN operational state (30s)
+- VXLAN tunnel state and bridge table stats (30s)
+
+All metrics are normalized to vendor-neutral names (e.g., `network_interface_in_octets`, `network_bgp_session_state`) via gNMIc event processors.
 
 ### Data Storage
 
@@ -204,19 +289,21 @@ Prometheus stores metrics:
 ### Visualization
 
 Grafana dashboards:
-- Interface bandwidth
-- BGP peer status
-- OSPF adjacencies
-- LLDP topology
-- System health
-- Network Congestion Analysis
-- EVPN/VXLAN Stability
+- Universal Interfaces - Cross-vendor interface performance
+- Universal BGP - BGP session state and statistics
+- Universal LLDP - LLDP neighbor topology
+- Interface Performance - Detailed interface metrics
+- BGP Stability - BGP session health monitoring
+- OSPF Stability - OSPF adjacency monitoring
+- Network Congestion Analysis - Queue depth and drops
+- EVPN/VXLAN Stability - VXLAN tunnel and MAC table health
+- Vendor SR Linux - SR Linux specific metrics
 
 Access Grafana at http://localhost:3000 (admin/admin)
 
 ## Traffic Testing
 
-Separate Ansible-based fabric load testing using iperf3 across all client nodes via EVPN/VXLAN.
+Ansible-based fabric load testing using iperf3 across all client nodes via EVPN/VXLAN.
 
 All 4 clients share the same L2 subnet (10.10.100.0/24) bridged across the fabric via mac-vrf-100 (VNI 10100). Traffic between clients on different leafs traverses the full leaf-spine-leaf VXLAN path.
 
@@ -267,31 +354,24 @@ curl -s http://localhost:9273/metrics | head -20
 curl -s http://localhost:9090/api/v1/targets | jq
 ```
 
-## Key Features
+### Validation Scripts
 
-### Production-Grade Architecture
-- OSPF underlay for fast convergence
-- BGP overlay for scalability
-- Separate control and data planes
-- Standard enterprise datacenter design
+```bash
+# Full lab validation
+./scripts/validate-lab.sh
 
-### Automation-First
-- All configuration via Ansible
-- Infrastructure as code
-- Repeatable deployments
-- Version controlled
+# Validate topology file
+python3 scripts/validate-topology.py
 
-### Separate Monitoring
-- Independent lifecycle from network
-- Persistent historical data
-- Survives network rebuilds
-- Optional deployment
+# Check telemetry collection
+python3 validation/check_telemetry.py
 
-### Native SR Linux Support
-- Uses SR Linux YANG paths
-- gNMI protocol for configuration
-- True idempotency
-- OpenConfig for monitoring only
+# Check universal PromQL queries
+python3 validation/check_universal_queries.py
+
+# Check metric normalization
+python3 validation/check_normalization.py
+```
 
 ## Prerequisites
 
@@ -300,51 +380,9 @@ curl -s http://localhost:9090/api/v1/targets | jq
 - Containerlab >= 0.40.0 (in lab VM)
 - Ansible >= 2.9 (in lab VM)
 - gnmic CLI tool (in lab VM)
+- Python >= 3.10
 
 All commands in this README assume you're running inside the lab VM (e.g., `orb -m clab` to enter the VM).
-
-## Troubleshooting
-
-### Network Lab Issues
-
-```bash
-# Check containers
-docker ps --filter "name=clab-gnmi-clos"
-
-# Check device logs
-docker logs clab-gnmi-clos-spine1
-
-# Verify gNMI connectivity
-gnmic -a 172.20.20.10:57400 -u admin -p NokiaSrl1! --skip-verify capabilities
-```
-
-### Ansible Issues
-
-```bash
-# Test connectivity
-ansible -i ansible/inventory.yml all -m ping
-
-# Run with verbose output
-ansible-playbook -i ansible/inventory.yml ansible/site.yml -vvv
-
-# Check diagnostics
-ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify-detailed.yml
-```
-
-### Monitoring Issues
-
-```bash
-# Check monitoring containers
-docker ps --filter "name=clab-monitoring"
-
-# Check gNMIc logs
-docker logs clab-monitoring-gnmic
-
-# Test metrics endpoint
-curl http://localhost:9273/metrics
-```
-
-See [Troubleshooting Guide](docs/user/troubleshooting.md) for more details.
 
 ## Contributing
 
@@ -372,16 +410,66 @@ Hooks include lint (Ruff, Mypy, yamllint, ShellCheck) and local security checks 
 2. Security: Bandit, Trivy, Checkov, Gitleaks
 3. Tests: Unit + Property-based (only after stages 1-2 pass)
 
-Run all checks locally:
+**Tests:**
 ```bash
-# Pre-commit checks (Stage 1)
+# Unit tests
+pytest tests/unit/
+
+# Property-based tests
+pytest tests/property/
+
+# Integration tests (requires running lab)
+pytest tests/integration/
+
+# All pre-commit checks
 pre-commit run --all-files
 
 # Full linter suite
 ./scripts/run-linters.sh
 ```
 
-See [Developer Guide](docs/developer/contributing.md) for details.
+## Troubleshooting
+
+### Network Lab Issues
+
+```bash
+# Check containers
+docker ps --filter "name=clab-gnmi-clos"
+
+# Check device logs
+docker logs clab-gnmi-clos-spine1
+
+# Verify gNMI connectivity
+gnmic -a 172.20.20.10:57400 -u admin -p NokiaSrl1! --skip-verify capabilities
+```
+
+### Ansible Issues
+
+```bash
+# Test connectivity
+ansible -i ansible/inventory.yml all -m ping
+
+# Run with verbose output
+ansible-playbook -i ansible/inventory.yml ansible/site.yml -vvv
+
+# Test dispatcher pattern
+ansible-playbook ansible/test-dispatcher.yml
+```
+
+### Monitoring Issues
+
+```bash
+# Check monitoring containers
+docker ps --filter "name=clab-monitoring"
+
+# Check gNMIc logs
+docker logs clab-monitoring-gnmic
+
+# Test metrics endpoint
+curl http://localhost:9273/metrics
+```
+
+See [Troubleshooting Guide](docs/user/troubleshooting.md) for more details.
 
 ## License
 

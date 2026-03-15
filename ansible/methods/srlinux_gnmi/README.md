@@ -177,16 +177,16 @@ Benefits:
 
 ### Enable Verbose Output
 ```bash
-ansible-playbook methods/cli/site.yml -vvv
+ansible-playbook methods/srlinux_gnmi/site.yml -vvv
 ```
 
 ### Test Single Command
 ```bash
 # Test on one device
-ansible-playbook methods/cli/site.yml --limit spine1 -vvv
+ansible-playbook methods/srlinux_gnmi/site.yml --limit spine1 -vvv
 
 # Test one role
-ansible-playbook methods/cli/site.yml --tags interfaces -vvv
+ansible-playbook methods/srlinux_gnmi/site.yml --tags interfaces -vvv
 ```
 
 ### Manual Testing
@@ -259,7 +259,7 @@ ansible-playbook methods/srlinux_gnmi/playbooks/verify-detailed.yml
 vim inventory.yml
 
 # Deploy only BGP changes
-ansible-playbook methods/cli/playbooks/configure-bgp.yml
+ansible-playbook methods/srlinux_gnmi/playbooks/configure-bgp.yml
 
 # Verify BGP
 ansible-playbook playbooks/verify.yml --tags bgp

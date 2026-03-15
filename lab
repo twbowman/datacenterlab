@@ -78,12 +78,12 @@ case $COMMAND in
     
   verify)
     echo "✅ Verifying network configuration..."
-    ansible-playbook -i ansible/inventory.yml ansible/methods/gnmicli/playbooks/verify.yml
+    ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
     ;;
     
   verify-detailed)
     echo "✅ Detailed verification..."
-    ansible-playbook -i ansible/inventory.yml ansible/methods/gnmicli/playbooks/verify-detailed.yml
+    ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify-detailed.yml
     ;;
     
   analyze-links)

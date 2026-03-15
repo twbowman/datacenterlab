@@ -8,7 +8,7 @@ echo "=== Deploying Monitoring Stack ==="
 echo ""
 
 # Deploy monitoring topology
-containerlab deploy -t topology-monitoring.yml
+containerlab deploy -t ../topology-monitoring.yml
 
 echo ""
 echo "=== Monitoring Stack Deployed ==="

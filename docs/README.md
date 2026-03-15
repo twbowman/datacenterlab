@@ -67,9 +67,8 @@ Historical documentation and implementation records:
 
 ## CI/CD Documentation
 
-- [GitHub Actions README](.github/README.md)
-- [CI Configuration](.github/CI-CONFIGURATION.md)
-- [Quick Start](.github/QUICK-START.md)
+- [CI Configuration](developer/ci-configuration.md)
+- [CI Quick Start](developer/ci-quick-start.md)
 
 ## Additional Resources
 

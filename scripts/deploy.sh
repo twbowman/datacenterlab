@@ -34,7 +34,7 @@ done
 echo -e "${GREEN}Deploying SR Linux CLOS network topology...${NC}"
 
 # Deploy topology
-containerlab deploy -t topology.yml
+containerlab deploy -t ../topology.yml
 
 echo -e "${YELLOW}Waiting for routers to boot (30 seconds)...${NC}"
 sleep 30
