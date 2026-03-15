@@ -16,15 +16,20 @@ data model defined in this project.
 
 ### Topology
 
-```
-         Spine1 (RR)          Spine2 (RR)
-            |  \              /  |
-            |   \            /   |
-            |    \          /    |
-            |     \        /     |
-         Leaf1   Leaf2   Leaf3   Leaf4
-          |       |       |       |
-        Host1   Host2   Host3   Host4
+```mermaid
+graph TD
+    Spine1["Spine1 (RR)"] --- Leaf1
+    Spine1 --- Leaf2
+    Spine1 --- Leaf3
+    Spine1 --- Leaf4
+    Spine2["Spine2 (RR)"] --- Leaf1
+    Spine2 --- Leaf2
+    Spine2 --- Leaf3
+    Spine2 --- Leaf4
+    Leaf1 --- Host1
+    Leaf2 --- Host2
+    Leaf3 --- Host3
+    Leaf4 --- Host4
 ```
 
 - **Spines**: BGP route reflectors for EVPN control plane

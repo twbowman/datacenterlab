@@ -598,28 +598,23 @@ rate(network_interface_in_octets{vendor="nokia",interface="ethernet-1/1"}[5m]) *
 
 **Architecture**:
 
-```
-┌─────────────────────────────────────────────────────┐
-│  ansible-playbook -i inventory.yml validate.yml     │
-│  (leverages inventory: hosts, groups, credentials,  │
-│   bgp_neighbors, interfaces, evpn_vxlan vars)       │
-├─────────────────────────────────────────────────────┤
-│  Validation Playbooks (per check category)          │
-│  ┌──────────┐ ┌──────────┐ ┌──────┐ ┌───────────┐  │
-│  │ BGP      │ │ EVPN     │ │ LLDP │ │ Interface │  │
-│  │ validate │ │ validate │ │ val. │ │ validate  │  │
-│  └────┬─────┘ └────┬─────┘ └──┬───┘ └─────┬─────┘  │
-│       │             │          │            │        │
-│  ┌────▼─────────────▼──────────▼────────────▼─────┐  │
-│  │  gnmi_validate module (ansible/library/)       │  │
-│  │  - pygnmi gNMI client (origin field support)   │  │
-│  │  - dictdiffer for expected vs actual comparison │  │
-│  │  - Structured pass/fail/diff results           │  │
-│  └────────────────────────────────────────────────┘  │
-├─────────────────────────────────────────────────────┤
-│  validation_report callback plugin                  │
-│  (aggregates per-host results into JSON report)     │
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph "ansible-playbook -i inventory.yml validate.yml"
+        direction TB
+        subgraph "Validation Playbooks"
+            BGP["BGP validate"]
+            EVPN["EVPN validate"]
+            LLDP["LLDP validate"]
+            INTF["Interface validate"]
+        end
+        BGP --> GM
+        EVPN --> GM
+        LLDP --> GM
+        INTF --> GM
+        GM["gnmi_validate module<br/>(pygnmi + dictdiffer + origin field)"]
+    end
+    GM --> VR["validation_report callback plugin<br/>(aggregates per-host results into JSON report)"]
 ```
 
 **Key Files**:

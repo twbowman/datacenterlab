@@ -139,32 +139,31 @@ When enabled:
 
 ### Control Plane (BGP EVPN)
 
-```
-Spines (Route Reflectors)
-  ├── Receive EVPN routes from leafs
-  ├── Reflect routes to all other leafs
-  └── No VXLAN data plane participation
-
-Leafs (VTEP Endpoints)
-  ├── Advertise MAC-IP routes (Type 2)
-  ├── Advertise inclusive multicast routes (Type 3)
-  ├── Learn remote MAC addresses via BGP
-  └── Build VXLAN tunnels to remote VTEPs
+```mermaid
+graph TD
+    subgraph "Spines (Route Reflectors)"
+        S1[Receive EVPN routes from leafs]
+        S2[Reflect routes to all other leafs]
+        S3[No VXLAN data plane participation]
+    end
+    subgraph "Leafs (VTEP Endpoints)"
+        L1["Advertise MAC-IP routes (Type 2)"]
+        L2["Advertise inclusive multicast routes (Type 3)"]
+        L3[Learn remote MAC addresses via BGP]
+        L4[Build VXLAN tunnels to remote VTEPs]
+    end
 ```
 
 ### Data Plane (VXLAN)
 
-```
-Leaf Switch
-  ├── Access Interface (Ethernet1)
-  │   └── Receives untagged traffic
-  ├── VLAN (VLAN 10)
-  │   ├── MAC learning via BGP EVPN
-  │   └── Forwarding decision
-  └── VXLAN Interface (Vxlan1)
-      ├── Encapsulates traffic with VNI 10010
-      ├── Source: Loopback0 IP
-      └── Destination: Remote VTEP IP
+```mermaid
+graph LR
+    subgraph "Leaf Switch"
+        A["Access Interface (Ethernet1)<br/>Receives untagged traffic"]
+        V["VLAN 10<br/>MAC learning via BGP EVPN<br/>Forwarding decision"]
+        X["VXLAN Interface (Vxlan1)<br/>VNI 10010<br/>Source: Loopback0 IP<br/>Dest: Remote VTEP IP"]
+        A --> V --> X
+    end
 ```
 
 ## Verification

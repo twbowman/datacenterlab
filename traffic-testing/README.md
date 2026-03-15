@@ -6,17 +6,20 @@ Ansible-based fabric load testing using iperf3. Separate inventory and playbooks
 
 All 4 clients sit on the same L2 subnet (10.10.100.0/24) bridged across the EVPN/VXLAN fabric (mac-vrf-100, VNI 10100). Traffic between any two clients traverses leaf → spine → leaf via VXLAN encapsulation, creating a full mesh of 12 bidirectional flows through the CLOS fabric.
 
+```mermaid
+graph LR
+    client1["client1<br/>10.10.100.11"] --- leaf1
+    client3["client3<br/>10.10.100.13"] --- leaf3
+    leaf1 --- spine["spine1 / spine2"]
+    leaf3 --- spine
+    spine --- leaf2
+    spine --- leaf4
+    leaf2 --- client2["client2<br/>10.10.100.12"]
+    leaf4 --- client4["client4<br/>10.10.100.14"]
 ```
-  client1 (10.10.100.11)          client2 (10.10.100.12)
-       │                               │
-   leaf1 ──── spine1/spine2 ──── leaf2
-   leaf3 ──── spine1/spine2 ──── leaf4
-       │                               │
-  client3 (10.10.100.13)          client4 (10.10.100.14)
 
-All clients share 10.10.100.0/24 via EVPN/VXLAN (VNI 10100)
-Traffic path: client → leaf → VXLAN encap → spine → leaf → VXLAN decap → client
-```
+All clients share 10.10.100.0/24 via EVPN/VXLAN (VNI 10100).
+Traffic path: client → leaf → VXLAN encap → spine → leaf → VXLAN decap → client.
 
 ## Prerequisites
 
