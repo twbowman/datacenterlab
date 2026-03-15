@@ -2,37 +2,30 @@
 # tasks file for srlinux_interfaces
 # Uses native SR Linux paths with srl_nokia origin throughout
 # (OpenConfig SET is not supported on SR Linux)
+#
+# RATE LIMIT MITIGATION:
+# SR Linux enforces a 60 gNMI connections/minute rate limit.
+# This role batches all interface + loopback + network-instance configs
+# into minimal gnmic set calls using multiple --update-path/--update-value pairs.
 
-- name: Configure interfaces via gnmic (native SR Linux path)
+- name: Configure all interfaces and loopback (batched)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path 'srl_nokia:/interface[name={{ item.name }}]/admin-state' \
+    {% for iface in interfaces if iface.ip is defined %}
+      --update-path 'srl_nokia:/interface[name={{ iface.name }}]/admin-state' \
       --update-value enable \
-      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/admin-state' \
+      --update-path 'srl_nokia:/interface[name={{ iface.name }}]/subinterface[index=0]/admin-state' \
       --update-value enable \
-      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/admin-state' \
+      --update-path 'srl_nokia:/interface[name={{ iface.name }}]/subinterface[index=0]/ipv4/admin-state' \
       --update-value enable \
-      --update-path 'srl_nokia:/interface[name={{ item.name }}]/subinterface[index=0]/ipv4/address[ip-prefix={{ item.ip }}]' \
+      --update-path 'srl_nokia:/interface[name={{ iface.name }}]/subinterface[index=0]/ipv4/address[ip-prefix={{ iface.ip }}]' \
       --update-value '{}' \
-      --encoding json_ietf
-  loop: "{{ interfaces }}"
-  when: item.ip is defined
-  delegate_to: localhost
-  register: interface_result
-  changed_when: "'UPDATE' in interface_result.stdout"
-  failed_when: interface_result.rc != 0
-
-- name: Configure system0 loopback via gnmic (native SR Linux path)
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
+    {% endfor %}
+    {% if loopback_ip is defined %}
       --update-path 'srl_nokia:/interface[name=system0]/admin-state' \
       --update-value enable \
       --update-path 'srl_nokia:/interface[name=system0]/subinterface[index=0]/admin-state' \
@@ -41,44 +34,30 @@
       --update-value enable \
       --update-path 'srl_nokia:/interface[name=system0]/subinterface[index=0]/ipv4/address[ip-prefix={{ loopback_ip }}]' \
       --update-value '{}' \
+    {% endif %}
       --encoding json_ietf
-  when: loopback_ip is defined
   delegate_to: localhost
-  register: loopback_result
-  changed_when: "'UPDATE' in loopback_result.stdout"
-  failed_when: loopback_result.rc != 0
+  register: interface_result
+  changed_when: "'UPDATE' in interface_result.stdout"
+  failed_when: interface_result.rc != 0
 
-# Add interfaces to default network-instance (required for OSPF/BGP)
-- name: Add interfaces to default network-instance
+- name: Add all interfaces to default network-instance (batched)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path 'srl_nokia:/network-instance[name=default]/interface[name={{ item.name }}.0]' \
+    {% for iface in interfaces if iface.ip is defined %}
+      --update-path 'srl_nokia:/network-instance[name=default]/interface[name={{ iface.name }}.0]' \
       --update-value '{}' \
+    {% endfor %}
+    {% if loopback_ip is defined %}
+      --update-path 'srl_nokia:/network-instance[name=default]/interface[name=system0.0]' \
+      --update-value '{}' \
+    {% endif %}
       --encoding json_ietf
-  loop: "{{ interfaces }}"
-  when: item.ip is defined
   delegate_to: localhost
   register: ni_interface_result
   changed_when: "'UPDATE' in ni_interface_result.stdout"
   failed_when: ni_interface_result.rc != 0
-
-- name: Add system0 to default network-instance
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path 'srl_nokia:/network-instance[name=default]/interface[name=system0.0]' \
-      --update-value '{}' \
-      --encoding json_ietf
-  when: loopback_ip is defined
-  delegate_to: localhost
-  register: ni_loopback_result
-  changed_when: "'UPDATE' in ni_loopback_result.stdout"
-  failed_when: ni_loopback_result.rc != 0
-

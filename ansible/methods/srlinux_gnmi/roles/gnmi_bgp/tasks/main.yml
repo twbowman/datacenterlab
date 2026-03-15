@@ -5,10 +5,13 @@
 # - iBGP peers using loopback IPs (system0)
 # - All devices in same AS (65000)
 # - Spines act as route reflectors for EVPN
-# Note: Using SR Linux native YANG paths via gNMI with srl_nokia: origin prefix
-# This allows OpenConfig to remain enabled for telemetry while using native paths for config
+#
+# RATE LIMIT MITIGATION:
+# SR Linux enforces a 60 gNMI connections/minute rate limit.
+# This role batches BGP global + group + neighbor configs into minimal
+# gnmic set calls using multiple --update-path/--update-value pairs.
 
-- name: Configure BGP global settings and address families
+- name: Configure BGP global settings, peer group, and policy (batched)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
@@ -25,19 +28,6 @@
       --update-value enable \
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/admin-state' \
       --update-value enable \
-      --encoding json_ietf
-  delegate_to: localhost
-  register: bgp_global_result
-  changed_when: "'UPDATE' in bgp_global_result.stdout"
-  failed_when: bgp_global_result.rc != 0
-
-- name: Configure iBGP peer group
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/admin-state' \
       --update-value enable \
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/afi-safi[afi-safi-name=ipv4-unicast]/admin-state' \
@@ -46,11 +36,15 @@
       --update-value enable \
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/group[group-name=ibgp]/transport/tcp-mss' \
       --update-value 1024 \
+      --update-path 'srl_nokia:/routing-policy/policy[name=export-local]/statement[name=10]/match/protocol' \
+      --update-value local \
+      --update-path 'srl_nokia:/routing-policy/policy[name=export-local]/statement[name=10]/action/policy-result' \
+      --update-value accept \
       --encoding json_ietf
   delegate_to: localhost
-  register: bgp_group_result
-  changed_when: "'UPDATE' in bgp_group_result.stdout"
-  failed_when: bgp_group_result.rc != 0
+  register: bgp_global_result
+  changed_when: "'UPDATE' in bgp_global_result.stdout"
+  failed_when: bgp_global_result.rc != 0
 
 - name: Configure route reflector on spines
   ansible.builtin.shell: |
@@ -68,60 +62,45 @@
   failed_when: rr_group_result.rc != 0
   when: bgp_role is defined and bgp_role == 'route_reflector'
 
-- name: Configure BGP neighbors
+- name: Configure all BGP neighbors (batched)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.peer_address }}]/peer-as' \
-      --update-value {{ item.peer_asn }} \
-      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.peer_address }}]/peer-group' \
+    {% for neighbor in bgp_neighbors %}
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/peer-as' \
+      --update-value {{ neighbor.peer_asn }} \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/peer-group' \
       --update-value ibgp \
-      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.peer_address }}]/admin-state' \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/admin-state' \
       --update-value enable \
+    {% endfor %}
       --encoding json_ietf
-  loop: "{{ bgp_neighbors }}"
   delegate_to: localhost
   register: bgp_neighbor_result
   changed_when: "'UPDATE' in bgp_neighbor_result.stdout"
   failed_when: bgp_neighbor_result.rc != 0
   when: bgp_neighbors is defined
 
-- name: Configure route reflector clients
+- name: Configure route reflector clients (batched)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ item.peer_address }}]/route-reflector/client' \
+    {% for neighbor in bgp_neighbors %}
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/bgp/neighbor[peer-address={{ neighbor.peer_address }}]/route-reflector/client' \
       --update-value true \
+    {% endfor %}
       --encoding json_ietf
-  loop: "{{ bgp_neighbors }}"
   delegate_to: localhost
   register: rr_client_result
   changed_when: "'UPDATE' in rr_client_result.stdout"
   failed_when: rr_client_result.rc != 0
   when: bgp_role is defined and bgp_role == 'route_reflector' and bgp_neighbors is defined
-
-- name: Create export policy to advertise local routes
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path 'srl_nokia:/routing-policy/policy[name=export-local]/statement[name=10]/match/protocol' \
-      --update-value local \
-      --update-path 'srl_nokia:/routing-policy/policy[name=export-local]/statement[name=10]/action/policy-result' \
-      --update-value accept \
-      --encoding json_ietf
-  delegate_to: localhost
-  register: policy_result
-  changed_when: "'UPDATE' in policy_result.stdout"
-  failed_when: policy_result.rc != 0
 
 - name: Apply export policy to BGP group
   ansible.builtin.shell: |

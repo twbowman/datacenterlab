@@ -4,10 +4,13 @@
 # - OSPF provides next-hop reachability for BGP
 # - Point-to-point interfaces in area 0.0.0.0
 # - Loopbacks advertised as passive interfaces
-# Note: Using SR Linux native YANG paths via gNMI with srl_nokia: origin prefix
-# This allows OpenConfig to remain enabled for telemetry while using native paths for config
+#
+# RATE LIMIT MITIGATION:
+# SR Linux enforces a 60 gNMI connections/minute rate limit.
+# This role batches OSPF instance + all interface configs into a single
+# gnmic set call using multiple --update-path/--update-value pairs.
 
-- name: Configure OSPF instance and router-id
+- name: Configure OSPF instance, interfaces, and loopback (batched)
   ansible.builtin.shell: |
     gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
       -u {{ gnmi_username }} \
@@ -20,45 +23,20 @@
       --update-value {{ router_id }} \
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/admin-state' \
       --update-value enable \
-      --encoding json_ietf
-  delegate_to: localhost
-  register: ospf_instance_result
-  changed_when: "'UPDATE' in ospf_instance_result.stdout"
-  failed_when: ospf_instance_result.rc != 0
-
-- name: Configure OSPF on point-to-point interfaces
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
-      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ item.name }}.0]/interface-type' \
+    {% for iface in interfaces if iface.ip is defined %}
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ iface.name }}.0]/interface-type' \
       --update-value point-to-point \
-      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ item.name }}.0]/admin-state' \
+      --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name={{ iface.name }}.0]/admin-state' \
       --update-value enable \
-      --encoding json_ietf
-  loop: "{{ interfaces }}"
-  when: item.ip is defined
-  delegate_to: localhost
-  register: ospf_interface_result
-  changed_when: "'UPDATE' in ospf_interface_result.stdout"
-  failed_when: ospf_interface_result.rc != 0
-
-- name: Configure OSPF on loopback (passive)
-  ansible.builtin.shell: |
-    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
-      -u {{ gnmi_username }} \
-      -p {{ gnmi_password }} \
-      --skip-verify \
-      set \
+    {% endfor %}
+    {% if loopback_ip is defined %}
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name=system0.0]/passive' \
       --update-value true \
       --update-path 'srl_nokia:/network-instance[name=default]/protocols/ospf/instance[name=main]/area[area-id=0.0.0.0]/interface[interface-name=system0.0]/admin-state' \
       --update-value enable \
+    {% endif %}
       --encoding json_ietf
-  when: loopback_ip is defined
   delegate_to: localhost
-  register: ospf_loopback_result
-  changed_when: "'UPDATE' in ospf_loopback_result.stdout"
-  failed_when: ospf_loopback_result.rc != 0
+  register: ospf_result
+  changed_when: "'UPDATE' in ospf_result.stdout"
+  failed_when: ospf_result.rc != 0
