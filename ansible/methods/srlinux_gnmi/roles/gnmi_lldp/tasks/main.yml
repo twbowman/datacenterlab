@@ -1,6 +1,7 @@
 ---
 # tasks file for srlinux_lldp
-# Uses native SR Linux paths (OpenConfig SET is not supported on SR Linux)
+# Uses native SR Linux paths with srl_nokia origin
+# (OpenConfig SET is not supported on SR Linux)
 # Global LLDP is enabled in the gnmi_system role
 
 - name: Enable LLDP on interfaces via gnmic (native SR Linux path)
@@ -10,8 +11,9 @@
       -p {{ gnmi_password }} \
       --skip-verify \
       set \
-      --update-path /system/lldp/interface[name={{ item.name }}]/admin-state \
-      --update-value enable
+      --update-path 'srl_nokia:/system/lldp/interface[name={{ item.name }}]/admin-state' \
+      --update-value enable \
+      --encoding json_ietf
   loop: "{{ interfaces }}"
   when: item.ip is defined
   delegate_to: localhost
