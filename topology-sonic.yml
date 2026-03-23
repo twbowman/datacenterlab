@@ -1,0 +1,104 @@
+name: gnmi-clos-sonic
+
+topology:
+  defaults:
+    kind: linux
+
+  nodes:
+    # === Spine Routers ===
+    spine1:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+      mgmt-ipv4: 172.20.20.10
+
+    spine2:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+      mgmt-ipv4: 172.20.20.11
+
+    # === Leaf Routers ===
+    leaf1:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+      mgmt-ipv4: 172.20.20.21
+
+    leaf2:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+      mgmt-ipv4: 172.20.20.22
+
+    leaf3:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+      mgmt-ipv4: 172.20.20.23
+
+    leaf4:
+      kind: sonic-vs
+      image: docker-sonic-vs:latest
+      mgmt-ipv4: 172.20.20.24
+
+    # === Client Nodes ===
+    # Clients - all on same L2 subnet via EVPN/VXLAN
+    # MTU 1400 to fit within VXLAN encapsulation overhead (~50 bytes)
+    client1:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.31
+      exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.11/24 dev eth1
+
+    client2:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.32
+      exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.12/24 dev eth1
+
+    client3:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.33
+      exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.13/24 dev eth1
+
+    client4:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.20.34
+      exec:
+        - apk add --no-cache lldpd || true
+        - lldpd -c -M 1
+        - ip link set eth1 mtu 1400
+        - ip addr add 10.10.100.14/24 dev eth1
+
+  links:
+    # Spine1 to all Leafs
+    - endpoints: ["spine1:Ethernet0", "leaf1:Ethernet0"]
+    - endpoints: ["spine1:Ethernet4", "leaf2:Ethernet0"]
+    - endpoints: ["spine1:Ethernet8", "leaf3:Ethernet0"]
+    - endpoints: ["spine1:Ethernet12", "leaf4:Ethernet0"]
+
+    # Spine2 to all Leafs
+    - endpoints: ["spine2:Ethernet0", "leaf1:Ethernet4"]
+    - endpoints: ["spine2:Ethernet4", "leaf2:Ethernet4"]
+    - endpoints: ["spine2:Ethernet8", "leaf3:Ethernet4"]
+    - endpoints: ["spine2:Ethernet12", "leaf4:Ethernet4"]
+
+    # Clients to Leafs (one per leaf)
+    - endpoints: ["leaf1:Ethernet8", "client1:eth1"]
+    - endpoints: ["leaf2:Ethernet8", "client2:eth1"]
+    - endpoints: ["leaf3:Ethernet8", "client3:eth1"]
+    - endpoints: ["leaf4:Ethernet8", "client4:eth1"]
+
+mgmt:
+  network: gnmi-mgmt-sonic
+  ipv4-subnet: 172.20.20.0/24

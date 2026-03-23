@@ -71,13 +71,13 @@ graph TD
 
 ### Topologies
 
-- **`topology.yml`** - SR Linux single-vendor CLOS (default)
+- **`topology-srlinux.yml`** - SR Linux single-vendor CLOS (default)
 - **`topology-multi-vendor.yml`** - Multi-vendor CLOS (SR Linux, Arista cEOS, SONiC, Juniper cRPD)
 - **`topology-monitoring.yml`** - Monitoring stack (Grafana, Prometheus, gNMIc)
 
 ### Components
 
-**Network Lab** (`topology.yml`):
+**Network Lab** (`topology-srlinux.yml`):
 - 2 Spine switches (SR Linux, route reflectors)
 - 4 Leaf switches (SR Linux)
 - 4 Client nodes (netshoot, EVPN/VXLAN bridged on 10.10.100.0/24)

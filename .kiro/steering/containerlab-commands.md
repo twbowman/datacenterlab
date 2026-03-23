@@ -41,12 +41,12 @@ docker exec clab-gnmi-clos-leaf1 sr_cli "show version"
 #### Containerlab Commands
 ```bash
 # CORRECT
-orb -m clab sudo containerlab deploy -t topology.yml
-orb -m clab sudo containerlab destroy -t topology.yml
+orb -m clab sudo containerlab deploy -t topology-srlinux.yml
+orb -m clab sudo containerlab destroy -t topology-srlinux.yml
 orb -m clab sudo containerlab inspect
 
 # WRONG
-sudo containerlab deploy -t topology.yml
+sudo containerlab deploy -t topology-srlinux.yml
 ```
 
 #### Ansible Commands

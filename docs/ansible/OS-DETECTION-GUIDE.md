@@ -85,13 +85,13 @@ If automatic detection fails or you need to re-detect after deployment:
 
 ```bash
 # Generate YAML inventory (default)
-python3 ansible/plugins/inventory/dynamic_inventory.py -t topology.yml -o inventory.yml
+python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml -o inventory.yml
 
 # Generate JSON inventory (for Ansible dynamic inventory)
-python3 ansible/plugins/inventory/dynamic_inventory.py -t topology.yml --list
+python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml --list
 
 # Output to stdout
-python3 ansible/plugins/inventory/dynamic_inventory.py -t topology.yml
+python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml
 ```
 
 ## Generated Inventory Structure

@@ -9,7 +9,7 @@
 
 2. **Lab topology deployed**:
    ```bash
-   orb -m clab sudo containerlab deploy -t topology.yml
+   orb -m clab sudo containerlab deploy -t topology-srlinux.yml
    ```
 
 3. **Wait for metrics** (30-60 seconds for initial collection)

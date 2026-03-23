@@ -9,4 +9,4 @@ containerlab destroy -t topology-monitoring.yml
 
 echo ""
 echo "Monitoring stack destroyed."
-echo "Network lab (topology.yml) is unaffected."
+echo "Network lab (topology-srlinux.yml) is unaffected."

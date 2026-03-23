@@ -73,7 +73,7 @@ if [ "$INTERFACE_METRICS" -gt 0 ]; then
 else
     warn "No normalized interface metrics found from Juniper devices"
     info "This is expected if no Juniper devices are deployed yet"
-    info "Deploy Juniper devices to test: orb -m clab sudo containerlab deploy -t topology.yml"
+    info "Deploy Juniper devices to test: orb -m clab sudo containerlab deploy -t topology-srlinux.yml"
 fi
 echo ""
 

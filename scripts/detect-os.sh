@@ -23,7 +23,7 @@ print_error() {
 }
 
 # Configuration
-TOPOLOGY_FILE="${1:-topology.yml}"
+TOPOLOGY_FILE="${1:-topology-srlinux.yml}"
 OUTPUT_FILE="${2:-ansible/inventory-dynamic.yml}"
 INVENTORY_SCRIPT="ansible/plugins/inventory/dynamic_inventory.py"
 

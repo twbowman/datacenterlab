@@ -34,7 +34,7 @@ done
 echo -e "${GREEN}Deploying SR Linux CLOS network topology...${NC}"
 
 # Deploy topology
-containerlab deploy -t ../topology.yml
+containerlab deploy -t ../topology-srlinux.yml
 
 echo -e "${YELLOW}Waiting for routers to boot (30 seconds)...${NC}"
 sleep 30
@@ -58,7 +58,7 @@ echo ""
 echo -e "${YELLOW}Generating dynamic inventory with OS detection...${NC}"
 if [ -f "ansible/plugins/inventory/dynamic_inventory.py" ]; then
     chmod +x ansible/plugins/inventory/dynamic_inventory.py
-    if python3 ansible/plugins/inventory/dynamic_inventory.py -t topology.yml -o ansible/inventory-dynamic.yml 2>&1; then
+    if python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml -o ansible/inventory-dynamic.yml 2>&1; then
         echo -e "${GREEN}Dynamic inventory generated: ansible/inventory-dynamic.yml${NC}"
         echo ""
         echo "Configure network with Ansible (using dynamic inventory):"
@@ -78,7 +78,7 @@ echo "Deploy monitoring stack separately:"
 echo "  ./deploy-monitoring.sh"
 echo ""
 echo "View topology:"
-echo "  containerlab inspect -t topology.yml"
+echo "  containerlab inspect -t topology-srlinux.yml"
 
 # ─────────────────────────────────────────────────────────────
 # Optional: Run validation after deployment

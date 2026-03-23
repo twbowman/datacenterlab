@@ -65,7 +65,7 @@ Integration tests require the following services to be running:
 
 1. **Lab Topology**: Deployed via containerlab
    ```bash
-   orb -m clab sudo containerlab deploy -t topology.yml
+   orb -m clab sudo containerlab deploy -t topology-srlinux.yml
    ```
 
 2. **Monitoring Stack**: Deployed via containerlab

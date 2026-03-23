@@ -74,10 +74,10 @@ orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gn
 ### Lab Management
 ```bash
 # Deploy lab
-orb -m clab sudo containerlab deploy -t topology.yml
+orb -m clab sudo containerlab deploy -t topology-srlinux.yml
 
 # Destroy lab
-orb -m clab sudo containerlab destroy -t topology.yml
+orb -m clab sudo containerlab destroy -t topology-srlinux.yml
 
 # Check status
 orb -m clab sudo containerlab inspect

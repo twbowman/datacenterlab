@@ -398,7 +398,7 @@ targets:
 
 1. **Deploy Juniper device**:
    ```bash
-   orb -m clab sudo containerlab deploy -t topology.yml
+   orb -m clab sudo containerlab deploy -t topology-srlinux.yml
    ```
 
 2. **Verify gNMI connectivity**:
