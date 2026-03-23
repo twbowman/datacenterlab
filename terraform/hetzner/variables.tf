@@ -14,10 +14,13 @@ variable "image" {
   type = string
 }
 
-variable "ssh_public_key_path" {
-  type = string
+variable "ssh_public_key_content" {
+  description = "SSH public key content (not path)"
+  type        = string
 }
 
-variable "ssh_private_key_path" {
-  type = string
+variable "ssh_private_key_content" {
+  description = "SSH private key content (not path)"
+  type        = string
+  sensitive   = true
 }

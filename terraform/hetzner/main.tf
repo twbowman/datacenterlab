@@ -7,16 +7,13 @@ terraform {
   }
 }
 
-# Token via HCLOUD_TOKEN env var — never in tfvars.
-provider "hcloud" {}
-
 # ─────────────────────────────────────────────────────────────
 # SSH Key
 # ─────────────────────────────────────────────────────────────
 
 resource "hcloud_ssh_key" "lab" {
   name       = "${var.server_name}-key"
-  public_key = file(pathexpand(var.ssh_public_key_path))
+  public_key = var.ssh_public_key_content
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -110,7 +107,7 @@ resource "hcloud_server" "lab" {
   connection {
     type        = "ssh"
     user        = "root"
-    private_key = file(pathexpand(var.ssh_private_key_path))
+    private_key = var.ssh_private_key_content
     host        = self.ipv4_address
     timeout     = "2m"
   }
