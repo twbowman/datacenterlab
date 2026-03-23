@@ -1,6 +1,0 @@
----
-# defaults file for openconfig_lldp
-gnmi_port: 57400
-gnmi_username: admin
-gnmi_password: NokiaSrl1!
-openconfig_lldp_debug: false

@@ -1,6 +1,0 @@
----
-- name: Configure LLDP
-  hosts: all
-  gather_facts: false
-  roles:
-    - srlinux_lldp

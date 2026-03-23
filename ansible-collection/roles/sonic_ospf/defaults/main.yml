@@ -1,4 +1,0 @@
----
-# defaults file for sonic_ospf
-
-sonic_ospf_debug: false

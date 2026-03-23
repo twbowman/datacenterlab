@@ -176,6 +176,12 @@ ansible-playbook -i ansible/inventory-multi-vendor.yml ansible/site.yml
 
 ## Ansible Automation
 
+The Ansible roles and playbooks are published as a standalone collection: [`netgnmi.dcfabric`](https://github.com/twbowman/ansible-collection-netgnmi-dcfabric). Install with:
+
+```bash
+ansible-galaxy collection install git+https://github.com/twbowman/ansible-collection-netgnmi-dcfabric.git
+```
+
 ### Multi-Vendor Dispatcher Pattern
 
 The main `site.yml` uses a dispatcher pattern that routes configuration to vendor-specific roles based on `ansible_network_os`. Supported vendors:

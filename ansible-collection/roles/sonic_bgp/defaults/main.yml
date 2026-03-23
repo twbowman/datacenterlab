@@ -1,4 +1,0 @@
----
-# defaults file for sonic_bgp
-
-sonic_bgp_debug: false

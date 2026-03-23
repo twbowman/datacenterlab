@@ -1,0 +1,6 @@
+---
+collections:
+  - name: netgnmi.dcfabric
+    source: https://github.com/twbowman/ansible-collection-netgnmi-dcfabric.git
+    type: git
+    version: main

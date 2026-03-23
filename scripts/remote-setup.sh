@@ -67,6 +67,7 @@ pip3 install --quiet \
     netaddr
 
 # Install Ansible Galaxy collections used by the project
+ansible-galaxy collection install -r requirements.yml --force 2>/dev/null || true
 ansible-galaxy collection install nokia.srlinux --force-with-deps 2>/dev/null || true
 ansible-galaxy collection install arista.eos --force-with-deps 2>/dev/null || true
 ansible-galaxy collection install junipernetworks.junos --force-with-deps 2>/dev/null || true

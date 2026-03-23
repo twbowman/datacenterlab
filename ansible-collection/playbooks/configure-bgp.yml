@@ -1,6 +1,0 @@
----
-- name: Configure BGP
-  hosts: all
-  gather_facts: false
-  roles:
-    - srlinux_bgp

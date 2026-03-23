@@ -1,6 +1,0 @@
----
-galaxy_info:
-  author: Kiro AI
-  description: Configure SR Linux BGP using native CLI
-  min_ansible_version: "2.9"
-dependencies: []
