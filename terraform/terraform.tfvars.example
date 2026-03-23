@@ -10,7 +10,7 @@ ssh_private_key_path = "~/.ssh/id_ed25519"
 # Server config
 server_name = "dclab"
 server_type = "cpx32"    # cpx32=4vCPU/8GB, cpx42=8vCPU/16GB, cx32=4vCPU/8GB shared
-location    = "fsn1"     # fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki), ash (Ashburn)
+location    = "nbg1"     # nbg1 (Nuremberg), hel1 (Helsinki), fsn1 (Falkenstein), ash (Ashburn)
 image       = "ubuntu-24.04"
 
 # Hetzner API token — set via environment variable instead of tfvars:
