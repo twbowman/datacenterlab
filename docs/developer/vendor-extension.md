@@ -35,7 +35,7 @@ Before adding a new vendor, ensure you have:
 
 ### 1.1 Add Vendor to Topology
 
-Edit `topology-multi-vendor.yml`:
+Edit `topologies/topology-multi-vendor.yml`:
 
 ```yaml
 name: multi-vendor-lab
@@ -75,7 +75,7 @@ topology:
 
 ```bash
 # Deploy topology
-sudo containerlab deploy -t topology-multi-vendor.yml
+sudo containerlab deploy -t topologies/topology-multi-vendor.yml
 
 # Verify container is running
 docker ps | grep newvendor-spine1

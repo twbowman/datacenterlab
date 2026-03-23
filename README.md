@@ -71,23 +71,23 @@ graph TD
 
 ### Topologies
 
-- **`topology-srlinux.yml`** - SR Linux single-vendor CLOS (default)
-- **`topology-multi-vendor.yml`** - Multi-vendor CLOS (SR Linux, Arista cEOS, SONiC, Juniper cRPD)
-- **`topology-monitoring.yml`** - Monitoring stack (Grafana, Prometheus, gNMIc)
+- **`topologies/topology-srlinux.yml`** - SR Linux single-vendor CLOS (default)
+- **`topologies/topology-multi-vendor.yml`** - Multi-vendor CLOS (SR Linux, Arista cEOS, SONiC, Juniper cRPD)
+- **`topologies/topology-monitoring.yml`** - Monitoring stack (Grafana, Prometheus, gNMIc)
 
 ### Components
 
-**Network Lab** (`topology-srlinux.yml`):
+**Network Lab** (`topologies/topology-srlinux.yml`):
 - 2 Spine switches (SR Linux, route reflectors)
 - 4 Leaf switches (SR Linux)
 - 4 Client nodes (netshoot, EVPN/VXLAN bridged on 10.10.100.0/24)
 
-**Multi-Vendor Lab** (`topology-multi-vendor.yml`):
+**Multi-Vendor Lab** (`topologies/topology-multi-vendor.yml`):
 - SR Linux spine + Arista cEOS spine
 - SR Linux leaf + Arista cEOS leaf + SONiC leaf + Juniper cRPD leaf
 - 4 Client nodes
 
-**Monitoring Stack** (`topology-monitoring.yml` - separate):
+**Monitoring Stack** (`topologies/topology-monitoring.yml` - separate):
 - Grafana: http://localhost:3000 (admin/admin)
 - Prometheus: http://localhost:9090
 - gNMIc: http://localhost:9273/metrics

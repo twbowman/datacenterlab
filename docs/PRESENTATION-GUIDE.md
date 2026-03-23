@@ -208,7 +208,7 @@ If doing a live demo, suggested order:
 
 ```bash
 # 1. Show the topology
-cat topology-srlinux.yml
+cat topologies/topology-srlinux.yml
 
 # 2. Deploy (if not already running)
 ./lab deploy

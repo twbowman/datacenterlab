@@ -65,12 +65,12 @@ Integration tests require the following services to be running:
 
 1. **Lab Topology**: Deployed via containerlab
    ```bash
-   sudo containerlab deploy -t topology-srlinux.yml
+   sudo containerlab deploy -t topologies/topology-srlinux.yml
    ```
 
 2. **Monitoring Stack**: Deployed via containerlab
    ```bash
-   sudo containerlab deploy -t topology-monitoring.yml
+   sudo containerlab deploy -t topologies/topology-monitoring.yml
    ```
 
 ### Dependencies
@@ -177,7 +177,7 @@ By default, the lab and monitoring stack are **NOT** destroyed after tests to al
 sudo containerlab destroy -t topology.yml
 
 # Destroy monitoring
-sudo containerlab destroy -t topology-monitoring.yml
+sudo containerlab destroy -t topologies/topology-monitoring.yml
 ```
 
 ## Test Output

@@ -13,7 +13,7 @@ SR Linux configs for CLOS topology with BGP underlay.
 
 ### Switch a node to SR Linux
 
-Edit `topology-srlinux.yml`:
+Edit `topologies/topology-srlinux.yml`:
 
 ```yaml
 spine1:

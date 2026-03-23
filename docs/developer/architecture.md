@@ -126,7 +126,7 @@ The Production Network Testing Lab is a comprehensive multi-vendor network testi
 deploy.sh                    # Deploy topology
 destroy.sh                   # Destroy topology
 topology.yml                 # SR Linux topology
-topology-multi-vendor.yml    # Multi-vendor topology
+topologies/topology-multi-vendor.yml    # Multi-vendor topology
 ```
 
 **Topology Definition Format**:

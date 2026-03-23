@@ -75,23 +75,23 @@ If automatic detection fails or you need to re-detect after deployment:
 ./scripts/detect-os.sh
 
 # Detect OS for specific topology
-./scripts/detect-os.sh topology-multi-vendor.yml
+./scripts/detect-os.sh topologies/topology-multi-vendor.yml
 
 # Specify custom output file
-./scripts/detect-os.sh topology-multi-vendor.yml my-inventory.yml
+./scripts/detect-os.sh topologies/topology-multi-vendor.yml my-inventory.yml
 ```
 
 ### Using the Python Script Directly
 
 ```bash
 # Generate YAML inventory (default)
-python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml -o inventory.yml
+python3 ansible/plugins/inventory/dynamic_inventory.py -t topologies/topology-srlinux.yml -o inventory.yml
 
 # Generate JSON inventory (for Ansible dynamic inventory)
-python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml --list
+python3 ansible/plugins/inventory/dynamic_inventory.py -t topologies/topology-srlinux.yml --list
 
 # Output to stdout
-python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml
+python3 ansible/plugins/inventory/dynamic_inventory.py -t topologies/topology-srlinux.yml
 ```
 
 ## Generated Inventory Structure
@@ -361,13 +361,13 @@ cmd = [
 
 ```bash
 # Deploy without automatic detection
-containerlab deploy -t topology-multi-vendor.yml
+containerlab deploy -t topologies/topology-multi-vendor.yml
 
 # Wait for devices to boot
 sleep 120
 
 # Run manual detection
-./scripts/detect-os.sh topology-multi-vendor.yml
+./scripts/detect-os.sh topologies/topology-multi-vendor.yml
 
 # Use generated inventory
 ansible-playbook -i ansible/inventory-dynamic.yml ansible/site-multi-vendor.yml

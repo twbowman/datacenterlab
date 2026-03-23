@@ -27,7 +27,7 @@ class DeviceOSDetector:
         "Juniper": "junos",
     }
 
-    def __init__(self, topology_file="topology-srlinux.yml"):
+    def __init__(self, topology_file="topologies/topology-srlinux.yml"):
         self.topology_file = topology_file
         self.topology_data = None
 
@@ -321,8 +321,8 @@ def main():
     parser.add_argument(
         "-t",
         "--topology",
-        default="topology-srlinux.yml",
-        help="Path to containerlab topology file (default: topology-srlinux.yml)",
+        default="topologies/topology-srlinux.yml",
+        help="Path to containerlab topology file (default: topologies/topology-srlinux.yml)",
     )
     parser.add_argument("-o", "--output", help="Output file (default: stdout)")
     parser.add_argument(

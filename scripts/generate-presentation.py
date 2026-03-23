@@ -1005,7 +1005,7 @@ def add_remaining_slides(prs):
     )
 
     demo_steps = [
-        "1.  Show topology-srlinux.yml",
+        "1.  Show topologies/topology-srlinux.yml",
         "2.  Deploy: ./lab start",
         "3.  Show running containers: ./lab status",
         "4.  Configure fabric: ansible-playbook site.yml",

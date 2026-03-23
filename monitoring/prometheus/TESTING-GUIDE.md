@@ -4,7 +4,7 @@
 
 1. **Lab must be running**:
 ```bash
-sudo containerlab deploy -t topology-srlinux.yml
+sudo containerlab deploy -t topologies/topology-srlinux.yml
 ```
 
 2. **Monitoring stack must be running**:
@@ -375,7 +375,7 @@ rate(gnmic_oc_interface_stats_interfaces_interface_state_counters_in_octets{vend
 **Solutions**:
 1. Check lab is running:
 ```bash
-sudo containerlab inspect -t topology-srlinux.yml
+sudo containerlab inspect -t topologies/topology-srlinux.yml
 ```
 
 2. Check monitoring stack is running:

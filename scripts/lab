@@ -79,7 +79,7 @@ sync_repo() {
 
 cmd_deploy() {
     local vendor="${1:-$LAB_VENDOR}"
-    local topo="topology-${vendor}.yml"
+    local topo="topologies/topology-${vendor}.yml"
 
     sync_repo
     echo -e "${GREEN}Deploying ${vendor} topology...${NC}"
@@ -91,7 +91,7 @@ cmd_deploy() {
 
 cmd_destroy() {
     local vendor="${1:-$LAB_VENDOR}"
-    local topo="topology-${vendor}.yml"
+    local topo="topologies/topology-${vendor}.yml"
 
     echo -e "${YELLOW}Destroying ${vendor} topology...${NC}"
     remote "sudo containerlab destroy -t ${topo} --cleanup" || true

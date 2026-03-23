@@ -15,13 +15,13 @@ The multi-vendor deployment system supports:
 ### Deploy Multi-Vendor Lab
 
 ```bash
-./deploy-multi-vendor.sh topology-multi-vendor.yml
+./deploy-multi-vendor.sh topologies/topology-multi-vendor.yml
 ```
 
 ### Destroy Multi-Vendor Lab
 
 ```bash
-./destroy-multi-vendor.sh topology-multi-vendor.yml
+./destroy-multi-vendor.sh topologies/topology-multi-vendor.yml
 ```
 
 ## Features
@@ -36,7 +36,7 @@ Before deployment, the topology is automatically validated:
 
 Manual validation:
 ```bash
-python3 scripts/validate-topology.py topology-multi-vendor.yml
+python3 scripts/validate-topology.py topologies/topology-multi-vendor.yml
 ```
 
 ### 2. Vendor-Specific Boot Times

@@ -65,7 +65,7 @@ if [ "$MONITORING_RUNNING" -gt 0 ]; then
     echo -e "${GREEN}✓${NC} Monitoring stack is running ($MONITORING_RUNNING containers)"
 else
     echo -e "${YELLOW}⚠${NC} Monitoring stack is not running"
-    echo "  Deploy with: sudo containerlab deploy -t topology-monitoring.yml"
+    echo "  Deploy with: sudo containerlab deploy -t topologies/topology-monitoring.yml"
     echo "  Tests will attempt to deploy automatically"
 fi
 

@@ -260,7 +260,7 @@ The project includes a dynamic inventory plugin (`plugins/inventory/dynamic_inve
 
 ```bash
 # Generate dynamic inventory from topology
-python3 plugins/inventory/dynamic_inventory.py -t ../topology-srlinux.yml -o inventory-dynamic.yml
+python3 plugins/inventory/dynamic_inventory.py -t ../topologies/topology-srlinux.yml -o inventory-dynamic.yml
 
 # Use with Ansible
 ansible-playbook -i inventory-dynamic.yml site.yml

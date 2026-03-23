@@ -501,7 +501,7 @@ all:
 
 ### Example 2: Multi-Vendor Topology
 
-**Topology** (`topology-multi-vendor.yml`):
+**Topology** (`topologies/topology-multi-vendor.yml`):
 ```yaml
 name: multi-vendor
 

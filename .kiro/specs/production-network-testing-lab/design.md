@@ -2089,7 +2089,7 @@ jobs:
 
 1. **Extend Topology Definition**
    ```yaml
-   # topology-multi-vendor.yml
+   # topologies/topology-multi-vendor.yml
    name: multi-vendor-lab
    topology:
      kinds:
@@ -2142,7 +2142,7 @@ jobs:
    #!/bin/bash
    
    # Deploy topology
-   sudo containerlab deploy -t topology-multi-vendor.yml
+   sudo containerlab deploy -t topologies/topology-multi-vendor.yml
    
    # Wait for devices to boot
    echo "Waiting for devices to boot..."

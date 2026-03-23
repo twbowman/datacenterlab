@@ -85,7 +85,7 @@ def monitoring_deployed(lab_deployed):
 @pytest.fixture
 def topology_config():
     """Load topology configuration"""
-    topology_file = project_root / "topology-srlinux.yml"
+    topology_file = project_root / "topologies/topology-srlinux.yml"
     with open(topology_file) as f:
         return yaml.safe_load(f)
 
