@@ -9,7 +9,7 @@ ssh_private_key_path = "~/.ssh/id_ed25519"
 
 # Server config
 server_name = "dclab"
-server_type = "cx32"     # cx32=4vCPU/8GB, cx42=8vCPU/16GB, ccx13=2vCPU/8GB dedicated
+server_type = "cpx31"    # cpx11=2c/2GB, cpx21=3c/4GB, cpx31=4c/8GB, cpx41=8c/16GB
 location    = "ash"      # ash (Ashburn, VA), hil (Hillsboro, OR), nbg1 (Nuremberg), hel1 (Helsinki)
 image       = "ubuntu-24.04"
 
