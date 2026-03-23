@@ -1,0 +1,26 @@
+---
+# defaults file for eos_evpn_vxlan
+
+# Debug mode
+eos_evpn_debug: false
+
+# Default EVPN/VXLAN configuration
+# These can be overridden in group_vars or host_vars
+evpn_vxlan:
+  enabled: false
+
+  tunnel:
+    source_interface: "Loopback0"
+    udp_port: 4789
+    ttl: 64
+
+  bgp_evpn:
+    enabled: false
+    route_reflector: false
+
+  anycast_gateway:
+    enabled: false
+    virtual_mac: "00:00:5e:00:01:01"
+
+  vlan_vni_mappings: []
+  l3vni: []

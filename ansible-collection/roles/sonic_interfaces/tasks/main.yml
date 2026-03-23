@@ -1,0 +1,48 @@
+---
+# tasks file for sonic_interfaces
+# SONiC interface configuration using dellemc.enterprise_sonic collection
+
+- name: Configure loopback interface (leafs only)
+  dellemc.enterprise_sonic.sonic_interfaces:
+    config:
+      - name: Loopback0
+        description: "Router ID and BGP loopback"
+        enabled: true
+    state: merged
+  when: loopback_ip is defined
+
+- name: Configure loopback IP address (leafs only)
+  dellemc.enterprise_sonic.sonic_l3_interfaces:
+    config:
+      - name: Loopback0
+        ipv4:
+          addresses:
+            - address: "{{ loopback_ip }}"
+    state: merged
+  when: loopback_ip is defined
+
+- name: Configure physical interfaces
+  dellemc.enterprise_sonic.sonic_interfaces:
+    config:
+      - name: "{{ item.name | to_sonic_interface }}"
+        description: "{{ item.description | default('') }}"
+        enabled: true
+    state: merged
+  loop: "{{ interfaces }}"
+  when: item.ip is defined or item.description is defined
+
+- name: Configure interface IP addresses
+  dellemc.enterprise_sonic.sonic_l3_interfaces:
+    config:
+      - name: "{{ item.name | to_sonic_interface }}"
+        ipv4:
+          addresses:
+            - address: "{{ item.ip }}"
+    state: merged
+  loop: "{{ interfaces }}"
+  when: item.ip is defined
+
+- name: Display interface configuration results
+  ansible.builtin.debug:
+    msg: "Interfaces configured on {{ inventory_hostname }} using SONiC modules"
+  when: sonic_interfaces_debug | default(false)

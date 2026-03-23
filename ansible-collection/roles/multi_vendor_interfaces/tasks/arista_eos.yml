@@ -1,0 +1,47 @@
+---
+# Arista EOS specific interface configuration using native modules
+
+- name: Translate SR Linux interface names to EOS format
+  set_fact:
+    eos_interfaces: "{{ interfaces | map('combine', {'eos_name': item.name | regex_replace('ethernet-(\\d+)/(\\d+)', 'Ethernet\\1/\\2')}) | list }}"
+  vars:
+    item: "{{ interfaces[0] }}"
+  when: interfaces is defined
+
+- name: Configure interface state and description (Arista EOS)
+  arista.eos.eos_interfaces:
+    config:
+      - name: "{{ item.name | regex_replace('ethernet-(\\d+)/(\\d+)', 'Ethernet\\1/\\2') }}"
+        description: "{{ item.description | default(omit) }}"
+        enabled: true
+    state: merged
+  loop: "{{ interfaces }}"
+  when: interfaces is defined
+
+- name: Configure IPv4 addresses (Arista EOS)
+  arista.eos.eos_l3_interfaces:
+    config:
+      - name: "{{ item.name | regex_replace('ethernet-(\\d+)/(\\d+)', 'Ethernet\\1/\\2') }}"
+        ipv4:
+          - address: "{{ item.ip }}"
+    state: merged
+  loop: "{{ interfaces }}"
+  when:
+    - interfaces is defined
+    - item.ip is defined
+
+# Alternative: Using gNMI with OpenConfig or native EOS models
+# - name: Configure interfaces via gNMI (Arista native or OpenConfig)
+#   arista.eos.gnmi_config:
+#     host: "{{ ansible_host }}"
+#     port: 6030
+#     username: "{{ ansible_user }}"
+#     password: "{{ ansible_password }}"
+#     insecure: true
+#     updates:
+#       - path: "/interfaces/interface[name={{ item.name }}]/config"
+#         val:
+#           name: "{{ item.name }}"
+#           description: "{{ item.description | default(omit) }}"
+#           enabled: true
+#   loop: "{{ interfaces }}"

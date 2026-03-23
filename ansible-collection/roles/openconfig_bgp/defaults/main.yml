@@ -1,0 +1,6 @@
+---
+# defaults file for openconfig_bgp
+gnmi_port: 57400
+gnmi_username: admin
+gnmi_password: NokiaSrl1!
+openconfig_bgp_debug: false

@@ -1,0 +1,31 @@
+---
+# defaults file for junos_evpn_vxlan
+
+# Debug output
+junos_evpn_debug: false
+
+# Default EVPN/VXLAN settings (can be overridden in group_vars or host_vars)
+evpn_vxlan_defaults:
+  enabled: false
+
+  bgp_evpn:
+    enabled: false
+    advertise_all_vni: true
+    advertise_default_gw: true
+    route_reflector: false
+
+  tunnel:
+    source_interface: "lo0.0"
+    udp_port: 4789
+    ttl: 64
+
+  anycast_gateway:
+    enabled: false
+    virtual_mac: "00:00:5e:00:01:01"
+
+  arp_suppression:
+    enabled: true
+
+  mac_learning:
+    enabled: false
+    aging_time: 300

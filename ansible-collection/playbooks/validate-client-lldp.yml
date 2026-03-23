@@ -1,0 +1,67 @@
+---
+# Client LLDP Neighbor Validation Playbook
+# Uses gnmi_validate module with OpenConfig LLDP path to verify
+# each leaf switch detects its connected client as an LLDP neighbor
+# on ethernet-1/3.
+#
+# Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 5.2, 5.3
+
+- name: Validate client LLDP neighbors
+  hosts: leafs
+  gather_facts: false
+  tags:
+    - client-lldp
+
+  tasks:
+    - name: Query client LLDP neighbor state via gNMI
+      gnmi_validate:
+        host: "{{ ansible_host }}"
+        port: "{{ gnmi_port }}"
+        username: "{{ gnmi_username }}"
+        password: "{{ gnmi_password }}"
+        skip_verify: "{{ gnmi_skip_verify | default(true) }}"
+        check_name: "client_lldp_neighbor"
+        path: "/lldp/interfaces/interface[name=ethernet-1/3]/neighbors/neighbor/state"
+        origin: "openconfig"
+        expected:
+          system-name: "{{ client_lldp_neighbor }}"
+        remediation_hint: >-
+          Expected LLDP neighbor '{{ client_lldp_neighbor }}' on ethernet-1/3.
+          Verify lldpd is running on the client container:
+          docker exec clab-gnmi-clos-{{ client_lldp_neighbor }} pgrep lldpd
+      register: result
+      when: client_lldp_neighbor is defined
+      tags:
+        - client-lldp
+
+    - name: Report client LLDP validation result
+      ansible.builtin.debug:
+        msg: >-
+          Client LLDP validation on {{ inventory_hostname }}:
+          status={{ result.result.status }},
+          expected={{ result.result.expected }},
+          actual={{ result.result.actual }}
+      when: client_lldp_neighbor is defined
+      tags:
+        - client-lldp
+
+    - name: Assert client LLDP neighbor detected
+      ansible.builtin.assert:
+        that:
+          - result.result.status == 'pass'
+        fail_msg: >-
+          Client LLDP validation FAILED on {{ inventory_hostname }}.
+          {% if result.result.actual | default({}) | length == 0 %}
+          No LLDP neighbor detected on ethernet-1/3.
+          Verify lldpd is running on the client container:
+          docker exec clab-gnmi-clos-{{ client_lldp_neighbor }} pgrep lldpd
+          {% else %}
+          System name mismatch — expected '{{ client_lldp_neighbor }}',
+          got '{{ result.result.actual.get("system-name", "unknown") }}'.
+          {% endif %}
+        success_msg: >-
+          Client LLDP neighbor '{{ client_lldp_neighbor }}' confirmed on
+          {{ inventory_hostname }} ethernet-1/3
+      when: client_lldp_neighbor is defined
+      tags:
+        - client-lldp

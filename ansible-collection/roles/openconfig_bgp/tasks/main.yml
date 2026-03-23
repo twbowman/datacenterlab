@@ -1,0 +1,75 @@
+---
+# tasks file for openconfig_bgp
+- name: Check if BGP is configured
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      get \
+      --path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/bgp/global/config/as" \
+      --format json 2>/dev/null || echo "null"
+  register: bgp_check
+  changed_when: false
+  failed_when: false
+  delegate_to: localhost
+
+- name: Configure BGP global settings using OpenConfig gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      set \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/config" \
+      --update-value '{"identifier":"BGP","name":"BGP","enabled":true}' \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/bgp/global/config" \
+      --update-value '{"as":{{ asn }},"router-id":"{{ router_id }}"}'
+  when: bgp_check.stdout == "null" or asn|string not in bgp_check.stdout
+  delegate_to: localhost
+  register: bgp_global_result
+  changed_when: bgp_global_result.rc == 0
+
+- name: Check BGP neighbor configuration
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      get \
+      --path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/bgp/neighbors/neighbor[neighbor-address={{ item.neighbor_ip }}]/config/peer-as" \
+      --format json 2>/dev/null || echo "null"
+  register: bgp_neighbor_check
+  changed_when: false
+  failed_when: false
+  loop: "{{ interfaces }}"
+  when: item.neighbor_ip is defined
+  delegate_to: localhost
+
+- name: Configure BGP neighbors using OpenConfig gNMI
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ ansible_port }} \
+      -u {{ ansible_user }} \
+      -p {{ ansible_password }} \
+      --skip-verify \
+      --encoding json_ietf \
+      set \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/bgp/neighbors/neighbor[neighbor-address={{ item.item.neighbor_ip }}]/config" \
+      --update-value '{"neighbor-address":"{{ item.item.neighbor_ip }}","peer-as":{{ item.item.neighbor_asn }},"enabled":true}' \
+      --update-path "openconfig:/network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]/bgp/neighbors/neighbor[neighbor-address={{ item.item.neighbor_ip }}]/afi-safis/afi-safi[afi-safi-name=IPV4_UNICAST]/config" \
+      --update-value '{"afi-safi-name":"IPV4_UNICAST","enabled":true}'
+  loop: "{{ bgp_neighbor_check.results }}"
+  when:
+    - item.item.neighbor_ip is defined
+    - item.stdout == "null" or item.item.neighbor_asn|string not in item.stdout
+  delegate_to: localhost
+  register: bgp_neighbor_result
+  changed_when: bgp_neighbor_result.rc == 0
+
+- name: Display BGP configuration results
+  ansible.builtin.debug:
+    msg: "BGP configured on {{ inventory_hostname }} - AS{{ asn }} using OpenConfig gNMI"
+  when: openconfig_bgp_debug | default(false)

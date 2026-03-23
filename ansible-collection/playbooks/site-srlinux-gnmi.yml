@@ -1,0 +1,23 @@
+---
+# srlinux_gnmi-based configuration method
+# Uses gnmic CLI tool for gNMI operations
+# Production datacenter architecture:
+# - OSPF provides underlay routing and next-hop reachability
+# - BGP provides overlay routing for application prefixes
+# - EVPN/VXLAN provides L2 extension and multi-tenancy
+- name: Configure datacenter network using gnmic CLI
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: gnmi_system
+      tags: [system, config]
+    - role: gnmi_interfaces
+      tags: [interfaces, config]
+    - role: gnmi_lldp
+      tags: [lldp, config]
+    - role: gnmi_ospf
+      tags: [ospf, underlay, config]
+    - role: gnmi_bgp
+      tags: [bgp, overlay, config]
+    - role: gnmi_evpn_vxlan
+      tags: [evpn, vxlan, overlay, config]

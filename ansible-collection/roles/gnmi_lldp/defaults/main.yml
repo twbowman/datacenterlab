@@ -1,0 +1,3 @@
+---
+# defaults file for srlinux_lldp
+srlinux_lldp_debug: false

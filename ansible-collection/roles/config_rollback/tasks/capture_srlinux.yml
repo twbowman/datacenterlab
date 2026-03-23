@@ -1,0 +1,49 @@
+---
+# Capture SR Linux configuration state for rollback
+
+- name: Create rollback directory
+  file:
+    path: "{{ playbook_dir }}/rollback_configs"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: false
+
+- name: Capture current SR Linux configuration via gNMI
+  nokia.srlinux.gnmi_get:
+    host: "{{ ansible_host }}"
+    port: "{{ gnmi_port }}"
+    username: "{{ gnmi_username }}"
+    password: "{{ gnmi_password }}"
+    insecure: "{{ gnmi_skip_verify }}"
+    path: "/"
+    encoding: json_ietf
+  register: current_config
+  ignore_errors: true
+
+- name: Save configuration snapshot
+  copy:
+    content: "{{ current_config.response | to_nice_json }}"
+    dest: "{{ playbook_dir }}/rollback_configs/{{ inventory_hostname }}_{{ ansible_date_time.epoch }}.json"
+  delegate_to: localhost
+  when: current_config is succeeded
+
+- name: Store rollback file path
+  set_fact:
+    rollback_config_file: "{{ playbook_dir }}/rollback_configs/{{ inventory_hostname }}_{{ ansible_date_time.epoch }}.json"
+    rollback_available: "{{ current_config is succeeded }}"
+  when: current_config is succeeded
+
+- name: Warn if configuration capture failed
+  debug:
+    msg: |
+      WARNING: Failed to capture current configuration for {{ inventory_hostname }}.
+      Rollback will not be available if configuration deployment fails.
+      Error: {{ current_config.msg | default('Unknown error') }}
+  when: current_config is failed
+
+- name: Set rollback unavailable flag
+  set_fact:
+    rollback_available: false
+  when: current_config is failed
+

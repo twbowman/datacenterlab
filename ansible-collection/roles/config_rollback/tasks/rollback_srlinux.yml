@@ -1,0 +1,48 @@
+---
+# Execute rollback for SR Linux
+
+- name: Check if rollback is available
+  fail:
+    msg: |
+      Rollback requested but no configuration snapshot is available for {{ inventory_hostname }}.
+      Cannot perform rollback operation.
+  when: not (rollback_available | default(false))
+
+- name: Load rollback configuration
+  set_fact:
+    rollback_config: "{{ lookup('file', rollback_config_file) | from_json }}"
+
+- name: Restore SR Linux configuration via gNMI
+  nokia.srlinux.gnmi_set:
+    host: "{{ ansible_host }}"
+    port: "{{ gnmi_port }}"
+    username: "{{ gnmi_username }}"
+    password: "{{ gnmi_password }}"
+    insecure: "{{ gnmi_skip_verify }}"
+    replace:
+      - path: "/"
+        val: "{{ rollback_config }}"
+  register: rollback_result
+  ignore_errors: true
+
+- name: Report rollback success
+  debug:
+    msg: |
+      ✓ Configuration rollback successful for {{ inventory_hostname }}
+      Restored from: {{ rollback_config_file }}
+  when: rollback_result is succeeded
+
+- name: Report rollback failure
+  debug:
+    msg: |
+      ✗ Configuration rollback FAILED for {{ inventory_hostname }}
+      Error: {{ rollback_result.msg | default('Unknown error') }}
+      Manual intervention required.
+      Rollback file: {{ rollback_config_file }}
+  when: rollback_result is failed
+
+- name: Fail if rollback failed
+  fail:
+    msg: "Rollback operation failed for {{ inventory_hostname }}. Manual recovery required."
+  when: rollback_result is failed
+

@@ -1,0 +1,270 @@
+---
+# tasks file for junos_evpn_vxlan
+# Juniper Junos EVPN/VXLAN configuration using junipernetworks.junos collection
+# Data-driven configuration using evpn_vxlan variables from group_vars
+
+# ============================================================================
+# BGP EVPN Address Family Configuration (All Devices)
+# ============================================================================
+
+- name: Enable EVPN address family in BGP
+  junipernetworks.junos.junos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "evpn"
+          signaling: true
+    state: merged
+  when: evpn_vxlan.bgp_evpn.enabled | default(false)
+
+- name: Activate BGP neighbors for EVPN
+  junipernetworks.junos.junos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "evpn"
+          neighbors:
+            - neighbor_address: "{{ item.peer_address }}"
+              activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when:
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - bgp_neighbors is defined
+
+# ============================================================================
+# Route Reflector Configuration (Spines Only)
+# ============================================================================
+
+- name: Configure route reflector for EVPN (spines)
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      as_number: "{{ asn }}"
+      neighbors:
+        - neighbor_address: "{{ item.peer_address }}"
+          cluster_id: "{{ router_id }}"
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when:
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - evpn_vxlan.bgp_evpn.route_reflector | default(false)
+    - bgp_role is defined
+    - bgp_role == 'route_reflector'
+    - bgp_neighbors is defined
+
+# ============================================================================
+# VXLAN Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure VXLAN encapsulation
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set protocols evpn encapsulation vxlan"
+      - "set protocols evpn extended-vni-list all"
+    comment: "Configure EVPN VXLAN encapsulation"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure VTEP source interface
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set switch-options vtep-source-interface {{ evpn_vxlan.tunnel.source_interface | default('lo0.0') }}"
+    comment: "Configure VTEP source interface"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# VLAN Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create VLANs for VXLAN
+  junipernetworks.junos.junos_vlans:
+    config:
+      - name: "{{ item.name }}"
+        vlan_id: "{{ item.vlan_id }}"
+        description: "{{ item.description | default(item.name) }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# VNI Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure VLAN to VNI mappings
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set vlans {{ item.name }} vxlan vni {{ item.vni }}"
+      - "set vlans {{ item.name }} vxlan ingress-node-replication"
+    comment: "Configure VNI {{ item.vni }} for VLAN {{ item.vlan_id }}"
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# EVPN Instance Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure EVPN instances for VLANs
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set protocols evpn vni-options vni {{ item.vni }} vrf-target target:{{ asn }}:{{ item.vni }}"
+    comment: "Configure EVPN instance for VNI {{ item.vni }}"
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+- name: Enable EVPN multicast mode
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set protocols evpn multicast-mode ingress-replication"
+    comment: "Configure EVPN multicast mode"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# L3 VNI Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create VRFs for L3 VNI
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set routing-instances {{ item.vrf_name }} instance-type vrf"
+      - "set routing-instances {{ item.vrf_name }} interface lo0.{{ item.vlan_id }}"
+      - "set routing-instances {{ item.vrf_name }} route-distinguisher {{ router_id }}:{{ item.vni }}"
+      - "set routing-instances {{ item.vrf_name }} vrf-target target:{{ asn }}:{{ item.vni }}"
+      - "set routing-instances {{ item.vrf_name }} vrf-table-label"
+    comment: "Configure VRF {{ item.vrf_name }} for L3 VNI"
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Create L3 VNI VLANs
+  junipernetworks.junos.junos_vlans:
+    config:
+      - name: "L3VNI-{{ item.vrf_name }}"
+        vlan_id: "{{ item.vlan_id }}"
+        description: "L3 VNI for {{ item.vrf_name }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure L3 VNI to VRF mapping
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set vlans L3VNI-{{ item.vrf_name }} vxlan vni {{ item.vni }}"
+      - "set vlans L3VNI-{{ item.vrf_name }} l3-interface irb.{{ item.vlan_id }}"
+    comment: "Configure L3 VNI {{ item.vni }} for VRF {{ item.vrf_name }}"
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure BGP in VRF for L3 VNI
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set routing-instances {{ item.vrf_name }} protocols bgp group ibgp type internal"
+      - "set routing-instances {{ item.vrf_name }} protocols bgp group ibgp family inet unicast"
+      - "set routing-instances {{ item.vrf_name }} protocols bgp group ibgp family evpn signaling"
+    comment: "Configure BGP in VRF {{ item.vrf_name }}"
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure route redistribution in VRF
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set routing-instances {{ item.vrf_name }} protocols bgp group ibgp export direct-to-bgp"
+      - "set policy-options policy-statement direct-to-bgp term 1 from protocol direct"
+      - "set policy-options policy-statement direct-to-bgp term 1 then accept"
+    comment: "Configure route redistribution for VRF {{ item.vrf_name }}"
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# Anycast Gateway Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure anycast gateway MAC
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set switch-options vtep-source-interface {{ evpn_vxlan.tunnel.source_interface | default('lo0.0') }} inet"
+      - "set switch-options route-distinguisher {{ router_id }}:1"
+      - "set switch-options vrf-target target:{{ asn }}:1"
+    comment: "Configure anycast gateway"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - evpn_vxlan.anycast_gateway.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure IRB interfaces for anycast gateway
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: "irb.{{ item.vlan_id }}"
+        ipv4:
+          - address: "{{ item.gateway_ip }}"
+        virtual_gateway_v4_mac: "{{ evpn_vxlan.anycast_gateway.virtual_mac }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - evpn_vxlan.anycast_gateway.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - item.gateway_ip is defined
+
+# ============================================================================
+# ARP Suppression Configuration (Leafs Only)
+# ============================================================================
+
+- name: Enable ARP suppression on VXLANs
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set protocols evpn default-gateway no-gateway-community"
+    comment: "Enable ARP suppression"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - evpn_vxlan.arp_suppression.enabled | default(true)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# MAC Learning Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure MAC learning
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set vlans {{ item.name }} mac-table-aging-time {{ evpn_vxlan.mac_learning.aging_time | default(300) }}"
+    comment: "Configure MAC learning for VLAN {{ item.name }}"
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - evpn_vxlan.mac_learning.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# Display Configuration Results
+# ============================================================================
+
+- name: Display EVPN/VXLAN configuration results
+  ansible.builtin.debug:
+    msg: "EVPN/VXLAN configured on {{ inventory_hostname }} - {{ evpn_vxlan.vlan_vni_mappings | length }} VLANs mapped to VNIs"
+  when:
+    - junos_evpn_debug | default(false)
+    - evpn_vxlan.vlan_vni_mappings is defined

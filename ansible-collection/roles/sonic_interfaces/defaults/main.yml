@@ -1,0 +1,4 @@
+---
+# defaults file for sonic_interfaces
+
+sonic_interfaces_debug: false

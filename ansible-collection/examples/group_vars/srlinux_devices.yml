@@ -1,0 +1,30 @@
+---
+# SR Linux validation paths
+# OpenConfig origin for BGP/LLDP/interfaces; srl_nokia origin for EVPN/OSPF
+# Reference: Nokia SR Linux does NOT expose OSPF or EVPN via OpenConfig
+
+validate_paths:
+  bgp_neighbors:
+    path: "/network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state"
+    origin: "openconfig"
+    remediation_hint: "Check BGP configuration and verify OSPF underlay reachability"
+
+  evpn_state:
+    path: "/network-instance[name=default]/protocols/bgp/afi-safi[afi-safi-name=evpn]/admin-state"
+    origin: "srl_nokia"
+    remediation_hint: "Enable EVPN address family: set /network-instance default protocols bgp afi-safi evpn admin-state enable"
+
+  ospf_neighbors:
+    path: "/network-instance[name=default]/protocols/ospf/instance[name=main]/neighbor"
+    origin: "srl_nokia"
+    remediation_hint: "Verify OSPF is enabled on interfaces and area configuration matches peers"
+
+  lldp_neighbors:
+    path: "/lldp/interfaces/interface/neighbors/neighbor/state"
+    origin: "openconfig"
+    remediation_hint: "Verify LLDP is enabled globally and on the expected interfaces"
+
+  interface_state:
+    path: "/interfaces/interface/state"
+    origin: "openconfig"
+    remediation_hint: "Check physical cabling and interface admin-state configuration"

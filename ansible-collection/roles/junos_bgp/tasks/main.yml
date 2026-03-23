@@ -1,0 +1,86 @@
+---
+# tasks file for junos_bgp
+# Juniper Junos BGP configuration using junipernetworks.junos collection
+
+- name: Configure BGP global settings
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      as_number: "{{ asn }}"
+      router_id: "{{ router_id }}"
+    state: merged
+
+- name: Configure BGP address family IPv4 unicast
+  junipernetworks.junos.junos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "ipv4"
+          safi: "unicast"
+    state: merged
+
+- name: Configure BGP address family EVPN
+  junipernetworks.junos.junos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "evpn"
+    state: merged
+
+- name: Configure BGP neighbors
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      as_number: "{{ asn }}"
+      neighbors:
+        - neighbor_address: "{{ item.peer_address }}"
+          peer_as: "{{ item.peer_asn }}"
+          description: "{{ item.description | default('BGP peer') }}"
+          local_address: "{{ router_id }}"
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: bgp_neighbors is defined
+
+- name: Activate BGP neighbors for IPv4 unicast
+  junipernetworks.junos.junos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "ipv4"
+          safi: "unicast"
+          neighbors:
+            - neighbor_address: "{{ item.peer_address }}"
+              activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: bgp_neighbors is defined
+
+- name: Activate BGP neighbors for EVPN
+  junipernetworks.junos.junos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "evpn"
+          neighbors:
+            - neighbor_address: "{{ item.peer_address }}"
+              activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: bgp_neighbors is defined
+
+- name: Configure route reflector (spines only)
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      as_number: "{{ asn }}"
+      neighbors:
+        - neighbor_address: "{{ item.peer_address }}"
+          cluster_id: "{{ router_id }}"
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when:
+    - bgp_role is defined
+    - bgp_role == 'route_reflector'
+    - bgp_neighbors is defined
+
+- name: Display BGP configuration results
+  ansible.builtin.debug:
+    msg: "BGP configured on {{ inventory_hostname }} - AS{{ asn }} using Juniper Junos modules"
+  when: junos_bgp_debug | default(false)

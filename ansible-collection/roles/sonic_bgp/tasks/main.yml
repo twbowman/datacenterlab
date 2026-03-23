@@ -1,0 +1,95 @@
+---
+# tasks file for sonic_bgp
+# SONiC BGP configuration using dellemc.enterprise_sonic collection
+
+- name: Configure BGP global settings
+  dellemc.enterprise_sonic.sonic_bgp:
+    config:
+      - bgp_as: "{{ asn }}"
+        router_id: "{{ router_id }}"
+        log_neighbor_changes: true
+    state: merged
+
+- name: Configure BGP address family IPv4 unicast
+  dellemc.enterprise_sonic.sonic_bgp_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        address_family:
+          afis:
+            - afi: ipv4
+              safi: unicast
+              advertise_all_vni: false
+    state: merged
+
+- name: Configure BGP address family L2VPN EVPN
+  dellemc.enterprise_sonic.sonic_bgp_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        address_family:
+          afis:
+            - afi: l2vpn
+              safi: evpn
+              advertise_all_vni: true
+    state: merged
+
+- name: Configure BGP neighbors
+  dellemc.enterprise_sonic.sonic_bgp_neighbors:
+    config:
+      - bgp_as: "{{ asn }}"
+        neighbors:
+          - neighbor: "{{ item.peer_address }}"
+            remote_as:
+              peer_as: "{{ item.peer_asn }}"
+            peer_group: ibgp
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: bgp_neighbors is defined
+
+- name: Activate BGP neighbors for IPv4 unicast
+  dellemc.enterprise_sonic.sonic_bgp_neighbors_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        neighbors:
+          - neighbor: "{{ item.peer_address }}"
+            address_family:
+              afis:
+                - afi: ipv4
+                  safi: unicast
+                  activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: bgp_neighbors is defined
+
+- name: Activate BGP neighbors for L2VPN EVPN
+  dellemc.enterprise_sonic.sonic_bgp_neighbors_af:
+    config:
+      - bgp_as: "{{ asn }}"
+        neighbors:
+          - neighbor: "{{ item.peer_address }}"
+            address_family:
+              afis:
+                - afi: l2vpn
+                  safi: evpn
+                  activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when: bgp_neighbors is defined
+
+- name: Configure route reflector (spines only)
+  dellemc.enterprise_sonic.sonic_bgp_neighbors:
+    config:
+      - bgp_as: "{{ asn }}"
+        neighbors:
+          - neighbor: "{{ item.peer_address }}"
+            route_reflector_client: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when:
+    - bgp_role is defined
+    - bgp_role == 'route_reflector'
+    - bgp_neighbors is defined
+
+- name: Display BGP configuration results
+  ansible.builtin.debug:
+    msg: "BGP configured on {{ inventory_hostname }} - AS{{ asn }} using SONiC modules"
+  when: sonic_bgp_debug | default(false)

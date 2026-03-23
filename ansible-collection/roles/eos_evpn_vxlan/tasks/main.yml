@@ -1,0 +1,246 @@
+---
+# tasks file for eos_evpn_vxlan
+# Arista EOS EVPN/VXLAN configuration using arista.eos collection
+# Data-driven configuration using evpn_vxlan variables from group_vars
+
+# ============================================================================
+# BGP EVPN Address Family Configuration (All Devices)
+# ============================================================================
+
+- name: Enable EVPN address family in BGP
+  arista.eos.eos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "l2vpn"
+          safi: "evpn"
+    state: merged
+  when: evpn_vxlan.bgp_evpn.enabled | default(false)
+
+- name: Activate BGP neighbors for EVPN
+  arista.eos.eos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "l2vpn"
+          safi: "evpn"
+          neighbor:
+            - peer: "{{ item.peer_address }}"
+              activate: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when:
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - bgp_neighbors is defined
+
+# ============================================================================
+# Route Reflector Configuration (Spines Only)
+# ============================================================================
+
+- name: Configure route reflector for EVPN (spines)
+  arista.eos.eos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "l2vpn"
+          safi: "evpn"
+          neighbor:
+            - peer: "{{ item.peer_address }}"
+              route_reflector_client: true
+    state: merged
+  loop: "{{ bgp_neighbors }}"
+  when:
+    - evpn_vxlan.bgp_evpn.enabled | default(false)
+    - evpn_vxlan.bgp_evpn.route_reflector | default(false)
+    - bgp_role is defined
+    - bgp_role == 'route_reflector'
+    - bgp_neighbors is defined
+
+# ============================================================================
+# VXLAN Interface Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure VXLAN interface
+  arista.eos.eos_interfaces:
+    config:
+      - name: Vxlan1
+        description: "VXLAN Tunnel Interface"
+        enabled: true
+    state: merged
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure VXLAN source interface
+  arista.eos.eos_vxlan_vtep:
+    config:
+      source_interface: "{{ evpn_vxlan.tunnel.source_interface | default('Loopback0') }}"
+    state: merged
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure VXLAN UDP port
+  arista.eos.eos_vxlan_vtep:
+    config:
+      udp_port: "{{ evpn_vxlan.tunnel.udp_port | default(4789) }}"
+    state: merged
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# VLAN Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create VLANs for VXLAN
+  arista.eos.eos_vlans:
+    config:
+      - vlan_id: "{{ item.vlan_id }}"
+        name: "{{ item.name }}"
+        state: active
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# VLAN to VNI Mapping (Leafs Only)
+# ============================================================================
+
+- name: Configure VLAN to VNI mappings
+  arista.eos.eos_vxlan_vtep:
+    config:
+      vlan:
+        - vlan_id: "{{ item.vlan_id }}"
+          vni: "{{ item.vni }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# EVPN Instance Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure EVPN instances for VLANs
+  arista.eos.eos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      address_family:
+        - afi: "l2vpn"
+          safi: "evpn"
+          vlan:
+            - vlan_id: "{{ item.vlan_id }}"
+              route_distinguisher: "{{ router_id }}:{{ item.vni }}"
+              route_target:
+                both:
+                  - "{{ asn }}:{{ item.vni }}"
+    state: merged
+  loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.vlan_vni_mappings is defined
+
+# ============================================================================
+# L3 VNI Configuration (Leafs Only)
+# ============================================================================
+
+- name: Create VRFs for L3 VNI
+  arista.eos.eos_vrfs:
+    config:
+      - name: "{{ item.vrf_name }}"
+        description: "L3 VNI VRF for {{ item.vrf_name }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Create L3 VNI VLANs
+  arista.eos.eos_vlans:
+    config:
+      - vlan_id: "{{ item.vlan_id }}"
+        name: "L3VNI-{{ item.vrf_name }}"
+        state: active
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure L3 VNI to VRF mapping
+  arista.eos.eos_vxlan_vtep:
+    config:
+      vlan:
+        - vlan_id: "{{ item.vlan_id }}"
+          vni: "{{ item.vni }}"
+          vrf: "{{ item.vrf_name }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure L3 VNI EVPN instances
+  arista.eos.eos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      vrf: "{{ item.vrf_name }}"
+      address_family:
+        - afi: "ipv4"
+          safi: "unicast"
+          redistribute:
+            - protocol: "connected"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+- name: Configure L3 VNI route distinguisher and route targets
+  arista.eos.eos_bgp_address_family:
+    config:
+      as_number: "{{ asn }}"
+      vrf: "{{ item.vrf_name }}"
+      address_family:
+        - afi: "l2vpn"
+          safi: "evpn"
+          route_distinguisher: "{{ router_id }}:{{ item.vni }}"
+          route_target:
+            import: "{{ item.route_target.import }}"
+            export: "{{ item.route_target.export }}"
+    state: merged
+  loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# Anycast Gateway Configuration (Leafs Only)
+# ============================================================================
+
+- name: Configure anycast gateway MAC
+  arista.eos.eos_config:
+    lines:
+      - "ip virtual-router mac-address {{ evpn_vxlan.anycast_gateway.virtual_mac }}"
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - evpn_vxlan.anycast_gateway.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# Display Configuration Results
+# ============================================================================
+
+- name: Display EVPN/VXLAN configuration results
+  ansible.builtin.debug:
+    msg: "EVPN/VXLAN configured on {{ inventory_hostname }} - {{ evpn_vxlan.vlan_vni_mappings | length }} VLANs mapped to VNIs"
+  when:
+    - eos_evpn_debug | default(false)
+    - evpn_vxlan.vlan_vni_mappings is defined

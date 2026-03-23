@@ -1,0 +1,128 @@
+---
+# Validate EVPN/VXLAN Data Model
+# This playbook validates the EVPN/VXLAN configuration defined in group_vars
+
+- name: Validate EVPN/VXLAN Data Model
+  hosts: leafs
+  gather_facts: no
+  tasks:
+    - name: Check EVPN/VXLAN is enabled
+      assert:
+        that:
+          - evpn_vxlan is defined
+          - evpn_vxlan.enabled | default(false)
+        fail_msg: "EVPN/VXLAN not enabled for {{ inventory_hostname }}"
+        success_msg: "EVPN/VXLAN enabled for {{ inventory_hostname }}"
+
+    - name: Validate VNI ranges
+      assert:
+        that:
+          - evpn_vxlan.vni.l2vpn_start is defined
+          - evpn_vxlan.vni.l2vpn_end is defined
+          - evpn_vxlan.vni.l3vpn_start is defined
+          - evpn_vxlan.vni.l3vpn_end is defined
+          - evpn_vxlan.vni.l2vpn_start < evpn_vxlan.vni.l2vpn_end
+          - evpn_vxlan.vni.l3vpn_start < evpn_vxlan.vni.l3vpn_end
+          - evpn_vxlan.vni.l2vpn_end < evpn_vxlan.vni.l3vpn_start
+        fail_msg: "Invalid VNI ranges for {{ inventory_hostname }}"
+        success_msg: "VNI ranges valid: L2 ({{ evpn_vxlan.vni.l2vpn_start }}-{{ evpn_vxlan.vni.l2vpn_end }}), L3 ({{ evpn_vxlan.vni.l3vpn_start }}-{{ evpn_vxlan.vni.l3vpn_end }})"
+
+    - name: Validate VLAN-VNI mappings exist
+      assert:
+        that:
+          - evpn_vxlan.vlan_vni_mappings is defined
+          - evpn_vxlan.vlan_vni_mappings | length > 0
+        fail_msg: "No VLAN-VNI mappings defined for {{ inventory_hostname }}"
+        success_msg: "{{ evpn_vxlan.vlan_vni_mappings | length }} VLAN-VNI mappings defined"
+
+    - name: Validate each VLAN-VNI mapping
+      assert:
+        that:
+          - item.vlan_id is defined
+          - item.vni is defined
+          - item.name is defined
+          - item.vlan_id | int > 0
+          - item.vlan_id | int < 4095
+          - item.vni | int >= evpn_vxlan.vni.l2vpn_start
+          - item.vni | int <= evpn_vxlan.vni.l2vpn_end
+        fail_msg: "Invalid VLAN-VNI mapping: {{ item }}"
+      loop: "{{ evpn_vxlan.vlan_vni_mappings }}"
+      loop_control:
+        label: "VLAN {{ item.vlan_id }} -> VNI {{ item.vni }}"
+    - name: Check for duplicate VLAN IDs
+      assert:
+        that:
+          - evpn_vxlan.vlan_vni_mappings | map(attribute='vlan_id') | list | unique | length == evpn_vxlan.vlan_vni_mappings | length
+        fail_msg: "Duplicate VLAN IDs found in mappings"
+        success_msg: "All VLAN IDs are unique"
+
+    - name: Check for duplicate VNIs
+      assert:
+        that:
+          - evpn_vxlan.vlan_vni_mappings | map(attribute='vni') | list | unique | length == evpn_vxlan.vlan_vni_mappings | length
+        fail_msg: "Duplicate VNIs found in mappings"
+        success_msg: "All VNIs are unique"
+
+    - name: Validate L3 VNI configuration
+      assert:
+        that:
+          - item.vrf_name is defined
+          - item.vni is defined
+          - item.vlan_id is defined
+          - item.vni | int >= evpn_vxlan.vni.l3vpn_start
+          - item.vni | int <= evpn_vxlan.vni.l3vpn_end
+        fail_msg: "Invalid L3 VNI configuration: {{ item }}"
+      loop: "{{ evpn_vxlan.l3vni | default([]) }}"
+      loop_control:
+        label: "VRF {{ item.vrf_name }} -> VNI {{ item.vni }}"
+      when: evpn_vxlan.l3vni is defined
+
+    - name: Validate BGP EVPN configuration
+      assert:
+        that:
+          - evpn_vxlan.bgp_evpn is defined
+          - evpn_vxlan.bgp_evpn.enabled | default(false)
+        fail_msg: "BGP EVPN not enabled for {{ inventory_hostname }}"
+        success_msg: "BGP EVPN enabled"
+
+    - name: Validate required inventory variables
+      assert:
+        that:
+          - router_id is defined
+          - asn is defined
+          - loopback_ip is defined
+        fail_msg: "Missing required inventory variables (router_id, asn, loopback_ip)"
+        success_msg: "All required inventory variables present"
+
+    - name: Display EVPN/VXLAN configuration summary
+      debug:
+        msg:
+          - "Device: {{ inventory_hostname }}"
+          - "Router ID: {{ router_id }}"
+          - "ASN: {{ asn }}"
+          - "L2 VNI Range: {{ evpn_vxlan.vni.l2vpn_start }}-{{ evpn_vxlan.vni.l2vpn_end }}"
+          - "L3 VNI Range: {{ evpn_vxlan.vni.l3vpn_start }}-{{ evpn_vxlan.vni.l3vpn_end }}"
+          - "VLAN-VNI Mappings: {{ evpn_vxlan.vlan_vni_mappings | length }}"
+          - "L3 VNIs: {{ evpn_vxlan.l3vni | default([]) | length }}"
+
+- name: Validate Spine EVPN Configuration
+  hosts: spines
+  gather_facts: no
+  tasks:
+    - name: Check BGP EVPN route reflector configuration
+      assert:
+        that:
+          - evpn_vxlan is defined
+          - evpn_vxlan.bgp_evpn is defined
+          - evpn_vxlan.bgp_evpn.enabled | default(false)
+          - evpn_vxlan.bgp_evpn.route_reflector | default(false)
+        fail_msg: "Spine {{ inventory_hostname }} not configured as EVPN route reflector"
+        success_msg: "Spine {{ inventory_hostname }} configured as EVPN route reflector"
+
+    - name: Display spine configuration summary
+      debug:
+        msg:
+          - "Spine: {{ inventory_hostname }}"
+          - "Router ID: {{ router_id }}"
+          - "Cluster ID: {{ cluster_id | default(router_id) }}"
+          - "Route Reflector: Yes"

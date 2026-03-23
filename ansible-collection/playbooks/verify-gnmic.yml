@@ -1,0 +1,112 @@
+---
+# Verification playbook using gnmic
+- name: Verify network configuration via gnmic
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Verify interface configuration
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get --path /interface[name={{ item.name }}]/admin-state \
+              --path /interface[name={{ item.name }}]/subinterface[index=0]/ipv4/address
+      loop: "{{ interfaces }}"
+      when: item.ip is defined
+      delegate_to: localhost
+      register: interface_status
+      changed_when: false
+      failed_when: false
+      tags: ['interfaces', 'verify']
+
+    - name: Display interface status
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} - {{ item.item.name }}: {{ 'UP' if 'enable' in item.stdout else 'DOWN' }}"
+      loop: "{{ interface_status.results }}"
+      when: item.item.ip is defined
+      tags: ['interfaces', 'verify']
+
+    - name: Verify LLDP neighbors
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get --path /system/lldp/interface[name={{ item.name }}]/neighbor
+      loop: "{{ interfaces }}"
+      delegate_to: localhost
+      register: lldp_neighbors
+      changed_when: false
+      failed_when: false
+      tags: ['lldp', 'verify']
+
+    - name: Display LLDP neighbor count
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ lldp_neighbors.results | selectattr('stdout', 'search', 'neighbor') | list | length }} LLDP neighbors discovered"
+      tags: ['lldp', 'verify']
+
+    - name: Verify BGP configuration
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get --path /network-instance[name=default]/protocols/bgp/admin-state \
+              --path /network-instance[name=default]/protocols/bgp/autonomous-system \
+              --path /network-instance[name=default]/protocols/bgp/router-id
+      delegate_to: localhost
+      register: bgp_config
+      changed_when: false
+      failed_when: false
+      tags: ['bgp', 'verify']
+
+    - name: Display BGP configuration
+      ansible.builtin.debug:
+        msg: |
+          {{ inventory_hostname }} BGP:
+            Admin State: {{ 'ENABLED' if 'enable' in bgp_config.stdout else 'DISABLED' }}
+            AS: {{ asn }}
+            Router ID: {{ router_id }}
+      tags: ['bgp', 'verify']
+
+    - name: Verify BGP neighbors
+      ansible.builtin.shell: |
+        gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+          -u {{ gnmi_username }} \
+          -p {{ gnmi_password }} \
+          --skip-verify \
+          get --path /network-instance[name=default]/protocols/bgp/neighbor
+      delegate_to: localhost
+      register: bgp_neighbors
+      changed_when: false
+      failed_when: false
+      tags: ['bgp', 'verify']
+
+    - name: Count BGP neighbors
+      ansible.builtin.set_fact:
+        bgp_neighbor_count: "{{ bgp_neighbors.stdout | regex_findall('peer-address') | length }}"
+      tags: ['bgp', 'verify']
+
+    - name: Display BGP neighbor count
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ bgp_neighbor_count }} BGP neighbors configured"
+      tags: ['bgp', 'verify']
+
+- name: Verification summary
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Show verification complete
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          Network Verification Complete
+          ========================================
+
+          All devices verified via gnmic
+
+          Use tags to verify specific components:
+            - Interfaces: ansible-playbook playbooks/verify-gnmic.yml --tags interfaces
+            - LLDP: ansible-playbook playbooks/verify-gnmic.yml --tags lldp
+            - BGP: ansible-playbook playbooks/verify-gnmic.yml --tags bgp

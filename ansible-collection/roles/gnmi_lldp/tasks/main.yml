@@ -1,0 +1,26 @@
+---
+# tasks file for srlinux_lldp
+# Uses native SR Linux paths with srl_nokia origin
+# (OpenConfig SET is not supported on SR Linux)
+# Global LLDP is enabled in the gnmi_system role
+#
+# RATE LIMIT MITIGATION:
+# SR Linux enforces a 60 gNMI connections/minute rate limit.
+# This role batches all LLDP interface configs into a single gnmic set call.
+
+- name: Enable LLDP on all interfaces (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+    {% for iface in interfaces if iface.ip is defined %}
+      --update-path 'srl_nokia:/system/lldp/interface[name={{ iface.name }}]/admin-state' \
+      --update-value enable \
+    {% endfor %}
+      --encoding json_ietf
+  delegate_to: localhost
+  register: lldp_interface_result
+  changed_when: "'UPDATE' in lldp_interface_result.stdout"
+  failed_when: lldp_interface_result.rc != 0

@@ -1,0 +1,219 @@
+---
+# EVPN-VXLAN Configuration for SR Linux (gNMI-based)
+# Data-driven configuration using evpn_vxlan variables from group_vars
+# Uses SR Linux native paths with srl_nokia: origin prefix
+#
+# RATE LIMIT MITIGATION:
+# SR Linux enforces a 60 gNMI connections/minute rate limit.
+# This role batches all VNI/VLAN operations into single gnmic set calls
+# using multiple --update-path/--update-value pairs to minimize connections.
+
+# ============================================================================
+# VXLAN Tunnel Interface + VNI Configuration (Leafs Only) — BATCHED
+# ============================================================================
+
+- name: Configure VXLAN tunnel interface and all VNIs (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+      --update-path 'srl_nokia:/tunnel-interface[name=vxlan1]' \
+      --update-value '{}' \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/tunnel-interface[name=vxlan1]/vxlan-interface[index={{ vni_map.vni }}]' \
+      --update-value '{
+        "type": "bridged",
+        "ingress": { "vni": {{ vni_map.vni }} },
+        "egress": { "source-ip": "use-system-ipv4-address" }
+      }' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: vxlan_result
+  changed_when: true
+  failed_when: vxlan_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# MAC-VRF Network Instances (Leafs Only) — BATCHED
+# ============================================================================
+
+- name: Create all MAC-VRF network instances (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]' \
+      --update-value '{
+        "type": "srl_nokia-network-instance:mac-vrf",
+        "description": "{{ vni_map.description | default(vni_map.name) }}",
+        "admin-state": "enable",
+        "vxlan-interface": [ { "name": "vxlan1.{{ vni_map.vni }}" } ]
+      }' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: macvrf_result
+  changed_when: true
+  failed_when: macvrf_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# BGP-EVPN + BGP-VPN Instance Configuration (Leafs Only) — BATCHED
+# ============================================================================
+
+- name: Configure all BGP-EVPN and BGP-VPN instances (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]/protocols/bgp-evpn/bgp-instance[id=1]' \
+      --update-value '{
+        "admin-state": "enable",
+        "vxlan-interface": "vxlan1.{{ vni_map.vni }}",
+        "evi": {{ vni_map.vni }},
+        "ecmp": 2
+      }' \
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]/protocols/bgp-vpn/bgp-instance[id=1]/route-target' \
+      --update-value '{
+        "export-rt": "target:{{ asn }}:{{ vni_map.vni }}",
+        "import-rt": "target:{{ asn }}:{{ vni_map.vni }}"
+      }' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: evpn_bgp_result
+  changed_when: true
+  failed_when: evpn_bgp_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# EVPN Route Advertisement (Leafs Only) — BATCHED
+# ============================================================================
+
+- name: Enable EVPN route advertisement for all MAC-VRFs (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]/protocols/bgp-evpn/bgp-instance[id=1]/routes' \
+      --update-value '{
+        "bridge-table": {
+          "mac-ip": { "advertise": true },
+          "inclusive-mcast": { "advertise": true }
+        }
+      }' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: evpn_routes_result
+  changed_when: true
+  failed_when: evpn_routes_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+
+# ============================================================================
+# Client-Facing Interface Configuration (Leafs Only) — BATCHED
+# ============================================================================
+
+- name: Configure client-facing interface with all subinterfaces (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+      --update-path 'srl_nokia:/interface[name={{ client_interface | default("ethernet-1/3") }}]' \
+      --update-value '{
+        "admin-state": "enable",
+        "vlan-tagging": true
+      }' \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/interface[name={{ client_interface | default("ethernet-1/3") }}]/subinterface[index={{ vni_map.vlan_id }}]' \
+      --update-value '{
+        "type": "bridged",
+        "admin-state": "enable",
+        "vlan": {
+          "encap": {
+            "single-tagged": { "vlan-id": {{ vni_map.vlan_id }} }
+          }
+        }
+      }' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: client_interface_result
+  changed_when: true
+  failed_when: client_interface_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - client_interface is defined or 'ethernet-1/3' in (interfaces | map(attribute='name') | list)
+
+- name: Associate all client interfaces with MAC-VRFs (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for vni_map in evpn_vxlan.vlan_vni_mappings %}
+      --update-path 'srl_nokia:/network-instance[name=mac-vrf-{{ vni_map.vlan_id }}]/interface[name={{ client_interface | default("ethernet-1/3") }}.{{ vni_map.vlan_id }}]' \
+      --update-value '{}' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: client_assoc_result
+  changed_when: true
+  failed_when: client_assoc_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - client_interface is defined or 'ethernet-1/3' in (interfaces | map(attribute='name') | list)
+
+# ============================================================================
+# L3 VNI Configuration (Leafs Only) — BATCHED, Optional
+# ============================================================================
+
+- name: Configure L3 VNI VXLAN interfaces and IP-VRFs (batched)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} -p {{ gnmi_password }} \
+      --skip-verify -e json_ietf \
+      set \
+    {% for l3 in evpn_vxlan.l3vni %}
+      --update-path 'srl_nokia:/tunnel-interface[name=vxlan1]/vxlan-interface[index={{ l3.vni }}]' \
+      --update-value '{
+        "type": "routed",
+        "ingress": { "vni": {{ l3.vni }} },
+        "egress": { "source-ip": "use-system-ipv4-address" }
+      }' \
+      --update-path 'srl_nokia:/network-instance[name={{ l3.vrf_name }}]' \
+      --update-value '{
+        "type": "srl_nokia-network-instance:ip-vrf",
+        "admin-state": "enable",
+        "vxlan-interface": [ { "name": "vxlan1.{{ l3.vni }}" } ]
+      }' \
+    {% endfor %}
+
+  delegate_to: localhost
+  register: l3vni_result
+  changed_when: true
+  failed_when: l3vni_result.rc != 0
+  when:
+    - evpn_vxlan.enabled | default(false)
+    - "'leaf' in inventory_hostname"
+    - evpn_vxlan.l3vni is defined
+    - evpn_vxlan.l3vni | length > 0

@@ -1,0 +1,131 @@
+---
+# Multi-vendor datacenter inventory example
+# This shows how to mix different vendors in the same topology
+
+all:
+  children:
+    # Group devices by vendor/OS
+    srlinux_devices:
+      vars:
+        ansible_network_os: nokia.srlinux
+        ansible_connection: local
+        ansible_python_interpreter: /usr/bin/python3
+        gnmi_port: 57400
+        gnmi_username: admin
+        gnmi_password: NokiaSrl1!
+        gnmi_skip_verify: true
+      hosts:
+        spine1:
+          ansible_host: 172.20.20.10
+          router_id: 10.0.0.1
+          asn: 65000
+          loopback_ip: 10.0.0.1/32
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.1.0/31
+              description: "to-leaf1"
+            - name: ethernet-1/2
+              ip: 10.1.2.0/31
+              description: "to-leaf2"
+
+        leaf1:
+          ansible_host: 172.20.20.21
+          router_id: 10.0.1.1
+          asn: 65000
+          loopback_ip: 10.0.1.1/32
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.1.1/31
+              description: "to-spine1"
+            - name: ethernet-1/2
+              ip: 10.2.1.1/31
+              description: "to-spine2"
+
+    arista_devices:
+      vars:
+        ansible_network_os: arista.eos
+        ansible_connection: httpapi
+        ansible_httpapi_use_ssl: true
+        ansible_httpapi_validate_certs: false
+        ansible_user: admin
+        ansible_password: admin
+        ansible_httpapi_port: 443
+      hosts:
+        spine2:
+          ansible_host: 172.20.20.11
+          router_id: 10.0.0.2
+          asn: 65000
+          loopback_ip: 10.0.0.2/32
+          interfaces:
+            - name: ethernet-1/1  # Will be translated to Ethernet1/1
+              ip: 10.2.1.0/31
+              description: "to-leaf1"
+            - name: ethernet-1/2
+              ip: 10.2.2.0/31
+              description: "to-leaf2"
+
+        leaf2:
+          ansible_host: 172.20.20.22
+          router_id: 10.0.1.2
+          asn: 65000
+          loopback_ip: 10.0.1.2/32
+          interfaces:
+            - name: ethernet-1/1
+              ip: 10.1.2.1/31
+              description: "to-spine1"
+            - name: ethernet-1/2
+              ip: 10.2.2.1/31
+              description: "to-spine2"
+
+    sonic_devices:
+      vars:
+        ansible_network_os: dellemc.sonic
+        ansible_connection: httpapi
+        ansible_httpapi_use_ssl: true
+        ansible_httpapi_validate_certs: false
+        ansible_user: admin
+        ansible_password: admin
+      hosts:
+        leaf3:
+          ansible_host: 172.20.20.23
+          router_id: 10.0.1.3
+          asn: 65000
+          loopback_ip: 10.0.1.3/32
+          interfaces:
+            - name: ethernet-1/1  # Will be translated to Ethernet0
+              ip: 10.1.3.1/31
+              description: "to-spine1"
+            - name: ethernet-1/2  # Will be translated to Ethernet1
+              ip: 10.2.3.1/31
+              description: "to-spine2"
+
+    # Logical grouping (cross-vendor)
+    spines:
+      children:
+        srlinux_spines:
+          hosts:
+            spine1:
+        arista_spines:
+          hosts:
+            spine2:
+
+    leafs:
+      children:
+        srlinux_leafs:
+          hosts:
+            leaf1:
+        arista_leafs:
+          hosts:
+            leaf2:
+        sonic_leafs:
+          hosts:
+            leaf3:
+
+  vars:
+    # Common variables across all vendors
+    datacenter_name: "multi-vendor-dc"
+    ntp_servers:
+      - 10.0.0.100
+    dns_servers:
+      - 8.8.8.8
+      - 8.8.4.4

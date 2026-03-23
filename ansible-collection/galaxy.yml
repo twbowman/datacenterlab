@@ -1,0 +1,37 @@
+---
+namespace: datacenter
+name: automation
+version: 1.0.0
+readme: README.md
+authors:
+  - Todd Bowman
+description: >-
+  Multi-vendor datacenter network automation collection.
+  Provides roles for configuring SR Linux, Arista EOS, SONiC, and Juniper
+  devices via gNMI, OpenConfig, and vendor-native YANG models.
+  Includes a validation framework with gNMI GET-based state comparison.
+license:
+  - MIT
+tags:
+  - networking
+  - gnmi
+  - openconfig
+  - srlinux
+  - arista
+  - sonic
+  - juniper
+  - evpn
+  - vxlan
+  - datacenter
+dependencies: {}
+repository: https://github.com/twbowman/ansible-network-automation
+documentation: https://github.com/twbowman/ansible-network-automation
+homepage: https://github.com/twbowman/ansible-network-automation
+issues: https://github.com/twbowman/ansible-network-automation/issues
+build_ignore:
+  - "*.pyc"
+  - __pycache__
+  - .git
+  - .github
+  - .venv
+  - tests/integration

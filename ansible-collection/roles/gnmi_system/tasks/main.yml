@@ -1,0 +1,20 @@
+---
+# System-level configuration for SR Linux
+# Uses native SR Linux paths with srl_nokia origin
+# (OpenConfig SET is not supported on SR Linux)
+
+- name: Enable LLDP globally (native SR Linux path)
+  ansible.builtin.shell: |
+    gnmic -a {{ ansible_host }}:{{ gnmi_port }} \
+      -u {{ gnmi_username }} \
+      -p {{ gnmi_password }} \
+      --skip-verify \
+      set \
+      --update-path 'srl_nokia:/system/lldp/admin-state' \
+      --update-value enable \
+      --encoding json_ietf
+  delegate_to: localhost
+  register: lldp_result
+  changed_when: "'UPDATE' in lldp_result.stdout"
+  failed_when: lldp_result.rc != 0
+  tags: [system, lldp]

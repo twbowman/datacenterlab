@@ -1,0 +1,56 @@
+---
+# Multi-vendor datacenter deployment playbook
+# Deploys the same logical network across different vendor platforms
+
+- name: Deploy Multi-Vendor Datacenter Network
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Display deployment information
+      debug:
+        msg:
+          - "Deploying to: {{ inventory_hostname }}"
+          - "Network OS: {{ ansible_network_os }}"
+          - "Management IP: {{ ansible_host }}"
+      tags: always
+
+    - name: Configure interfaces
+      include_role:
+        name: multi_vendor_interfaces
+      tags: interfaces
+
+    - name: Configure BGP underlay
+      include_role:
+        name: multi_vendor_bgp
+      tags: bgp
+
+    - name: Configure EVPN overlay
+      include_role:
+        name: multi_vendor_evpn
+      tags: evpn
+      when: evpn_enabled | default(true)
+
+    - name: Verify configuration
+      include_role:
+        name: multi_vendor_verify
+      tags: verify
+
+# Example usage:
+# Deploy everything:
+#   ansible-playbook -i inventory-multi-vendor.yml site-multi-vendor.yml
+#
+# Deploy only SR Linux devices:
+#   ansible-playbook -i inventory-multi-vendor.yml site-multi-vendor.yml --limit srlinux_devices
+#
+# Deploy only Arista devices:
+#   ansible-playbook -i inventory-multi-vendor.yml site-multi-vendor.yml --limit arista_devices
+#
+# Deploy only interfaces:
+#   ansible-playbook -i inventory-multi-vendor.yml site-multi-vendor.yml --tags interfaces
+#
+# Deploy specific device:
+#   ansible-playbook -i inventory-multi-vendor.yml site-multi-vendor.yml --limit spine1
+#
+# Deploy all spines (cross-vendor):
+#   ansible-playbook -i inventory-multi-vendor.yml site-multi-vendor.yml --limit spines
