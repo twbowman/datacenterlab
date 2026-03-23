@@ -36,7 +36,7 @@ variable "server_type" {
 variable "location" {
   description = "Server location (Hetzner: fsn1, nbg1, hel1, ash, hil)"
   type        = string
-  default     = "nbg1"
+  default     = "ash"
 }
 
 variable "image" {
