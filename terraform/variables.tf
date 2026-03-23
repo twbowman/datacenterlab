@@ -28,9 +28,9 @@ variable "server_name" {
 }
 
 variable "server_type" {
-  description = "Server size (Hetzner: cpx32=4vCPU/8GB, cpx42=8vCPU/16GB, cx32=4vCPU/8GB shared)"
+  description = "Server size (Hetzner: cx32=4vCPU/8GB shared, cx42=8vCPU/16GB, ccx13=2vCPU/8GB dedicated)"
   type        = string
-  default     = "cpx32"
+  default     = "cx32"
 }
 
 variable "location" {
