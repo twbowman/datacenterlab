@@ -1,9 +1,13 @@
 #!/bin/bash
 # Generate .env file from Terraform outputs.
 # Run from the terraform/ directory after 'terraform apply'.
+#
+# Usage: ./generate-env.sh [vendor]
+#   vendor: srlinux (default), sonic
 
 set -euo pipefail
 
+VENDOR="${1:-srlinux}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
@@ -27,8 +31,8 @@ LAB_USER=root
 LAB_SSH_KEY=${SSH_KEY:-~/.ssh/id_ed25519}
 LAB_PORT=22
 LAB_REMOTE_DIR=/opt/containerlab
-LAB_VENDOR=srlinux
+LAB_VENDOR=${VENDOR}
 EOF
 
-echo "Generated $ENV_FILE with LAB_HOST=${SERVER_IP}"
+echo "Generated $ENV_FILE with LAB_HOST=${SERVER_IP}, LAB_VENDOR=${VENDOR}"
 echo "You can now run: ./scripts/lab deploy"
