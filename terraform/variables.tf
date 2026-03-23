@@ -28,9 +28,9 @@ variable "server_name" {
 }
 
 variable "server_type" {
-  description = "Server size (Hetzner: cpx31=4vCPU/8GB, cpx41=8vCPU/16GB)"
+  description = "Server size (Hetzner: cpx32=4vCPU/8GB, cpx42=8vCPU/16GB, cx32=4vCPU/8GB shared)"
   type        = string
-  default     = "cpx31"
+  default     = "cpx32"
 }
 
 variable "location" {
@@ -42,5 +42,5 @@ variable "location" {
 variable "image" {
   description = "OS image"
   type        = string
-  default     = "ubuntu-22.04"
+  default     = "ubuntu-24.04"
 }
