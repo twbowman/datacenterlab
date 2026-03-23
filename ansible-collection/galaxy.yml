@@ -1,21 +1,24 @@
 ---
-namespace: datacenter
-name: automation
+namespace: netgnmi
+name: dcfabric
 version: 1.0.0
 readme: README.md
 authors:
   - Todd Bowman
 description: >-
-  Multi-vendor datacenter network automation collection.
-  Provides roles for configuring SR Linux, Arista EOS, SONiC, and Juniper
-  devices via gNMI, OpenConfig, and vendor-native YANG models.
-  Includes a validation framework with gNMI GET-based state comparison.
+  Multi-vendor datacenter CLOS fabric automation via gNMI.
+  Configure spine-leaf fabrics with OSPF underlay, iBGP overlay, and EVPN/VXLAN
+  across SR Linux, Arista EOS, SONiC, and Juniper using gNMI SET.
+  Includes topology-aware validation playbooks that verify BGP sessions,
+  EVPN route distribution, LLDP adjacencies, and interface state via gNMI GET.
 license:
   - MIT
 tags:
   - networking
   - gnmi
   - openconfig
+  - clos
+  - spine-leaf
   - srlinux
   - arista
   - sonic
@@ -23,11 +26,12 @@ tags:
   - evpn
   - vxlan
   - datacenter
+  - validation
 dependencies: {}
-repository: https://github.com/twbowman/ansible-network-automation
-documentation: https://github.com/twbowman/ansible-network-automation
-homepage: https://github.com/twbowman/ansible-network-automation
-issues: https://github.com/twbowman/ansible-network-automation/issues
+repository: https://github.com/twbowman/ansible-collection-netgnmi-dcfabric
+documentation: https://github.com/twbowman/ansible-collection-netgnmi-dcfabric
+homepage: https://github.com/twbowman/ansible-collection-netgnmi-dcfabric
+issues: https://github.com/twbowman/ansible-collection-netgnmi-dcfabric/issues
 build_ignore:
   - "*.pyc"
   - __pycache__

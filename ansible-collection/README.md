@@ -1,6 +1,6 @@
-# Datacenter Automation Ansible Collection
+# netgnmi.dcfabric — Ansible Collection
 
-Multi-vendor datacenter network automation using gNMI, OpenConfig, and vendor-native YANG models.
+Multi-vendor datacenter CLOS fabric automation via gNMI. Configure spine-leaf fabrics, validate topology state, and manage EVPN/VXLAN overlays across vendors using a single set of playbooks.
 
 ## Supported Vendors
 
@@ -15,119 +15,74 @@ Multi-vendor datacenter network automation using gNMI, OpenConfig, and vendor-na
 
 ```bash
 # From Galaxy (when published)
-ansible-galaxy collection install datacenter.automation
+ansible-galaxy collection install netgnmi.dcfabric
 
 # From local build
-ansible-galaxy collection build ansible-collection/
-ansible-galaxy collection install datacenter-automation-1.0.0.tar.gz
+ansible-galaxy collection build .
+ansible-galaxy collection install netgnmi-dcfabric-1.0.0.tar.gz
 
 # From git
-ansible-galaxy collection install git+https://github.com/twbowman/ansible-network-automation.git
+ansible-galaxy collection install git+https://github.com/twbowman/ansible-collection-netgnmi-dcfabric.git
 ```
 
-## Collection Structure
+## What's Included
 
-```
-ansible-collection/
-├── galaxy.yml                    # Collection metadata
-├── README.md
-├── plugins/
-│   ├── modules/
-│   │   └── gnmi_validate.py      # gNMI state validation module
-│   ├── filter/
-│   │   └── interface_names.py    # Cross-vendor interface name translation
-│   ├── callback/
-│   │   └── validation_report.py  # JSON validation report aggregator
-│   └── inventory/
-│       └── dynamic_inventory.py  # Containerlab topology → Ansible inventory
-├── roles/
-│   ├── gnmi_interfaces/          # SR Linux interface config (gNMI native)
-│   ├── gnmi_bgp/                 # SR Linux BGP config (gNMI native)
-│   ├── gnmi_ospf/                # SR Linux OSPF config (gNMI native)
-│   ├── gnmi_lldp/                # SR Linux LLDP config (gNMI native)
-│   ├── gnmi_evpn_vxlan/          # SR Linux EVPN/VXLAN config (gNMI native)
-│   ├── gnmi_system/              # SR Linux system config (gNMI native)
-│   ├── gnmi_static_routes/       # SR Linux static routes (gNMI native)
-│   ├── eos_interfaces/           # Arista interface config
-│   ├── eos_bgp/                  # Arista BGP config
-│   ├── eos_ospf/                 # Arista OSPF config
-│   ├── eos_evpn_vxlan/           # Arista EVPN/VXLAN config
-│   ├── sonic_interfaces/         # SONiC interface config
-│   ├── sonic_bgp/                # SONiC BGP config
-│   ├── sonic_ospf/               # SONiC OSPF config
-│   ├── sonic_evpn_vxlan/         # SONiC EVPN/VXLAN config
-│   ├── junos_interfaces/         # Juniper interface config
-│   ├── junos_bgp/                # Juniper BGP config
-│   ├── junos_ospf/               # Juniper OSPF config
-│   ├── junos_evpn_vxlan/         # Juniper EVPN/VXLAN config
-│   ├── openconfig_interfaces/    # Vendor-neutral OpenConfig interfaces
-│   ├── openconfig_bgp/           # Vendor-neutral OpenConfig BGP
-│   ├── openconfig_ospf/          # Vendor-neutral OpenConfig OSPF
-│   ├── openconfig_lldp/          # Vendor-neutral OpenConfig LLDP
-│   ├── config_validation/        # Configuration validation utilities
-│   ├── config_rollback/          # Configuration rollback utilities
-│   └── multi_vendor_interfaces/  # Multi-vendor interface dispatcher
-├── playbooks/
-│   ├── site.yml                  # Main dispatcher playbook
-│   ├── site-srlinux-gnmi.yml     # SR Linux gNMI-specific playbook
-│   ├── site-multi-vendor.yml     # Multi-vendor playbook
-│   ├── site-openconfig.yml       # OpenConfig-only playbook
-│   ├── validate.yml              # Master validation playbook
-│   ├── validate-bgp.yml          # BGP session validation
-│   ├── validate-evpn.yml         # EVPN route validation
-│   ├── validate-lldp.yml         # LLDP neighbor validation
-│   ├── validate-client-lldp.yml  # Client LLDP validation
-│   └── validate-interfaces.yml   # Interface state validation
-├── examples/
-│   ├── group_vars/               # Example variable files
-│   │   ├── all.yml
-│   │   ├── spines.yml
-│   │   ├── leafs.yml
-│   │   ├── srlinux_devices.yml
-│   │   ├── arista_devices.yml
-│   │   ├── sonic_devices.yml
-│   │   └── juniper_devices.yml
-│   └── inventories/
-│       ├── inventory-lab.yml
-│       └── inventory-multi-vendor.yml
-└── templates/
-    ├── srlinux-config.j2
-    └── evpn_vxlan_data_model.md
-```
+### Roles (26)
+
+Vendor-specific configuration roles for spine-leaf CLOS fabrics:
+
+- **SR Linux (gNMI native)**: `gnmi_interfaces`, `gnmi_bgp`, `gnmi_ospf`, `gnmi_lldp`, `gnmi_evpn_vxlan`, `gnmi_system`, `gnmi_static_routes`
+- **Arista EOS**: `eos_interfaces`, `eos_bgp`, `eos_ospf`, `eos_evpn_vxlan`
+- **SONiC**: `sonic_interfaces`, `sonic_bgp`, `sonic_ospf`, `sonic_evpn_vxlan`
+- **Juniper**: `junos_interfaces`, `junos_bgp`, `junos_ospf`, `junos_evpn_vxlan`
+- **OpenConfig**: `openconfig_interfaces`, `openconfig_bgp`, `openconfig_ospf`, `openconfig_lldp`
+- **Utility**: `config_validation`, `config_rollback`, `multi_vendor_interfaces`
+
+### Playbooks
+
+- `site.yml` — Main dispatcher (auto-detects vendor OS)
+- `site-srlinux-gnmi.yml` — SR Linux gNMI-specific
+- `site-multi-vendor.yml` — Multi-vendor
+- `validate.yml` — Master validation (all checks)
+- `validate-bgp.yml` — BGP session validation
+- `validate-evpn.yml` — EVPN route distribution
+- `validate-lldp.yml` — LLDP neighbor adjacencies
+- `validate-client-lldp.yml` — Client LLDP validation
+- `validate-interfaces.yml` — Interface state validation
+
+### Plugins
+
+- **Module**: `gnmi_validate` — gNMI GET state comparison with structured diffs and remediation hints
+- **Filter**: `interface_names` — Cross-vendor interface name translation
+- **Callback**: `validation_report` — JSON validation report aggregator
+- **Inventory**: `dynamic_inventory` — Containerlab topology → Ansible inventory with OS detection
 
 ## Quick Start
 
-### 1. Configure your inventory
-
-Copy an example inventory and customize for your environment:
+### 1. Configure inventory
 
 ```bash
 cp examples/inventories/inventory-lab.yml inventory.yml
-# Edit inventory.yml with your device IPs and credentials
+# Edit with your device IPs and credentials
 ```
 
 ### 2. Set up group variables
 
 ```bash
 cp -r examples/group_vars/ group_vars/
-# Edit group_vars/ to match your network design
+# Edit to match your network design
 ```
 
-### 3. Run the dispatcher playbook
+### 3. Configure the fabric
 
 ```bash
-# Configure all devices (auto-detects vendor OS)
-ansible-playbook -i inventory.yml datacenter.automation.site
-
-# Or use vendor-specific playbook
-ansible-playbook -i inventory.yml datacenter.automation.site-srlinux-gnmi
+ansible-playbook -i inventory.yml netgnmi.dcfabric.site
 ```
 
 ### 4. Validate
 
 ```bash
-# Run all validation checks
-ansible-playbook -i inventory.yml datacenter.automation.validate
+ansible-playbook -i inventory.yml netgnmi.dcfabric.validate
 ```
 
 ## Key Plugins
@@ -138,7 +93,7 @@ Queries device state via gNMI GET and compares against expected values:
 
 ```yaml
 - name: Validate BGP sessions
-  datacenter.automation.gnmi_validate:
+  netgnmi.dcfabric.gnmi_validate:
     host: "{{ ansible_host }}"
     port: "{{ gnmi_port }}"
     username: "{{ gnmi_username }}"
@@ -153,21 +108,20 @@ Queries device state via gNMI GET and compares against expected values:
 
 ### interface_names filter
 
-Translates interface names across vendors:
-
 ```yaml
-# SR Linux → Arista
 {{ "ethernet-1/1" | to_arista_interface }}  # Ethernet1/1
-
-# Arista → SR Linux
 {{ "Ethernet1/1" | to_srlinux_interface }}  # ethernet-1/1
 ```
 
 ## Dependencies
 
-- `gnmic` CLI (for gNMI SET operations in roles)
-- `pygnmi` Python package (for gnmi_validate module)
-- `dictdiffer` Python package (for state comparison)
+- `gnmic` CLI (gNMI SET operations in roles)
+- `pygnmi` Python package (gnmi_validate module)
+- `dictdiffer` Python package (state comparison)
+
+## Future: netgnmi.core
+
+When additional topology collections are built (e.g., butterfly fabric), the topology-agnostic plugins (`gnmi_validate`, `interface_names`, `validation_report`, `dynamic_inventory`) will be extracted into `netgnmi.core` as a shared dependency.
 
 ## License
 
