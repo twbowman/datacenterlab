@@ -6,7 +6,7 @@ Add LLDP daemon to client containers and create a gNMI-based validation playbook
 
 ## Important Context
 
-All containerlab, docker, and ansible commands must be prefixed with `orb -m clab` to run in the correct VM context.
+All containerlab, docker, and ansible commands run via the `./lab` wrapper script on a remote x86_64 Linux server.
 
 ## Tasks
 

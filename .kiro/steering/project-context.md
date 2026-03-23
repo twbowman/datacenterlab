@@ -1,10 +1,17 @@
 ---
+description: Project context, lab architecture, and operational standards for the containerlab CLOS fabric
 inclusion: auto
 ---
 
 # Project Context and Standards
 
 ## Lab Architecture
+
+### Execution Model
+- **Development**: macOS ARM (Apple Silicon) — edit code, run git, use `./lab` wrapper
+- **Lab Runtime**: Remote x86_64 Linux server (Hetzner Cloud) — runs containerlab, Docker, Ansible
+- **Wrapper**: `./lab` script handles rsync + SSH execution transparently
+- **Config**: `.env` file (from `.env.example`) stores remote server connection details
 
 ### Current Configuration
 - **Topology**: Spine-Leaf CLOS fabric
@@ -48,9 +55,10 @@ inclusion: auto
 - Verification: `ansible/methods/srlinux_gnmi/playbooks/verify.yml`
 
 ### Running Playbooks
-Always use `orb -m clab` prefix:
+Use the `./lab` wrapper for remote execution:
 ```bash
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+./lab configure
+./lab configure ansible/methods/srlinux_gnmi/playbooks/configure-evpn.yml
 ```
 
 ## Monitoring Stack
@@ -74,52 +82,54 @@ orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gn
 ### Lab Management
 ```bash
 # Deploy lab
-orb -m clab sudo containerlab deploy -t topology-srlinux.yml
+./lab deploy srlinux
+./lab deploy sonic
 
 # Destroy lab
-orb -m clab sudo containerlab destroy -t topology-srlinux.yml
+./lab destroy srlinux
 
 # Check status
-orb -m clab sudo containerlab inspect
+./lab status
 ```
 
 ### Configuration
 ```bash
 # Deploy full configuration
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+./lab configure
 
 # Configure EVPN
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/configure-evpn.yml
+./lab configure ansible/methods/srlinux_gnmi/playbooks/configure-evpn.yml
 
 # Verify configuration
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
+./lab configure ansible/methods/srlinux_gnmi/playbooks/verify.yml
 ```
 
 ### Verification
 ```bash
 # Check BGP sessions
-orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show network-instance default protocols bgp neighbor"
+./lab exec "docker exec clab-gnmi-clos-leaf1 sr_cli 'show network-instance default protocols bgp neighbor'"
 
 # Check EVPN routes
-orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show network-instance default protocols bgp routes evpn route-type summary"
+./lab exec "docker exec clab-gnmi-clos-leaf1 sr_cli 'show network-instance default protocols bgp routes evpn route-type summary'"
 
 # Check MAC table
-orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show network-instance mac-vrf-100 bridge-table mac-table all"
+./lab exec "docker exec clab-gnmi-clos-leaf1 sr_cli 'show network-instance mac-vrf-100 bridge-table mac-table all'"
 
 # Test connectivity
-orb -m clab docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.2
+./lab exec "docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.2"
 ```
 
 ### Traffic Generation
 ```bash
 # Generate test traffic
-orb -m clab ./generate-traffic.sh
+./lab exec "./generate-traffic.sh"
 ```
 
 ## Important Notes
 
-1. **Always use `orb -m clab`** for any containerlab-related commands
-2. **BGP uses loopback peering** - don't use interface IPs for neighbors
+1. **Always use `./lab` wrapper** for any containerlab-related commands
+2. **Lab runs on a remote x86_64 Linux server** — commands execute via SSH
+3. **BGP uses loopback peering** - don't use interface IPs for neighbors
 3. **OSPF is required** - provides reachability for BGP next-hops
 4. **Clients must be in same subnet** - 10.10.100.0/24 for Layer 2 EVPN
 5. **Grafana dashboards auto-reload** - restart Grafana after JSON changes

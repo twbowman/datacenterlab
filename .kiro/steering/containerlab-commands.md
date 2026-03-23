@@ -6,104 +6,107 @@ inclusion: auto
 
 ## Platform Context
 
-**This lab runs on macOS with ARM processor (Apple Silicon).**
+**Development happens on macOS ARM (Apple Silicon). The lab runs on a remote x86_64 Linux server.**
 
-Containerlab does not run natively on ARM Macs, so we use **ORB** (a lightweight VM manager) to run containerlab in an x86_64 Linux VM with emulation.
+All containerlab, Docker, Ansible, and gNMI commands execute on the remote server via the `./lab` wrapper script. The wrapper handles SSH, rsync, and tunneling automatically.
 
-### Why ORB is Required
-- **ARM Limitation**: Containerlab and SR Linux containers require x86_64 architecture
-- **ORB Solution**: Creates a Linux VM with proper emulation for containerlab
-- **Transparent**: Commands run in VM but files sync with local workspace
+### Why Remote Execution
+- **ARM Limitation**: SONiC VS images are x86_64 only; SR Linux containers also require x86_64
+- **Remote Server**: Hetzner Cloud (CPX31/CPX41) running Ubuntu, provisioned via `./lab setup`
+- **Transparent**: `./lab` syncs the repo and runs commands remotely over SSH
 
-### When ORB is NOT Needed
-If you were running on:
-- **Linux x86_64**: Run containerlab commands directly (no `orb -m clab` prefix)
-- **Intel Mac**: May run natively with Docker Desktop (no `orb -m clab` prefix)
-- **Windows with WSL2**: Run containerlab in WSL2 directly (no `orb -m clab` prefix)
+## CRITICAL: Use the `./lab` Wrapper for All Remote Commands
 
-## CRITICAL: All Commands Must Run in ORB VM Context
-
-**ALWAYS** prefix containerlab-related commands with `orb -m clab` to execute them in the correct VM context.
+**NEVER** run containerlab, Docker, or Ansible commands directly. Always use the `./lab` wrapper.
 
 ### Command Patterns
 
-#### Docker Commands
+#### Lab Lifecycle
 ```bash
-# CORRECT
-orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "show version"
-orb -m clab docker ps
-orb -m clab docker logs clab-monitoring-grafana
+# Deploy a topology (default vendor from .env, or specify)
+./lab deploy
+./lab deploy srlinux
+./lab deploy sonic
 
-# WRONG - Will fail or run in wrong context
-docker exec clab-gnmi-clos-leaf1 sr_cli "show version"
+# Destroy a topology
+./lab destroy
+./lab destroy sonic
+
+# Check running containers
+./lab status
 ```
 
-#### Containerlab Commands
+#### Configuration and Validation
 ```bash
-# CORRECT
-orb -m clab sudo containerlab deploy -t topology-srlinux.yml
-orb -m clab sudo containerlab destroy -t topology-srlinux.yml
-orb -m clab sudo containerlab inspect
+# Run the main site playbook (syncs repo first)
+./lab configure
 
-# WRONG
-sudo containerlab deploy -t topology-srlinux.yml
+# Run a specific playbook
+./lab configure ansible/methods/srlinux_gnmi/playbooks/configure-evpn.yml
+
+# Run validation checks
+./lab validate
 ```
 
-#### Ansible Commands
+#### Remote Access
 ```bash
-# CORRECT
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+# Open SSH session to the remote server
+./lab ssh
 
-# WRONG
-ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+# Run an arbitrary command on the remote server
+./lab exec "docker exec clab-gnmi-clos-leaf1 sr_cli 'show version'"
+./lab exec "docker ps"
+./lab exec "gnmic -a clab-gnmi-clos-leaf1 get --path /system/name"
+
+# Sync repo without deploying
+./lab sync
 ```
 
-#### Shell Scripts
+#### Monitoring Tunnels
 ```bash
-# CORRECT
-orb -m clab ./generate-traffic.sh
-orb -m clab ./check-monitoring.sh
-
-# WRONG
-./generate-traffic.sh
+# Open SSH tunnels for Grafana (3000), Prometheus (9090), gNMIc (9273)
+./lab tunnel
+# Then open http://localhost:3000 in your browser
 ```
 
-#### File Operations in VM
+#### First-Time Server Setup
 ```bash
-# CORRECT - For files that need to be in the VM
-orb -m clab cat /path/to/file
-orb -m clab ls -la
-
-# Local file operations don't need orb prefix
-cat README.md
-ls -la
+# Provision the remote server (Docker, containerlab, gnmic, Ansible, Python deps)
+./lab setup
 ```
 
-### When NOT to Use `orb -m clab`
+### When NOT to Use `./lab`
 
 - Reading/writing files in the local workspace (use normal file tools)
-- Git operations
+- Git operations (run locally)
+- Editing configuration files (edit locally, `./lab sync` pushes changes)
 - Local Python scripts that don't interact with containers
-- Editing configuration files
 
 ### Quick Reference
 
-| Task | Command Prefix |
-|------|----------------|
-| Docker operations | `orb -m clab docker ...` |
-| Containerlab CLI | `orb -m clab sudo containerlab ...` |
-| Ansible playbooks | `orb -m clab ansible-playbook ...` |
-| Shell scripts | `orb -m clab ./script.sh` |
-| SR Linux CLI | `orb -m clab docker exec clab-gnmi-clos-<device> sr_cli ...` |
-| gNMI commands | `orb -m clab gnmic ...` |
-| Local files | No prefix needed |
+| Task | Command |
+|------|---------|
+| Deploy lab | `./lab deploy [srlinux\|sonic]` |
+| Destroy lab | `./lab destroy [srlinux\|sonic]` |
+| Configure fabric | `./lab configure` |
+| Validate state | `./lab validate` |
+| Check containers | `./lab status` |
+| SSH to server | `./lab ssh` |
+| Run remote command | `./lab exec "<cmd>"` |
+| Sync repo | `./lab sync` |
+| Open dashboards | `./lab tunnel` |
+| Setup server | `./lab setup` |
 
-### Common Mistakes to Avoid
+### Configuration
 
-1. ❌ Running docker commands without `orb -m clab`
-2. ❌ Running ansible without `orb -m clab`
-3. ❌ Forgetting `sudo` for containerlab commands
-4. ❌ Using `cd` command (use `cwd` parameter instead)
+The `./lab` wrapper reads from `.env` (copy from `.env.example`):
+```bash
+LAB_HOST=65.108.x.x          # Remote server IP
+LAB_USER=root                 # SSH user
+LAB_SSH_KEY=~/.ssh/id_ed25519 # SSH key
+LAB_VENDOR=srlinux            # Default vendor
+LAB_REMOTE_DIR=/opt/containerlab
+```
 
 ### Container Naming Convention
 
@@ -112,11 +115,9 @@ All lab containers follow this pattern:
 - Clients: `clab-gnmi-clos-client<N>` (e.g., `clab-gnmi-clos-client1`)
 - Monitoring: `clab-monitoring-<service>` (e.g., `clab-monitoring-grafana`)
 
-### Verification
+### Common Mistakes to Avoid
 
-To verify you're in the correct context:
-```bash
-orb -m clab docker ps | grep clab-gnmi-clos
-```
-
-This should show all running lab containers.
+1. ❌ Running docker/containerlab/ansible commands directly (use `./lab` wrapper)
+2. ❌ Forgetting to `./lab sync` after local edits before running remote commands (deploy/configure auto-sync)
+3. ❌ Using `cd` command (use `cwd` parameter instead)
+4. ❌ Editing `.env` and committing it (it contains secrets, is in `.gitignore`)

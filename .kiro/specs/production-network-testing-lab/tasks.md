@@ -12,7 +12,7 @@ This implementation plan breaks down the production network testing lab into 9 p
 
 #[[file:.kiro/steering/containerlab-commands.md]]
 
-This lab runs on macOS with ARM processor using ORB. All containerlab, docker, and ansible commands must be prefixed with `orb -m clab` to run in the correct VM context.
+This lab runs on macOS ARM with the lab executing on a remote x86_64 Linux server. All containerlab, docker, and ansible commands run via the `./lab` wrapper script.
 
 ## Tasks
 

@@ -28,7 +28,7 @@ This project isn't a new tool — it's a working, integrated, open-source refere
 
 - **Validation as code, not just configuration as code.** The industry has embraced config-as-code (Ansible, Terraform, Nornir), but validation is still mostly "SSH in and check." The `gnmi_validate` module compares gNMI GET state against expected state from inventory variables, with structured diffs and remediation hints — a pattern most teams haven't built yet.
 
-- **A laptop-runnable multi-vendor lab that mirrors production.** Containerlab made this possible, but most examples are single-vendor or topology-only. A full stack — deploy, configure, monitor, validate — running on macOS ARM with real NOS containers, where the same playbooks work in production by swapping an inventory file, is a reference architecture people are looking for and not finding.
+- **A remotely-managed multi-vendor lab that mirrors production.** Containerlab made this possible, but most examples are single-vendor or topology-only. A full stack — deploy, configure, monitor, validate — managed from macOS ARM via a simple `./lab` wrapper against a remote x86_64 server, running real NOS containers, where the same playbooks work in production by swapping an inventory file, is a reference architecture people are looking for and not finding.
 
 **Positioning note**: This project isn't competing with CloudVision, Apstra, or NSO. It's showing what's possible with open-source tools and gNMI when you put the integration work in. The individual tools (Ansible, Grafana, Prometheus, gNMIc) aren't novel — the integration across vendors is.
 
@@ -39,9 +39,9 @@ A containerized datacenter network running real network operating systems:
 - 2 spine switches (route reflectors) + 4 leaf switches + 4 clients
 - Full CLOS fabric with OSPF underlay, iBGP overlay, EVPN/VXLAN
 - 4 vendor support: Nokia SR Linux, Arista cEOS, SONiC, Juniper cRPD
-- Runs on a laptop via Containerlab + OrbStack (macOS ARM)
+- Runs on a remote x86_64 Linux server via Containerlab (managed from macOS with `./lab` wrapper)
 
-**Demo opportunity**: Show `./lab start` and `./lab status` — containers come up in ~2 minutes.
+**Demo opportunity**: Show `./lab deploy` and `./lab status` — containers come up in ~2 minutes.
 
 ### 4. Architecture Walkthrough (5 min)
 
@@ -93,7 +93,7 @@ This is the core automation innovation. Walk through how it works:
   when: ansible_network_os == 'arista.eos'
 ```
 
-**Demo opportunity**: Run `ansible-playbook -i inventory.yml site.yml` and show it configuring interfaces → LLDP → OSPF → BGP → EVPN across all devices.
+**Demo opportunity**: Run `./lab configure` and show it configuring interfaces → LLDP → OSPF → BGP → EVPN across all devices.
 
 ### 6. EVPN/VXLAN Fabric (5 min)
 
@@ -105,7 +105,7 @@ Explain the overlay architecture:
 
 Data model is in `group_vars/leafs.yml` — change the YAML, re-run the playbook, fabric reconfigures.
 
-**Demo opportunity**: `docker exec clab-gnmi-clos-client1 ping 10.10.100.12` — traffic traverses leaf1 → spine → leaf2 via VXLAN.
+**Demo opportunity**: `./lab exec "docker exec clab-gnmi-clos-client1 ping 10.10.100.12"` — traffic traverses leaf1 → spine → leaf2 via VXLAN.
 
 ### 7. Telemetry and Monitoring (5 min)
 
@@ -124,7 +124,7 @@ Metric normalization pipeline:
 - Network Congestion, EVPN/VXLAN Stability
 - Vendor SR Linux (native metrics drill-down)
 
-**Demo opportunity**: Open Grafana at localhost:3000, show the Universal Interfaces dashboard with data from all devices. Then drill into vendor-specific view.
+**Demo opportunity**: Open Grafana at localhost:3000 (after `./lab tunnel`), show the Universal Interfaces dashboard with data from all devices. Then drill into vendor-specific view.
 
 ### 8. Validation Framework (5 min)
 
@@ -142,7 +142,7 @@ Validation playbooks:
 
 Callback plugin aggregates results into a JSON report.
 
-**Demo opportunity**: Run `ansible-playbook playbooks/validate.yml`, show the structured output. Then intentionally break something (shut an interface) and re-run to show failure detection with remediation suggestions.
+**Demo opportunity**: Run `./lab validate`, show the structured output. Then intentionally break something (shut an interface) and re-run to show failure detection with remediation suggestions.
 
 ### 9. Production Portability (3 min)
 
@@ -211,34 +211,35 @@ If doing a live demo, suggested order:
 cat topology-srlinux.yml
 
 # 2. Deploy (if not already running)
-./lab start
+./lab deploy
 
 # 3. Show running containers
 ./lab status
 
 # 4. Configure the fabric
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml
+./lab configure
 
 # 5. Verify OSPF + BGP
-orb -m clab docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default protocols ospf neighbor"
-orb -m clab docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default protocols bgp neighbor"
+./lab exec "docker exec clab-gnmi-clos-spine1 sr_cli 'show network-instance default protocols ospf neighbor'"
+./lab exec "docker exec clab-gnmi-clos-spine1 sr_cli 'show network-instance default protocols bgp neighbor'"
 
 # 6. Test client connectivity via EVPN/VXLAN
-orb -m clab docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.12
+./lab exec "docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.12"
 
-# 7. Show Grafana dashboards
-open http://localhost:3000
+# 7. Open tunnels for Grafana dashboards
+./lab tunnel
+# Then open http://localhost:3000
 
 # 8. Run validation
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/playbooks/validate.yml
+./lab validate
 
 # 9. Break something and re-validate
-orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "set /interface ethernet-1/1 admin-state disable"
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/playbooks/validate.yml
+./lab exec "docker exec clab-gnmi-clos-leaf1 sr_cli 'set /interface ethernet-1/1 admin-state disable'"
+./lab validate
 # Show failure detection + remediation hint
 
 # 10. Fix it
-orb -m clab docker exec clab-gnmi-clos-leaf1 sr_cli "set /interface ethernet-1/1 admin-state enable"
+./lab exec "docker exec clab-gnmi-clos-leaf1 sr_cli 'set /interface ethernet-1/1 admin-state enable'"
 ```
 
 ---
