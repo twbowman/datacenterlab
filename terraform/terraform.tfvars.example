@@ -1,0 +1,17 @@
+# Copy to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+
+cloud_provider = "hetzner"
+
+# SSH keys — used for server access and provisioning
+ssh_public_key_path  = "~/.ssh/id_ed25519.pub"
+ssh_private_key_path = "~/.ssh/id_ed25519"
+
+# Server config
+server_name = "dclab"
+server_type = "cpx31"    # cpx31=4vCPU/8GB, cpx41=8vCPU/16GB, cpx51=16vCPU/32GB
+location    = "fsn1"     # fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki), ash (Ashburn)
+image       = "ubuntu-22.04"
+
+# Hetzner API token — set via environment variable instead of tfvars:
+#   export HCLOUD_TOKEN="your-token-here"
