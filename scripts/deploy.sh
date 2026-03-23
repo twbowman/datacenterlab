@@ -2,8 +2,11 @@
 # ContainerLab deployment script - Network lab only
 #
 # Usage:
-#   ./scripts/deploy.sh              # Deploy only
-#   ./scripts/deploy.sh --validate   # Deploy + run validation after config
+#   ./scripts/deploy.sh                    # Deploy SR Linux (default)
+#   ./scripts/deploy.sh srlinux            # Deploy SR Linux
+#   ./scripts/deploy.sh sonic              # Deploy SONiC
+#   ./scripts/deploy.sh --validate         # Deploy SR Linux + validate
+#   ./scripts/deploy.sh sonic --validate   # Deploy SONiC + validate
 
 set -e
 
@@ -15,13 +18,24 @@ NC='\033[0m'
 
 # Parse arguments
 RUN_VALIDATE=0
+VENDOR="srlinux"
 for arg in "$@"; do
     case "$arg" in
+        srlinux)
+            VENDOR="srlinux"
+            ;;
+        sonic)
+            VENDOR="sonic"
+            ;;
         --validate)
             RUN_VALIDATE=1
             ;;
         --help|-h)
-            echo "Usage: $0 [OPTIONS]"
+            echo "Usage: $0 [VENDOR] [OPTIONS]"
+            echo ""
+            echo "Vendors:"
+            echo "  srlinux      Deploy SR Linux CLOS topology (default)"
+            echo "  sonic        Deploy SONiC CLOS topology"
             echo ""
             echo "Options:"
             echo "  --validate   Run configuration validation after deployment"
@@ -31,10 +45,17 @@ for arg in "$@"; do
     esac
 done
 
-echo -e "${GREEN}Deploying SR Linux CLOS network topology...${NC}"
+TOPOLOGY_FILE="../topology-${VENDOR}.yml"
+
+if [ ! -f "$TOPOLOGY_FILE" ]; then
+    echo -e "${RED}Topology file not found: ${TOPOLOGY_FILE}${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Deploying ${VENDOR} CLOS network topology...${NC}"
 
 # Deploy topology
-containerlab deploy -t ../topology-srlinux.yml
+containerlab deploy -t "$TOPOLOGY_FILE"
 
 echo -e "${YELLOW}Waiting for routers to boot (30 seconds)...${NC}"
 sleep 30
@@ -58,7 +79,7 @@ echo ""
 echo -e "${YELLOW}Generating dynamic inventory with OS detection...${NC}"
 if [ -f "ansible/plugins/inventory/dynamic_inventory.py" ]; then
     chmod +x ansible/plugins/inventory/dynamic_inventory.py
-    if python3 ansible/plugins/inventory/dynamic_inventory.py -t topology-srlinux.yml -o ansible/inventory-dynamic.yml 2>&1; then
+    if python3 ansible/plugins/inventory/dynamic_inventory.py -t "topology-${VENDOR}.yml" -o ansible/inventory-dynamic.yml 2>&1; then
         echo -e "${GREEN}Dynamic inventory generated: ansible/inventory-dynamic.yml${NC}"
         echo ""
         echo "Configure network with Ansible (using dynamic inventory):"
@@ -78,7 +99,7 @@ echo "Deploy monitoring stack separately:"
 echo "  ./deploy-monitoring.sh"
 echo ""
 echo "View topology:"
-echo "  containerlab inspect -t topology-srlinux.yml"
+echo "  containerlab inspect -t topology-${VENDOR}.yml"
 
 # ─────────────────────────────────────────────────────────────
 # Optional: Run validation after deployment
@@ -110,4 +131,3 @@ if [ "$RUN_VALIDATE" -eq 1 ]; then
         echo -e "${YELLOW}⚠ ansible/playbooks/validate.yml not found, skipping validation${NC}"
     fi
 fi
-
