@@ -160,7 +160,7 @@ Run before starting gNMIc:
 ./monitoring/gnmic/validate-transformation-rules.sh
 
 # If validation passes, start gNMIc
-orb -m clab docker-compose -f monitoring/docker-compose.yml up -d gnmic
+docker-compose -f monitoring/docker-compose.yml up -d gnmic
 ```
 
 ### Automated Validation
@@ -178,7 +178,7 @@ if ! ./monitoring/gnmic/validate-transformation-rules.sh; then
 fi
 
 echo "Starting monitoring stack..."
-orb -m clab docker-compose -f monitoring/docker-compose.yml up -d
+docker-compose -f monitoring/docker-compose.yml up -d
 ```
 
 ### Docker Entrypoint

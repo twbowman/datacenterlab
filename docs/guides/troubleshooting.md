@@ -34,8 +34,8 @@ If it fails:
 5. You should see metrics with labels like `exported_source`, `interface_name`
 
 If no data:
-- Check gNMIc is collecting: `orb -m clab curl -s http://172.20.20.5:9273/metrics | grep interface_statistics | head -5`
-- Check Prometheus is scraping: `orb -m clab curl -s http://172.20.20.3:9090/api/v1/targets`
+- Check gNMIc is collecting: `curl -s http://172.20.20.5:9273/metrics | grep interface_statistics | head -5`
+- Check Prometheus is scraping: `curl -s http://172.20.20.3:9090/api/v1/targets`
 
 ### Step 3: Check Dashboard Queries
 
@@ -76,7 +76,7 @@ Or simpler: Just select "Prometheus" from the dropdown in each panel.
 
 **Check current metrics**:
 ```bash
-orb -m clab curl -s http://172.20.20.5:9273/metrics | grep "interface_statistics" | head -10
+curl -s http://172.20.20.5:9273/metrics | grep "interface_statistics" | head -10
 ```
 
 Look for the actual metric names and update dashboard queries accordingly.
@@ -85,7 +85,7 @@ Look for the actual metric names and update dashboard queries accordingly.
 
 **Solution**: Restart Grafana
 ```bash
-orb -m clab docker restart clab-monitoring-grafana
+docker restart clab-monitoring-grafana
 ```
 
 Wait 20 seconds, then refresh browser.
@@ -94,7 +94,7 @@ Wait 20 seconds, then refresh browser.
 
 The errors about `network-overview.json` are from a cached old dashboard. They don't affect the new dashboard. To clear:
 ```bash
-orb -m clab bash -c "cd /Users/toddbowman/Documents/projects/grpc/containerlab && ./lab mon-stop && ./lab mon-start"
+bash -c "cd /Users/toddbowman/Documents/projects/grpc/containerlab && ./lab mon-stop && ./lab mon-start"
 ```
 
 ## Manual Dashboard Import
@@ -112,7 +112,7 @@ If auto-provisioning isn't working, import manually:
 
 Run the check script:
 ```bash
-orb -m clab bash -c "cd /Users/toddbowman/Documents/projects/grpc/containerlab && ./check-metrics.sh"
+bash -c "cd /Users/toddbowman/Documents/projects/grpc/containerlab && ./check-metrics.sh"
 ```
 
 Should show:
@@ -127,17 +127,17 @@ Should show:
 
 ### Basic connectivity test:
 ```bash
-orb -m clab curl -s 'http://172.20.20.3:9090/api/v1/query?query=up'
+curl -s 'http://172.20.20.3:9090/api/v1/query?query=up'
 ```
 
 ### Check interface metrics exist:
 ```bash
-orb -m clab curl -s 'http://172.20.20.3:9090/api/v1/query?query=gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets' | python3 -m json.tool | head -50
+curl -s 'http://172.20.20.3:9090/api/v1/query?query=gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets' | python3 -m json.tool | head -50
 ```
 
 ### Check rate calculation (what dashboard uses):
 ```bash
-orb -m clab curl -s 'http://172.20.20.3:9090/api/v1/query?query=rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets[1m])' | python3 -m json.tool | head -50
+curl -s 'http://172.20.20.3:9090/api/v1/query?query=rate(gnmic_interface_stats_srl_nokia_interfaces_interface_statistics_out_octets[1m])' | python3 -m json.tool | head -50
 ```
 
 ## Dashboard Panels
@@ -161,23 +161,23 @@ If you've tried everything above and still see "No Data":
 
 1. **Check if metrics have different names**:
    ```bash
-   orb -m clab curl -s http://172.20.20.5:9273/metrics | grep "interface" | grep "octets" | head -5
+   curl -s http://172.20.20.5:9273/metrics | grep "interface" | grep "octets" | head -5
    ```
 
 2. **Verify Prometheus can scrape gNMIc**:
    ```bash
-   orb -m clab curl -s http://172.20.20.3:9090/api/v1/targets | python3 -m json.tool
+   curl -s http://172.20.20.3:9090/api/v1/targets | python3 -m json.tool
    ```
    Look for the gNMIc target and check if `health: "up"`
 
 3. **Check Grafana can reach Prometheus**:
    ```bash
-   orb -m clab docker exec clab-monitoring-grafana wget -qO- http://172.20.20.3:9090/api/v1/query?query=up
+   docker exec clab-monitoring-grafana wget -qO- http://172.20.20.3:9090/api/v1/query?query=up
    ```
 
 4. **Restart everything**:
    ```bash
-   orb -m clab bash -c "cd /Users/toddbowman/Documents/projects/grpc/containerlab && ./lab mon-stop && sleep 5 && ./lab mon-start"
+   bash -c "cd /Users/toddbowman/Documents/projects/grpc/containerlab && ./lab mon-stop && sleep 5 && ./lab mon-start"
    ```
 
 5. **Check browser console** (F12) for JavaScript errors
@@ -186,6 +186,6 @@ If you've tried everything above and still see "No Data":
 
 If still stuck, provide:
 1. Output of `./check-metrics.sh`
-2. Grafana logs: `orb -m clab docker logs clab-monitoring-grafana --tail 50`
+2. Grafana logs: `docker logs clab-monitoring-grafana --tail 50`
 3. Screenshot of the "No Data" error
 4. Output of the test queries above

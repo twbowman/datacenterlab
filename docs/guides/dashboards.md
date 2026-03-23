@@ -151,15 +151,15 @@ Check if OSPF and BGP metrics are being collected:
 
 ```bash
 # Check OSPF metrics
-orb -m clab curl -s http://172.20.20.5:9273/metrics | grep ospf | head -10
+curl -s http://172.20.20.5:9273/metrics | grep ospf | head -10
 
 # Check BGP metrics
-orb -m clab curl -s http://172.20.20.5:9273/metrics | grep bgp | head -10
+curl -s http://172.20.20.5:9273/metrics | grep bgp | head -10
 ```
 
 If no metrics appear, check gNMIc logs:
 ```bash
-orb -m clab docker logs clab-monitoring-gnmic --tail 50
+docker logs clab-monitoring-gnmic --tail 50
 ```
 
 ## Troubleshooting
@@ -168,7 +168,7 @@ orb -m clab docker logs clab-monitoring-gnmic --tail 50
 
 1. **Verify gNMIc is collecting routing metrics**:
    ```bash
-   orb -m clab curl -s http://172.20.20.5:9273/metrics | grep -E "ospf|bgp"
+   curl -s http://172.20.20.5:9273/metrics | grep -E "ospf|bgp"
    ```
 
 2. **Check gNMIc configuration**:
@@ -179,13 +179,13 @@ orb -m clab docker logs clab-monitoring-gnmic --tail 50
 
 3. **Restart gNMIc**:
    ```bash
-   orb -m clab docker restart clab-monitoring-gnmic
+   docker restart clab-monitoring-gnmic
    sleep 30
    ```
 
 4. **Test manual query**:
    ```bash
-   orb -m clab gnmic -a 172.20.20.10:57400 -u admin -p 'NokiaSrl1!' --skip-verify get --path '/network-instance[name=default]/protocols/ospf' --encoding json_ietf
+   gnmic -a 172.20.20.10:57400 -u admin -p 'NokiaSrl1!' --skip-verify get --path '/network-instance[name=default]/protocols/ospf' --encoding json_ietf
    ```
 
 ### Metrics Have Different Names
@@ -194,7 +194,7 @@ If the dashboard shows "No data" but metrics exist with different names:
 
 1. Check actual metric names:
    ```bash
-   orb -m clab curl -s http://172.20.20.5:9273/metrics | grep "ospf\|bgp" | grep -v "#" | cut -d'{' -f1 | sort -u
+   curl -s http://172.20.20.5:9273/metrics | grep "ospf\|bgp" | grep -v "#" | cut -d'{' -f1 | sort -u
    ```
 
 2. Edit dashboard panels to use the correct metric names
@@ -204,7 +204,7 @@ If the dashboard shows "No data" but metrics exist with different names:
 
 Restart Grafana:
 ```bash
-orb -m clab docker restart clab-monitoring-grafana
+docker restart clab-monitoring-grafana
 ```
 
 Wait 20 seconds, then refresh browser.

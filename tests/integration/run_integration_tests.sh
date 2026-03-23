@@ -21,18 +21,18 @@ echo ""
 # Check prerequisites
 echo "Checking prerequisites..."
 
-# Check if ORB is available (for macOS ARM)
-if command -v orb &> /dev/null; then
-    echo -e "${GREEN}✓${NC} ORB is installed"
+# Check if remote server is available (for macOS ARM)
+if command -v docker &> /dev/null; then
+    echo -e "${GREEN}✓${NC} remote server is installed"
 else
-    echo -e "${YELLOW}⚠${NC} ORB not found (required for macOS ARM)"
+    echo -e "${YELLOW}⚠${NC} remote server not found (required for macOS ARM)"
 fi
 
 # Check if containerlab is available
-if orb -m clab sudo containerlab version &> /dev/null; then
+if sudo containerlab version &> /dev/null; then
     echo -e "${GREEN}✓${NC} Containerlab is available"
 else
-    echo -e "${YELLOW}⚠${NC} Containerlab not available in ORB"
+    echo -e "${YELLOW}⚠${NC} Containerlab not available in remote server"
 fi
 
 # Check if Python dependencies are installed
@@ -48,24 +48,24 @@ echo ""
 
 # Check if lab is deployed
 echo "Checking lab status..."
-LAB_RUNNING=$(orb -m clab docker ps --filter name=clab-gnmi-clos --format '{{.Names}}' | wc -l)
+LAB_RUNNING=$(docker ps --filter name=clab-gnmi-clos --format '{{.Names}}' | wc -l)
 
 if [ "$LAB_RUNNING" -gt 0 ]; then
     echo -e "${GREEN}✓${NC} Lab is running ($LAB_RUNNING containers)"
 else
     echo -e "${YELLOW}⚠${NC} Lab is not running"
-    echo "  Deploy with: orb -m clab sudo containerlab deploy -t topology.yml"
+    echo "  Deploy with: sudo containerlab deploy -t topology.yml"
     echo "  Tests will attempt to deploy automatically"
 fi
 
 # Check if monitoring is deployed
-MONITORING_RUNNING=$(orb -m clab docker ps --filter name=clab-monitoring --format '{{.Names}}' | wc -l)
+MONITORING_RUNNING=$(docker ps --filter name=clab-monitoring --format '{{.Names}}' | wc -l)
 
 if [ "$MONITORING_RUNNING" -gt 0 ]; then
     echo -e "${GREEN}✓${NC} Monitoring stack is running ($MONITORING_RUNNING containers)"
 else
     echo -e "${YELLOW}⚠${NC} Monitoring stack is not running"
-    echo "  Deploy with: orb -m clab sudo containerlab deploy -t topology-monitoring.yml"
+    echo "  Deploy with: sudo containerlab deploy -t topology-monitoring.yml"
     echo "  Tests will attempt to deploy automatically"
 fi
 
@@ -135,9 +135,9 @@ else
     echo -e "${RED}✗ Some tests failed${NC}"
     echo ""
     echo "Troubleshooting:"
-    echo "  - Check lab status: orb -m clab docker ps"
-    echo "  - Check device logs: orb -m clab docker logs clab-gnmi-clos-spine1"
-    echo "  - Check monitoring logs: orb -m clab docker logs clab-monitoring-prometheus"
+    echo "  - Check lab status: docker ps"
+    echo "  - Check device logs: docker logs clab-gnmi-clos-spine1"
+    echo "  - Check monitoring logs: docker logs clab-monitoring-prometheus"
     echo "  - Review test output above for specific failures"
 fi
 

@@ -252,7 +252,7 @@ subscriptions:
 
 Then restart gNMIc:
 ```bash
-orb -m clab docker restart clab-monitoring-gnmic
+docker restart clab-monitoring-gnmic
 ```
 
 New metrics will appear:

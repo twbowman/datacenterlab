@@ -162,7 +162,7 @@ pytest tests/unit/test_deployment.py --cov=scripts/validate-topology.py
 
 ### Integration Tests (Optional)
 - Docker
-- containerlab (Linux) or ORB (macOS)
+- containerlab (Linux) or remote server (macOS)
 
 ## Getting Help
 

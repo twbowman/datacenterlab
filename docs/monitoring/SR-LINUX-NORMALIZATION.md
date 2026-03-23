@@ -263,7 +263,7 @@ curl 'http://localhost:9090/api/v1/query?query=network_interface_in_octets{inter
 grep -A 5 "event-processors:" monitoring/gnmic/gnmic-config.yml
 
 # 2. Restart gNMIc container
-orb -m clab exec -it gnmic sh -c "pkill gnmic"
+exec -it gnmic sh -c "pkill gnmic"
 # Or restart the container
 docker restart gnmic
 

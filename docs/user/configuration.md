@@ -368,7 +368,7 @@ Deploy configurations using Ansible:
 
 ```bash
 # macOS ARM
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/site.yml
+ansible-playbook -i ansible/inventory.yml ansible/site.yml
 
 # Linux
 ansible-playbook -i ansible/inventory.yml ansible/site.yml

@@ -20,7 +20,7 @@ class TestEndToEndWorkflow:
     """Test complete end-to-end workflow"""
 
     def test_deploy_configure_validate_monitor_srlinux(
-        self, orb_prefix, lab_deployed, monitoring_deployed, prometheus_url
+        self, lab_cmd, lab_deployed, monitoring_deployed, prometheus_url
     ):
         """
         Test complete workflow with SR Linux devices
@@ -36,7 +36,7 @@ class TestEndToEndWorkflow:
         # Step 1: Verify deployment
         print("\n=== Step 1: Verify Deployment ===")
         result = subprocess.run(
-            f"{orb_prefix} docker ps --filter name=clab-gnmi-clos --format '{{{{.Names}}}}'",
+            "docker ps --filter name=clab-gnmi-clos --format '{{.Names}}'",
             shell=True,
             capture_output=True,
             text=True,
@@ -49,7 +49,7 @@ class TestEndToEndWorkflow:
         # Step 2: Configure devices with Ansible
         print("\n=== Step 2: Configure Devices ===")
         config_result = subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
+            "ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
             shell=True,
             cwd=project_root,
             capture_output=True,
@@ -75,7 +75,7 @@ class TestEndToEndWorkflow:
 
             # Try to get interface information via SR Linux CLI
             cli_result = subprocess.run(
-                f'{orb_prefix} docker exec {container_name} sr_cli "show interface brief"',
+                f'{lab_cmd} docker exec {container_name} sr_cli "show interface brief"',
                 shell=True,
                 capture_output=True,
                 text=True,
@@ -127,7 +127,7 @@ class TestEndToEndWorkflow:
 
         print("\n=== End-to-End Workflow Test Complete ===")
 
-    def test_configuration_idempotency(self, orb_prefix, lab_deployed):
+    def test_configuration_idempotency(self, lab_cmd, lab_deployed):
         """
         Test that applying configuration multiple times produces same result
 
@@ -140,7 +140,7 @@ class TestEndToEndWorkflow:
         # Apply configuration first time
         print("Applying configuration (first time)...")
         result1 = subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
+            "ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
             shell=True,
             cwd=project_root,
             capture_output=True,
@@ -151,7 +151,7 @@ class TestEndToEndWorkflow:
         # Apply configuration second time
         print("Applying configuration (second time)...")
         result2 = subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
+            "ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
             shell=True,
             cwd=project_root,
             capture_output=True,
@@ -166,7 +166,7 @@ class TestEndToEndWorkflow:
 
         print("✓ Configuration is idempotent")
 
-    def test_validation_after_configuration(self, orb_prefix, lab_deployed):
+    def test_validation_after_configuration(self, lab_cmd, lab_deployed):
         """
         Test that validation checks work after configuration
         """
@@ -176,7 +176,7 @@ class TestEndToEndWorkflow:
 
         # Run verification playbook
         verify_result = subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml",
+            "ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml",
             shell=True,
             cwd=project_root,
             capture_output=True,
@@ -239,7 +239,7 @@ class TestEndToEndWorkflow:
 class TestWorkflowErrorHandling:
     """Test error handling in workflows"""
 
-    def test_deployment_with_invalid_topology(self, orb_prefix, tmp_path):
+    def test_deployment_with_invalid_topology(self, lab_cmd, tmp_path):
         """
         Test that deployment fails gracefully with invalid topology
         """
@@ -258,7 +258,7 @@ topology:
 
         # Try to deploy
         result = subprocess.run(
-            f"{orb_prefix} sudo containerlab deploy -t {invalid_topology}",
+            f"sudo containerlab deploy -t {invalid_topology}",
             shell=True,
             capture_output=True,
             text=True,
@@ -274,7 +274,7 @@ topology:
         assert len(error_output) > 0, "Should provide error message"
         print(f"✓ Error message provided: {error_output[:200]}...")
 
-    def test_configuration_rollback_on_error(self, orb_prefix, lab_deployed, tmp_path):
+    def test_configuration_rollback_on_error(self, lab_cmd, lab_deployed, tmp_path):
         """
         Test that configuration rolls back on error
         """
@@ -296,7 +296,7 @@ topology:
 
         # Try to apply invalid configuration
         result = subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml {invalid_playbook}",
+            f"ansible-playbook -i ansible/inventory.yml {invalid_playbook}",
             shell=True,
             cwd=project_root,
             capture_output=True,
@@ -310,7 +310,7 @@ topology:
 
         # Verify devices are still operational
         cli_result = subprocess.run(
-            f'{orb_prefix} docker exec clab-gnmi-clos-leaf1 sr_cli "show version"',
+            f'{lab_cmd} docker exec clab-gnmi-clos-leaf1 sr_cli "show version"',
             shell=True,
             capture_output=True,
             text=True,
@@ -324,7 +324,7 @@ topology:
 class TestWorkflowPerformance:
     """Test workflow performance"""
 
-    def test_configuration_deployment_time(self, orb_prefix, lab_deployed):
+    def test_configuration_deployment_time(self, lab_cmd, lab_deployed):
         """
         Test that configuration deployment completes in reasonable time
         """
@@ -334,7 +334,7 @@ class TestWorkflowPerformance:
         start_time = time.time()
 
         subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
+            "ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/site.yml",
             shell=True,
             cwd=project_root,
             capture_output=True,
@@ -350,7 +350,7 @@ class TestWorkflowPerformance:
         assert duration < 300, f"Configuration took too long: {duration:.2f}s"
         print(f"✓ Configuration completed in acceptable time: {duration:.2f}s")
 
-    def test_validation_performance(self, orb_prefix, lab_deployed):
+    def test_validation_performance(self, lab_cmd, lab_deployed):
         """
         Test that validation completes within 60 seconds
 
@@ -362,7 +362,7 @@ class TestWorkflowPerformance:
         start_time = time.time()
 
         subprocess.run(
-            f"{orb_prefix} ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml",
+            "ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml",
             shell=True,
             cwd=project_root,
             capture_output=True,

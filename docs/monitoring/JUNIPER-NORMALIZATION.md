@@ -398,12 +398,12 @@ targets:
 
 1. **Deploy Juniper device**:
    ```bash
-   orb -m clab sudo containerlab deploy -t topology.yml
+   sudo containerlab deploy -t topology.yml
    ```
 
 2. **Verify gNMI connectivity**:
    ```bash
-   orb -m clab gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure capabilities
+   gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure capabilities
    ```
 
 3. **Check metrics in Prometheus**:
@@ -431,13 +431,13 @@ targets:
 **Solutions**:
 ```bash
 # Check if Juniper container is running
-orb -m clab docker ps | grep juniper
+docker ps | grep juniper
 
 # Test gNMI connectivity
-orb -m clab gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure capabilities
+gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure capabilities
 
 # Check gNMIc logs
-orb -m clab docker logs clab-monitoring-gnmic
+docker logs clab-monitoring-gnmic
 
 # Verify gNMIc target configuration
 cat monitoring/gnmic/gnmic-config.yml | grep -A 5 juniper
@@ -501,14 +501,14 @@ cat monitoring/gnmic/gnmic-config.yml | grep -A 10 "add_vendor_tags"
 **Solutions**:
 ```bash
 # Check if BGP is running on Juniper
-orb -m clab docker exec clab-juniper-test-juniper-leaf1 cli show bgp summary
+docker exec clab-juniper-test-juniper-leaf1 cli show bgp summary
 
 # Test BGP path subscription
-orb -m clab gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
+gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
   get --path "/network-instances/network-instance/protocols/protocol/bgp/neighbors"
 
 # Try native Juniper BGP path
-orb -m clab gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
+gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
   get --path "/junos/routing/bgp/neighbor"
 ```
 
@@ -524,7 +524,7 @@ orb -m clab gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
 **Solutions**:
 ```bash
 # Check actual interface names
-orb -m clab gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
+gnmic -a juniper-leaf1:32767 -u admin -p admin --insecure \
   get --path "/interfaces/interface/state/name"
 
 # Update regex to match all interface types

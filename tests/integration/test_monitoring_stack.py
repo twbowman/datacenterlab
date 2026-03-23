@@ -19,14 +19,14 @@ import requests
 class TestGNMIcCollector:
     """Test gNMIc telemetry collector"""
 
-    def test_gnmic_is_running(self, orb_prefix, monitoring_deployed):
+    def test_gnmic_is_running(self, lab_cmd, monitoring_deployed):
         """
         Test that gNMIc collector is running
         """
         print("\n=== Testing gNMIc Collector Status ===")
 
         result = subprocess.run(
-            f"{orb_prefix} docker ps --filter name=gnmic --format '{{{{.Names}}}}'",
+            "docker ps --filter name=gnmic --format '{{.Names}}'",
             shell=True,
             capture_output=True,
             text=True,
@@ -97,7 +97,7 @@ class TestGNMIcCollector:
         except requests.exceptions.RequestException as e:
             print(f"⚠ Could not check device metrics: {e}")
 
-    def test_gnmic_subscription_configuration(self, orb_prefix):
+    def test_gnmic_subscription_configuration(self, lab_cmd):
         """
         Test that gNMIc has proper subscription configuration
         """
@@ -127,14 +127,14 @@ class TestGNMIcCollector:
 class TestPrometheusIntegration:
     """Test Prometheus integration"""
 
-    def test_prometheus_is_running(self, orb_prefix, monitoring_deployed):
+    def test_prometheus_is_running(self, lab_cmd, monitoring_deployed):
         """
         Test that Prometheus is running
         """
         print("\n=== Testing Prometheus Status ===")
 
         result = subprocess.run(
-            f"{orb_prefix} docker ps --filter name=prometheus --format '{{{{.Names}}}}'",
+            "docker ps --filter name=prometheus --format '{{.Names}}'",
             shell=True,
             capture_output=True,
             text=True,
@@ -279,14 +279,14 @@ class TestPrometheusIntegration:
 class TestGrafanaIntegration:
     """Test Grafana integration"""
 
-    def test_grafana_is_running(self, orb_prefix, monitoring_deployed):
+    def test_grafana_is_running(self, lab_cmd, monitoring_deployed):
         """
         Test that Grafana is running
         """
         print("\n=== Testing Grafana Status ===")
 
         result = subprocess.run(
-            f"{orb_prefix} docker ps --filter name=grafana --format '{{{{.Names}}}}'",
+            "docker ps --filter name=grafana --format '{{.Names}}'",
             shell=True,
             capture_output=True,
             text=True,
@@ -528,7 +528,7 @@ class TestEndToEndPipeline:
 class TestMonitoringStackReliability:
     """Test monitoring stack reliability features"""
 
-    def test_prometheus_storage_configuration(self, orb_prefix):
+    def test_prometheus_storage_configuration(self, lab_cmd):
         """
         Test Prometheus storage configuration
 

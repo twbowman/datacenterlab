@@ -101,13 +101,13 @@ The test workflow runs on:
 ## Environment Differences
 
 ### Local Development (macOS ARM)
-- Uses ORB for containerlab execution
-- Commands prefixed with `orb -m clab`
+- Uses remote server for containerlab execution
+- Commands run on remote server via ./lab
 - Full multi-vendor support
 
 ### CI Environment (Linux x86_64)
 - Native containerlab execution
-- No ORB prefix needed
+- No remote server prefix needed
 - Direct docker and containerlab commands
 
 ## Test Execution

@@ -116,9 +116,9 @@ run_property_tests() {
 run_integration_tests() {
     print_header "Running Integration Tests"
     
-    # Check if we're on macOS (need ORB) or Linux (native)
+    # Check if we're on macOS (need remote server) or Linux (native)
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        print_warning "macOS detected - integration tests require ORB and containerlab"
+        print_warning "macOS detected - integration tests require remote server and containerlab"
         print_warning "Skipping integration tests in local CI simulation"
         print_warning "Run integration tests manually with: pytest tests/integration/ -v -s"
         INTEGRATION_TESTS_PASSED=true  # Skip but don't fail

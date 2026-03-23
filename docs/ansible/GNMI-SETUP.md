@@ -23,7 +23,7 @@ The nokia.grpc collection requires:
 pip3 install grpcio protobuf
 ```
 
-Or in the orb VM:
+Or in the remote server:
 
 ```bash
 sudo apt update

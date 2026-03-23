@@ -1020,7 +1020,7 @@ def add_remaining_slides(prs):
     add_notes(
         slide,
         "If doing a live demo, follow this sequence. "
-        "All commands need orb -m clab prefix on macOS ARM. "
+        "All commands run on the remote server via the ./lab wrapper. "
         "The break-and-fix cycle is the most impactful demo moment — "
         "shut an interface, show failure detection with remediation hint, then fix it.",
     )

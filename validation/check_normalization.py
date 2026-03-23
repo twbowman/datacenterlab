@@ -9,8 +9,8 @@ This script validates that metric normalization is working correctly by:
 4. Verifying vendor-specific OpenConfig path normalization completeness
 5. Providing clear pass/fail output with details
 
-Run from ORB VM context:
-  orb -m clab python3 validation/check_normalization.py
+Run from remote server:
+  ./lab exec "python3 validation/check_normalization.py"
 
 Requirements: 8.3, 8.5
 """

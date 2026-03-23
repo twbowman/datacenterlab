@@ -4,12 +4,10 @@
 
 ```bash
 # Deploy everything
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/site.yml
+ansible-playbook -i ansible/inventory.yml ansible/site.yml
 
-# Or from within the VM
-orb -m clab
-cd ansible
-ansible-playbook site.yml
+# Or run on the remote server
+./lab configure
 ```
 
 ## What Changed?

@@ -76,9 +76,9 @@ Configures LLDP protocol using OpenConfig YANG models.
 
 ```bash
 # From your host machine
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/site.yml
+ansible-playbook -i ansible/inventory.yml ansible/site.yml
 
-# From within the orb VM
+# From within the remote server
 cd /vagrant/containerlab/ansible
 ansible-playbook site.yml
 ```
@@ -216,7 +216,7 @@ ansible-inventory --list
 ansible-playbook -vvv playbooks/configure-bgp.yml
 
 # Check if gNMI port is accessible
-orb -m clab docker exec clab-gnmi-clos-spine1 netstat -tlnp | grep 57400
+docker exec clab-gnmi-clos-spine1 netstat -tlnp | grep 57400
 ```
 
 ## Migration from Old Playbooks

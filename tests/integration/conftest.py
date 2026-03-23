@@ -2,6 +2,7 @@
 Pytest configuration for integration tests
 
 Provides fixtures for integration testing with actual lab deployment.
+Tests assume the lab is running on a remote server, accessed via ./lab wrapper.
 """
 
 import subprocess
@@ -21,29 +22,24 @@ sys.path.insert(0, str(project_root))
 scripts_dir = project_root / "scripts"
 sys.path.insert(0, str(scripts_dir))
 
-
-@pytest.fixture(scope="session")
-def orb_prefix():
-    """Return the ORB command prefix for macOS ARM"""
-    return "orb -m clab"
+LAB_SCRIPT = str(project_root / "scripts" / "lab")
 
 
 @pytest.fixture(scope="session")
-def lab_deployed(orb_prefix):
+def lab_deployed():
     """
     Deploy lab for integration tests (session-scoped)
 
-    This fixture deploys the lab once per test session and tears it down at the end.
+    Uses the ./lab wrapper to deploy on the remote server.
     """
     # Check if lab is already running
     result = subprocess.run(
-        f"{orb_prefix} docker ps --filter name=clab-gnmi-clos --format '{{{{.Names}}}}'",
-        shell=True,
+        [LAB_SCRIPT, "status"],
         capture_output=True,
         text=True,
     )
 
-    if result.returncode == 0 and result.stdout.strip():
+    if result.returncode == 0 and "clab-gnmi-clos" in result.stdout:
         print("Lab already running, skipping deployment")
         yield True
         return
@@ -51,9 +47,7 @@ def lab_deployed(orb_prefix):
     # Deploy lab
     print("Deploying lab for integration tests...")
     deploy_result = subprocess.run(
-        f"{orb_prefix} sudo containerlab deploy -t topology.yml",
-        shell=True,
-        cwd=project_root,
+        [LAB_SCRIPT, "deploy"],
         capture_output=True,
         text=True,
     )
@@ -67,68 +61,31 @@ def lab_deployed(orb_prefix):
 
     yield True
 
-    # Teardown: destroy lab
-    # Note: Commented out to allow inspection after tests
-    # Uncomment if you want automatic cleanup
-    # print("Destroying lab after integration tests...")
-    # subprocess.run(
-    #     f"{orb_prefix} sudo containerlab destroy -t topology.yml",
-    #     shell=True,
-    #     cwd=project_root
-    # )
-
 
 @pytest.fixture(scope="session")
-def monitoring_deployed(orb_prefix, lab_deployed):
+def monitoring_deployed(lab_deployed):
     """
-    Deploy monitoring stack for integration tests (session-scoped)
+    Verify monitoring stack is running (session-scoped).
+    Monitoring is included in the topology, so just check it's up.
     """
-    # Check if monitoring is already running
     result = subprocess.run(
-        f"{orb_prefix} docker ps --filter name=clab-monitoring --format '{{{{.Names}}}}'",
-        shell=True,
+        [LAB_SCRIPT, "exec", "docker ps --filter name=clab-monitoring --format '{{.Names}}'"],
         capture_output=True,
         text=True,
     )
 
     if result.returncode == 0 and result.stdout.strip():
-        print("Monitoring stack already running, skipping deployment")
+        print("Monitoring stack is running")
         yield True
         return
 
-    # Deploy monitoring stack
-    print("Deploying monitoring stack for integration tests...")
-    deploy_result = subprocess.run(
-        f"{orb_prefix} sudo containerlab deploy -t topology-monitoring.yml",
-        shell=True,
-        cwd=project_root,
-        capture_output=True,
-        text=True,
-    )
-
-    if deploy_result.returncode != 0:
-        pytest.fail(f"Monitoring deployment failed: {deploy_result.stderr}")
-
-    # Wait for monitoring services to be ready
-    print("Waiting for monitoring services to be ready...")
-    time.sleep(20)
-
-    yield True
-
-    # Teardown: destroy monitoring
-    # Note: Commented out to allow inspection after tests
-    # print("Destroying monitoring stack after integration tests...")
-    # subprocess.run(
-    #     f"{orb_prefix} sudo containerlab destroy -t topology-monitoring.yml",
-    #     shell=True,
-    #     cwd=project_root
-    # )
+    pytest.fail("Monitoring stack is not running. Deploy with: ./lab deploy")
 
 
 @pytest.fixture
 def topology_config():
     """Load topology configuration"""
-    topology_file = project_root / "topology.yml"
+    topology_file = project_root / "topology-srlinux.yml"
     with open(topology_file) as f:
         return yaml.safe_load(f)
 
@@ -142,34 +99,24 @@ def device_list(topology_config):
 
 @pytest.fixture
 def prometheus_url():
-    """Prometheus URL for queries"""
+    """Prometheus URL (via SSH tunnel from ./lab tunnel)"""
     return "http://localhost:9090"
 
 
 @pytest.fixture
 def grafana_url():
-    """Grafana URL for dashboard access"""
+    """Grafana URL (via SSH tunnel from ./lab tunnel)"""
     return "http://localhost:3000"
 
 
 @pytest.fixture
 def gnmic_url():
-    """gNMIc metrics endpoint URL"""
+    """gNMIc metrics endpoint URL (via SSH tunnel from ./lab tunnel)"""
     return "http://localhost:9273"
 
 
 def wait_for_service(url, timeout=60, interval=5):
-    """
-    Wait for a service to become available
-
-    Args:
-        url: Service URL to check
-        timeout: Maximum time to wait in seconds
-        interval: Check interval in seconds
-
-    Returns:
-        bool: True if service is available, False otherwise
-    """
+    """Wait for a service to become available."""
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
@@ -184,15 +131,15 @@ def wait_for_service(url, timeout=60, interval=5):
 
 @pytest.fixture
 def wait_for_prometheus(prometheus_url):
-    """Wait for Prometheus to be ready"""
+    """Wait for Prometheus to be ready (requires ./lab tunnel)"""
     if not wait_for_service(f"{prometheus_url}/-/ready"):
-        pytest.fail("Prometheus did not become ready in time")
+        pytest.fail("Prometheus not reachable. Run: ./lab tunnel")
     return True
 
 
 @pytest.fixture
 def wait_for_grafana(grafana_url):
-    """Wait for Grafana to be ready"""
+    """Wait for Grafana to be ready (requires ./lab tunnel)"""
     if not wait_for_service(f"{grafana_url}/api/health"):
-        pytest.fail("Grafana did not become ready in time")
+        pytest.fail("Grafana not reachable. Run: ./lab tunnel")
     return True

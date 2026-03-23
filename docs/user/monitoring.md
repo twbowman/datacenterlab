@@ -28,7 +28,7 @@ Grafana Dashboards
 
 ```bash
 # macOS ARM
-orb -m clab sudo containerlab deploy -t topology-monitoring.yml
+sudo containerlab deploy -t topology-monitoring.yml
 
 # Linux
 sudo containerlab deploy -t topology-monitoring.yml

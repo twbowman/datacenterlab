@@ -56,16 +56,16 @@ To test the OpenConfig playbooks:
 
 ```bash
 # Configure interfaces
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/configure-interfaces.yml
+ansible-playbook -i ansible/inventory.yml ansible/configure-interfaces.yml
 
 # Configure BGP
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/configure-bgp.yml
+ansible-playbook -i ansible/inventory.yml ansible/configure-bgp.yml
 
 # Configure LLDP
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/configure-lldp.yml
+ansible-playbook -i ansible/inventory.yml ansible/configure-lldp.yml
 
 # Verify LLDP
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/verify-lldp.yml
+ansible-playbook -i ansible/inventory.yml ansible/verify-lldp.yml
 ```
 
 ## Compatibility

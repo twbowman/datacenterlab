@@ -65,12 +65,12 @@ Integration tests require the following services to be running:
 
 1. **Lab Topology**: Deployed via containerlab
    ```bash
-   orb -m clab sudo containerlab deploy -t topology-srlinux.yml
+   sudo containerlab deploy -t topology-srlinux.yml
    ```
 
 2. **Monitoring Stack**: Deployed via containerlab
    ```bash
-   orb -m clab sudo containerlab deploy -t topology-monitoring.yml
+   sudo containerlab deploy -t topology-monitoring.yml
    ```
 
 ### Dependencies
@@ -79,7 +79,7 @@ Integration tests require the following services to be running:
 - pytest
 - requests
 - pyyaml
-- ORB (for macOS ARM)
+- remote server (for macOS ARM)
 - Containerlab
 - Docker
 
@@ -146,7 +146,7 @@ These fixtures are created once per test session and shared across all tests:
 
 These fixtures are available to individual tests:
 
-- **`orb_prefix`**: Returns "orb -m clab" for command execution
+- **`lab_cmd`**: Returns commands run on remote server for command execution
 - **`topology_config`**: Loads topology configuration
 - **`device_list`**: Extracts list of devices from topology
 - **`prometheus_url`**: Prometheus URL (http://localhost:9090)
@@ -174,10 +174,10 @@ By default, the lab and monitoring stack are **NOT** destroyed after tests to al
 
 ```bash
 # Destroy lab
-orb -m clab sudo containerlab destroy -t topology.yml
+sudo containerlab destroy -t topology.yml
 
 # Destroy monitoring
-orb -m clab sudo containerlab destroy -t topology-monitoring.yml
+sudo containerlab destroy -t topology-monitoring.yml
 ```
 
 ## Test Output
@@ -210,33 +210,33 @@ Example output:
 ### Lab Not Deploying
 
 If lab deployment fails:
-1. Check Docker is running: `orb -m clab docker ps`
-2. Check containerlab is installed: `orb -m clab sudo containerlab version`
-3. Check for port conflicts: `orb -m clab sudo lsof -i :57400`
+1. Check Docker is running: `docker ps`
+2. Check containerlab is installed: `sudo containerlab version`
+3. Check for port conflicts: `sudo lsof -i :57400`
 4. Review deployment logs
 
 ### Tests Timing Out
 
 If tests timeout:
 1. Increase wait times in `conftest.py`
-2. Check device boot times: `orb -m clab docker logs clab-gnmi-clos-spine1`
+2. Check device boot times: `docker logs clab-gnmi-clos-spine1`
 3. Verify network connectivity
 4. Check resource availability (CPU, memory)
 
 ### Metrics Not Available
 
 If metrics are not available:
-1. Check gNMIc is running: `orb -m clab docker ps | grep gnmic`
-2. Check gNMIc logs: `orb -m clab docker logs <gnmic-container>`
+1. Check gNMIc is running: `docker ps | grep gnmic`
+2. Check gNMIc logs: `docker logs <gnmic-container>`
 3. Verify Prometheus is scraping: http://localhost:9090/targets
-4. Check device gNMI service: `orb -m clab docker exec clab-gnmi-clos-spine1 sr_cli "show system gnmi-server"`
+4. Check device gNMI service: `docker exec clab-gnmi-clos-spine1 sr_cli "show system gnmi-server"`
 
 ### Authentication Errors
 
 If Grafana authentication fails:
 - Default credentials: admin/admin
 - Update credentials in test if changed
-- Check Grafana logs: `orb -m clab docker logs clab-monitoring-grafana`
+- Check Grafana logs: `docker logs clab-monitoring-grafana`
 
 ## Performance Considerations
 

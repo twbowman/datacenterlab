@@ -19,7 +19,7 @@ import requests
 class TestMultiVendorDeployment:
     """Test multi-vendor topology deployment"""
 
-    def test_multi_vendor_topology_deployment(self, orb_prefix, tmp_path):
+    def test_multi_vendor_topology_deployment(self, lab_cmd, tmp_path):
         """
         Test deployment of topology with multiple vendors
 
@@ -70,7 +70,7 @@ topology:
         # This test validates the topology structure
         print("✓ Multi-vendor topology structure is valid")
 
-    def test_vendor_os_detection(self, orb_prefix):
+    def test_vendor_os_detection(self, lab_cmd):
         """
         Test OS detection for different vendors
 
@@ -134,7 +134,7 @@ topology:
 class TestVendorInteroperability:
     """Test interoperability between different vendors"""
 
-    def test_bgp_sessions_between_vendors(self, orb_prefix):
+    def test_bgp_sessions_between_vendors(self, lab_cmd):
         """
         Test BGP sessions between different vendor devices
 

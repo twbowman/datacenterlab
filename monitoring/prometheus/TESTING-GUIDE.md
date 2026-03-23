@@ -4,12 +4,12 @@
 
 1. **Lab must be running**:
 ```bash
-orb -m clab sudo containerlab deploy -t topology-srlinux.yml
+sudo containerlab deploy -t topology-srlinux.yml
 ```
 
 2. **Monitoring stack must be running**:
 ```bash
-orb -m clab docker-compose -f monitoring/docker-compose.yml up -d
+docker-compose -f monitoring/docker-compose.yml up -d
 ```
 
 3. **Wait for metrics collection** (30-60 seconds):
@@ -375,12 +375,12 @@ rate(gnmic_oc_interface_stats_interfaces_interface_state_counters_in_octets{vend
 **Solutions**:
 1. Check lab is running:
 ```bash
-orb -m clab sudo containerlab inspect -t topology-srlinux.yml
+sudo containerlab inspect -t topology-srlinux.yml
 ```
 
 2. Check monitoring stack is running:
 ```bash
-orb -m clab docker ps | grep -E "gnmic|prometheus|grafana"
+docker ps | grep -E "gnmic|prometheus|grafana"
 ```
 
 3. Check gNMIc is collecting metrics:

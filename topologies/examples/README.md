@@ -86,7 +86,7 @@ This directory contains pre-built topology examples demonstrating different netw
 
 ```bash
 # macOS ARM
-orb -m clab sudo containerlab deploy -t topologies/examples/2-spine-4-leaf.yml
+sudo containerlab deploy -t topologies/examples/2-spine-4-leaf.yml
 
 # Linux
 sudo containerlab deploy -t topologies/examples/2-spine-4-leaf.yml
@@ -98,7 +98,7 @@ Each example includes a corresponding inventory file:
 
 ```bash
 # macOS ARM
-orb -m clab ansible-playbook -i topologies/examples/inventory-2-spine-4-leaf.yml ansible/site.yml
+ansible-playbook -i topologies/examples/inventory-2-spine-4-leaf.yml ansible/site.yml
 
 # Linux
 ansible-playbook -i topologies/examples/inventory-2-spine-4-leaf.yml ansible/site.yml
@@ -118,7 +118,7 @@ ansible-playbook -i topologies/examples/inventory-2-spine-4-leaf.yml ansible/pla
 
 ```bash
 # macOS ARM
-orb -m clab sudo containerlab destroy -t topologies/examples/2-spine-4-leaf.yml
+sudo containerlab destroy -t topologies/examples/2-spine-4-leaf.yml
 
 # Linux
 sudo containerlab destroy -t topologies/examples/2-spine-4-leaf.yml

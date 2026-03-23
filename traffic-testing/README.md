@@ -32,13 +32,13 @@ Traffic path: client → leaf → VXLAN encap → spine → leaf → VXLAN decap
 
 ```bash
 # Quick 30-second validation
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/quick-test.yml
+ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/quick-test.yml
 
 # Full 5-minute mesh test (default)
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/full-mesh-traffic.yml
+ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/full-mesh-traffic.yml
 
 # Stress test - 8 streams per pair, 20M/stream
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/stress-test.yml
+ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/stress-test.yml
 ```
 
 ## Playbooks
@@ -65,19 +65,19 @@ All parameters can be overridden at runtime:
 
 ```bash
 # Custom duration
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml \
+ansible-playbook -i traffic-testing/inventory.yml \
   traffic-testing/playbooks/full-mesh-traffic.yml -e iperf3_duration=120
 
 # More streams
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml \
+ansible-playbook -i traffic-testing/inventory.yml \
   traffic-testing/playbooks/full-mesh-traffic.yml -e iperf3_parallel_streams=16
 
 # Custom bandwidth per stream
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml \
+ansible-playbook -i traffic-testing/inventory.yml \
   traffic-testing/playbooks/full-mesh-traffic.yml -e iperf3_bandwidth=5M
 
 # TCP mode instead of UDP (may have issues with VXLAN MTU)
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml \
+ansible-playbook -i traffic-testing/inventory.yml \
   traffic-testing/playbooks/full-mesh-traffic.yml -e iperf3_udp=false
 ```
 
@@ -115,7 +115,7 @@ The client-facing setup on each leaf:
 
 - **MTU**: SR Linux containerlab XDP datapath limits VXLAN inner MTU to ~1450 bytes. Client MTU is set to 1400 and iperf3 uses 1300-byte UDP packets to stay within this limit.
 - **TCP through VXLAN**: TCP iperf3 has MSS/MTU issues in the emulated environment. UDP mode is used by default.
-- **Throughput**: Emulated environment (ARM Mac + ORB + x86 emulation) limits achievable throughput. Focus on relative load distribution across the fabric rather than absolute numbers.
+- **Throughput**: Emulated environment (ARM Mac + remote server + x86 emulation) limits achievable throughput. Focus on relative load distribution across the fabric rather than absolute numbers.
 - **iperf3 single-client**: Each iperf3 server instance handles one client at a time. The playbook uses unique ports per source client to work around this.
 
 ## Production Use

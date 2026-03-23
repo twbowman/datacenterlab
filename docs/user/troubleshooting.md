@@ -138,8 +138,8 @@ df -h
 # Check image architecture
 docker inspect ghcr.io/nokia/srlinux:latest | grep Architecture
 
-# On ARM Macs, ensure using ORB
-orb -m clab docker ps
+# On ARM Macs, ensure using remote server
+docker ps
 ```
 
 ### Issue: Devices Boot Slowly
@@ -840,33 +840,33 @@ show system services extension-service
 
 **Issue: Commands Fail with "command not found"**
 
-**Solution**: Use `orb -m clab` prefix
+**Solution**: Use the ./lab wrapper
 ```bash
 # Wrong
 docker ps
 
 # Correct
-orb -m clab docker ps
+docker ps
 ```
 
-**Issue: ORB VM Out of Disk Space**
+**Issue: remote server Out of Disk Space**
 
 **Solution**: Clean up and increase disk
 ```bash
 # Check disk usage
-orb -m clab df -h
+df -h
 
 # Clean up
-orb -m clab docker system prune -a
+docker system prune -a
 
-# Increase VM disk in ORB settings
+# Increase VM disk in remote server settings
 ```
 
 **Issue: File Sync Issues**
 
-**Solution**: Restart ORB
+**Solution**: Restart remote server
 ```bash
-orb restart
+# restart remote server
 ```
 
 ### Linux

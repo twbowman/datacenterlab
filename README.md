@@ -303,13 +303,13 @@ All 4 clients share the same L2 subnet (10.10.100.0/24) bridged across the fabri
 
 ```bash
 # Quick 30-second validation
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/quick-test.yml
+ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/quick-test.yml
 
 # Full 5-minute mesh test
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/full-mesh-traffic.yml
+ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/full-mesh-traffic.yml
 
 # Stress test
-orb -m clab ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/stress-test.yml
+ansible-playbook -i traffic-testing/inventory.yml traffic-testing/playbooks/stress-test.yml
 ```
 
 See [Traffic Testing README](traffic-testing/README.md) for details.
@@ -376,7 +376,7 @@ python3 validation/check_normalization.py
 - gnmic CLI tool (in lab VM)
 - Python >= 3.10
 
-All commands in this README assume you're running inside the lab VM (e.g., `orb -m clab` to enter the VM).
+All lab commands in this README run on the remote server via the `./lab` wrapper script.
 
 ## Contributing
 

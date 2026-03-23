@@ -343,12 +343,12 @@ targets:
 
 1. **Deploy SONiC device**:
    ```bash
-   orb -m clab sudo containerlab deploy -t topology.yml
+   sudo containerlab deploy -t topology.yml
    ```
 
 2. **Verify gNMI connectivity**:
    ```bash
-   orb -m clab gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure capabilities
+   gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure capabilities
    ```
 
 3. **Check metrics in Prometheus**:
@@ -376,13 +376,13 @@ targets:
 **Solutions**:
 ```bash
 # Check if SONiC container is running
-orb -m clab docker ps | grep sonic
+docker ps | grep sonic
 
 # Test gNMI connectivity
-orb -m clab gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure capabilities
+gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure capabilities
 
 # Check gNMIc logs
-orb -m clab docker logs clab-monitoring-gnmic
+docker logs clab-monitoring-gnmic
 
 # Verify gNMIc target configuration
 cat monitoring/gnmic/gnmic-config.yml | grep -A 5 sonic
@@ -442,14 +442,14 @@ cat monitoring/gnmic/gnmic-config.yml | grep -A 10 "add_vendor_tags"
 **Solutions**:
 ```bash
 # Check if BGP is running on SONiC
-orb -m clab docker exec clab-sonic-test-sonic-leaf1 vtysh -c "show bgp summary"
+docker exec clab-sonic-test-sonic-leaf1 vtysh -c "show bgp summary"
 
 # Test BGP path subscription
-orb -m clab gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure \
+gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure \
   get --path "/network-instances/network-instance/protocols/protocol/bgp/neighbors"
 
 # Try native SONiC BGP path
-orb -m clab gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure \
+gnmic -a sonic-leaf1:8080 -u admin -p admin --insecure \
   get --path "/sonic-bgp:sonic-bgp/BGP_NEIGHBOR"
 ```
 

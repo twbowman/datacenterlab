@@ -34,8 +34,8 @@ SR Linux only supports OpenConfig YANG models for **read operations** (monitorin
 # Multi-vendor dispatcher - routes to correct roles per device
 ansible-playbook -i inventory.yml site.yml
 
-# From host machine via orb
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/site.yml
+# From host machine via SSH
+ansible-playbook -i ansible/inventory.yml ansible/site.yml
 ```
 
 ### Deploy with Specific Method

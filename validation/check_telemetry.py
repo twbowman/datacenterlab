@@ -11,8 +11,8 @@ This script validates that telemetry streaming is working correctly by:
 
 Requirements: 8.1, 8.2, 8.5, 8.6
 
-Run from ORB VM context:
-  orb -m clab python3 validation/check_telemetry.py --expected-devices spine1,spine2,leaf1,leaf2
+Run from remote server:
+  ./lab exec "python3 validation/check_telemetry.py --expected-devices spine1,spine2,leaf1,leaf2"
 """
 
 import json

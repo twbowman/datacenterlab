@@ -8,8 +8,8 @@ work correctly across all deployed vendors by:
 2. Verifying data is returned from all expected vendors
 3. Identifying vendor-specific query failures
 
-Run from ORB VM context:
-  orb -m clab python3 validation/check_universal_queries.py
+Run from remote server:
+  ./lab exec "python3 validation/check_universal_queries.py"
 
 Requirements: 8.4, 8.5
 """

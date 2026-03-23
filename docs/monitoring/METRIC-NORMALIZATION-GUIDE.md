@@ -156,7 +156,7 @@ scrape_configs:
 ### Restart Prometheus
 
 ```bash
-orb -m clab docker restart clab-monitoring-prometheus
+docker restart clab-monitoring-prometheus
 ```
 
 ## Solution 3: Combined Approach (Best)
@@ -195,7 +195,7 @@ Update `monitoring/gnmic/gnmic-config.yml` with processors
 ### Step 3: Restart gNMIc
 
 ```bash
-orb -m clab docker restart clab-monitoring-gnmic
+docker restart clab-monitoring-gnmic
 sleep 10
 ```
 
@@ -331,12 +331,12 @@ curl 'http://172.20.20.3:9090/api/v1/query?query=network_interface_in_octets'
 
 1. Check gNMIc logs:
 ```bash
-orb -m clab docker logs clab-monitoring-gnmic | tail -50
+docker logs clab-monitoring-gnmic | tail -50
 ```
 
 2. Verify processor syntax:
 ```bash
-orb -m clab docker exec clab-monitoring-gnmic cat /gnmic-config.yml
+docker exec clab-monitoring-gnmic cat /gnmic-config.yml
 ```
 
 3. Test without processors first
@@ -345,7 +345,7 @@ orb -m clab docker exec clab-monitoring-gnmic cat /gnmic-config.yml
 
 Check the exact path in gNMI response:
 ```bash
-orb -m clab docker exec clab-monitoring-gnmic /app/gnmic -a 172.20.20.10:57400 \
+docker exec clab-monitoring-gnmic /app/gnmic -a 172.20.20.10:57400 \
   -u admin -p 'NokiaSrl1!' --insecure \
   get --path "/interface[name=ethernet-1/1]/statistics"
 ```

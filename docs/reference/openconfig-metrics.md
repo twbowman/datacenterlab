@@ -281,11 +281,11 @@ subscriptions:
 ### Check Specific Metric
 ```bash
 # Interface counters
-orb -m clab docker exec clab-monitoring-gnmic wget -q -O - http://localhost:9273/metrics 2>/dev/null | \
+docker exec clab-monitoring-gnmic wget -q -O - http://localhost:9273/metrics 2>/dev/null | \
   grep "counters_in_octets" | grep "ethernet-1/49"
 
 # LLDP neighbors
-orb -m clab docker exec clab-monitoring-gnmic wget -q -O - http://localhost:9273/metrics 2>/dev/null | \
+docker exec clab-monitoring-gnmic wget -q -O - http://localhost:9273/metrics 2>/dev/null | \
   grep "lldp.*system_name"
 ```
 
@@ -301,12 +301,12 @@ curl -s 'http://172.20.20.3:9090/api/v1/query?query=gnmic_oc_interface_stats_ope
 ### Test OpenConfig Path Directly
 ```bash
 # Get interface counters
-orb -m clab docker exec clab-monitoring-gnmic /app/gnmic \
+docker exec clab-monitoring-gnmic /app/gnmic \
   -a clab-gnmi-clos-spine1:57400 -u admin -p 'NokiaSrl1!' --insecure \
   get --path "/interfaces/interface[name=ethernet-1/49]/state/counters"
 
 # Get LLDP neighbors
-orb -m clab docker exec clab-monitoring-gnmic /app/gnmic \
+docker exec clab-monitoring-gnmic /app/gnmic \
   -a clab-gnmi-clos-spine1:57400 -u admin -p 'NokiaSrl1!' --insecure \
   get --path "/lldp/interfaces/interface[name=ethernet-1/49]/neighbors"
 ```

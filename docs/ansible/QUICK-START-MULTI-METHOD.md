@@ -7,7 +7,7 @@
 ansible-playbook -i inventory.yml site.yml
 
 # Or from host machine
-orb -m clab ansible-playbook -i ansible/inventory.yml ansible/site.yml
+ansible-playbook -i ansible/inventory.yml ansible/site.yml
 ```
 
 ## What Changed?
