@@ -12,7 +12,7 @@ All containerlab, Docker, Ansible, and gNMI commands execute on the remote serve
 
 ### Why Remote Execution
 - **ARM Limitation**: SONiC VS images are x86_64 only; SR Linux containers also require x86_64
-- **Remote Server**: Hetzner Cloud (CPX31/CPX41) running Ubuntu, provisioned via `./lab setup`
+- **Remote Server**: Hetzner Cloud (CPX31/CPX41) running Ubuntu, provisioned via Terraform (`terraform/create-lab.sh`) or `./scripts/lab setup`
 - **Transparent**: `./lab` syncs the repo and runs commands remotely over SSH
 
 ## CRITICAL: Use the `./lab` Wrapper for All Remote Commands

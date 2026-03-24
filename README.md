@@ -5,22 +5,31 @@ A production-grade multi-vendor network testing lab for developing and validatin
 ## Quick Start
 
 ```bash
-# Deploy network lab
-./scripts/deploy.sh
+# 1. Provision a Hetzner lab server (or set up .env manually)
+cd terraform
+cp terraform.tfvars.example terraform.tfvars   # edit if needed
+./create-lab.sh                                 # creates server + generates .env
+cd ..
 
-# Configure network with Ansible
-ansible-playbook -i ansible/inventory.yml ansible/site.yml
+# 2. Set up the remote server
+./scripts/lab setup
 
-# Deploy monitoring (optional, separate)
-./scripts/deploy-monitoring.sh
+# 3. Deploy the network lab
+./scripts/lab deploy              # SR Linux (default)
+./scripts/lab deploy sonic        # or SONiC
 
-# Verify configuration
-ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
+# 4. Configure the fabric
+./scripts/lab configure
 
-# Or use the lab management script
-./lab start
-./lab configure
-./lab verify
+# 5. Validate
+./scripts/lab validate
+
+# 6. Access monitoring dashboards
+./scripts/lab tunnel
+# Grafana: http://localhost:3000  Prometheus: http://localhost:9090
+
+# Tear down the server when done
+cd terraform && ./destroy-lab.sh
 ```
 
 ## Documentation
@@ -101,77 +110,54 @@ graph TD
 
 ## Deployment
 
+### Infrastructure (Hetzner Cloud)
+
+Terraform provisions a lab server on Hetzner Cloud. The config supports multiple clouds via modules but only Hetzner is implemented.
+
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars   # edit server_type, location, etc.
+./create-lab.sh [srlinux|sonic]                # provisions server + generates .env
+./destroy-lab.sh                               # tears everything down
+```
+
+Available server types (from `hcloud server-type list`):
+- `cpx31` — 4 vCPU, 8 GB (default, good for single-vendor)
+- `cpx41` — 8 vCPU, 16 GB (recommended for multi-vendor)
+- `cpx51` — 16 vCPU, 32 GB (stress testing)
+
+Locations: `ash` (Ashburn, VA), `hil` (Hillsboro, OR), `nbg1` (Nuremberg), `hel1` (Helsinki), `fsn1` (Falkenstein)
+
+If a location is out of capacity, override: `terraform apply -auto-approve -var="location=hel1"`
+
+The `HCLOUD_TOKEN` is read automatically from `~/.config/hcloud/cli.toml` (set up via `hcloud context create`).
+
 ### Network Lab
 
 ```bash
-# Deploy network devices
-./scripts/deploy.sh
-
-# Deploy with post-deployment validation
-./scripts/deploy.sh --validate
-
-# Configure with Ansible (multi-vendor dispatcher)
-ansible-playbook -i ansible/inventory.yml ansible/site.yml
-
-# Verify
-ansible-playbook -i ansible/inventory.yml ansible/methods/srlinux_gnmi/playbooks/verify.yml
-
-# Destroy
-./scripts/destroy.sh
+./scripts/lab deploy              # default vendor (from .env)
+./scripts/lab deploy srlinux      # SR Linux topology
+./scripts/lab deploy sonic        # SONiC topology
+./scripts/lab destroy             # tear down topology
+./scripts/lab status              # show running containers
 ```
 
-### Multi-Vendor Lab
+### Configuration
 
 ```bash
-# Deploy multi-vendor topology
-./scripts/deploy-multi-vendor.sh
-
-# Configure with multi-vendor inventory
-ansible-playbook -i ansible/inventory-multi-vendor.yml ansible/site.yml
-
-# Destroy
-./scripts/destroy-multi-vendor.sh
+./scripts/lab configure                                              # run default site playbook
+./scripts/lab configure ansible/methods/srlinux_gnmi/site.yml        # specific playbook
 ```
 
-### Monitoring Stack (Optional)
+### Monitoring
+
+Monitoring is included in the topology. Access via SSH tunnels:
 
 ```bash
-# Deploy monitoring (separate from network)
-./scripts/deploy-monitoring.sh
-
-# Check status
-./scripts/check-monitoring.sh
-
-# Destroy monitoring
-./scripts/destroy-monitoring.sh
-```
-
-### Lab Management Script
-
-```bash
-# Network lab
-./lab start          # Deploy network
-./lab configure      # Configure with Ansible
-./lab verify         # Verify configuration
-./lab stop           # Destroy network
-./lab restart        # Restart network lab
-
-# Monitoring
-./lab mon-start      # Deploy monitoring
-./lab mon-stop       # Destroy monitoring
-
-# Status and access
-./lab status         # Show all containers and access URLs
-./lab sr_cli spine1  # Access SR Linux CLI
-./lab shell spine1   # Open bash shell
-./lab logs leaf1     # View logs
-
-# Monitoring tools
-./lab check-metrics     # Verify metrics collection
-./lab analyze-links     # Analyze link utilization and ECMP balance
-./lab generate-traffic  # Generate test traffic between clients
-./lab grafana           # Open Grafana in browser
-./lab prometheus        # Open Prometheus in browser
+./scripts/lab tunnel
+# Grafana:    http://localhost:3000 (admin/admin)
+# Prometheus: http://localhost:9090
+# gNMIc:     http://localhost:9273/metrics
 ```
 
 ## Ansible Automation
@@ -325,64 +311,38 @@ See [Traffic Testing README](traffic-testing/README.md) for details.
 ### Check Network Lab
 
 ```bash
-# All network containers
-docker ps --filter "name=clab-gnmi-clos"
-
-# OSPF neighbors
-docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default protocols ospf neighbor"
-
-# BGP neighbors
-docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default protocols bgp neighbor"
-
-# Routing table
-docker exec clab-gnmi-clos-spine1 sr_cli "show network-instance default route-table"
-
-# Client connectivity (via EVPN/VXLAN)
-docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.12
+./scripts/lab status
+./scripts/lab exec "docker exec clab-gnmi-clos-spine1 sr_cli 'show network-instance default protocols ospf neighbor'"
+./scripts/lab exec "docker exec clab-gnmi-clos-spine1 sr_cli 'show network-instance default protocols bgp neighbor'"
+./scripts/lab exec "docker exec clab-gnmi-clos-client1 ping -c 3 10.10.100.12"
 ```
 
 ### Check Monitoring
 
 ```bash
-# Monitoring containers
-docker ps --filter "name=clab-monitoring"
-
-# gNMIc metrics
-curl -s http://localhost:9273/metrics | head -20
-
-# Prometheus targets
-curl -s http://localhost:9090/api/v1/targets | jq
+./scripts/lab exec "curl -s http://localhost:9273/metrics | head -20"
+./scripts/lab exec "curl -s http://localhost:9090/api/v1/targets | jq"
 ```
 
-### Validation Scripts
+### Validation
 
 ```bash
-# Full lab validation
-./scripts/validate-lab.sh
-
-# Validate topology file
-python3 scripts/validate-topology.py
-
-# Check telemetry collection
-python3 validation/check_telemetry.py
-
-# Check universal PromQL queries
-python3 validation/check_universal_queries.py
-
-# Check metric normalization
-python3 validation/check_normalization.py
+./scripts/lab validate
 ```
 
 ## Prerequisites
 
-- OrbStack with containerlab VM (or Linux host)
-- Docker (in lab VM)
-- Containerlab >= 0.40.0 (in lab VM)
-- Ansible >= 2.9 (in lab VM)
-- gnmic CLI tool (in lab VM)
-- Python >= 3.10
+### Local Machine (macOS / Linux)
+- SSH key pair (`ssh-keygen -t ed25519`)
+- rsync (pre-installed on macOS)
+- Terraform >= 1.5 (for server provisioning)
+- Hetzner Cloud account + `hcloud` CLI (`brew install hcloud`)
 
-All lab commands in this README run on the remote server via the `./lab` wrapper script.
+### Remote Server (provisioned by Terraform)
+Everything is installed automatically by `./scripts/lab setup`:
+- Docker, containerlab, gNMIc, Ansible, Python dependencies
+
+All lab commands run on the remote server via the `./scripts/lab` wrapper script.
 
 ## Contributing
 
@@ -430,43 +390,26 @@ pre-commit run --all-files
 
 ## Troubleshooting
 
-### Network Lab Issues
+### Connection Issues
 
 ```bash
-# Check containers
-docker ps --filter "name=clab-gnmi-clos"
+# Verify remote server is reachable
+./scripts/lab exec "echo ok"
+
+# Re-run server provisioning
+./scripts/lab setup
 
 # Check device logs
-docker logs clab-gnmi-clos-spine1
+./scripts/lab exec "docker logs clab-gnmi-clos-spine1"
 
 # Verify gNMI connectivity
-gnmic -a 172.20.20.10:57400 -u admin -p NokiaSrl1! --skip-verify capabilities
+./scripts/lab exec "gnmic -a clab-gnmi-clos-leaf1:57400 -u admin -p NokiaSrl1! --skip-verify capabilities"
 ```
 
 ### Ansible Issues
 
 ```bash
-# Test connectivity
-ansible -i ansible/inventory.yml all -m ping
-
-# Run with verbose output
-ansible-playbook -i ansible/inventory.yml ansible/site.yml -vvv
-
-# Test dispatcher pattern
-ansible-playbook ansible/test-dispatcher.yml
-```
-
-### Monitoring Issues
-
-```bash
-# Check monitoring containers
-docker ps --filter "name=clab-monitoring"
-
-# Check gNMIc logs
-docker logs clab-monitoring-gnmic
-
-# Test metrics endpoint
-curl http://localhost:9273/metrics
+./scripts/lab configure ansible/methods/srlinux_gnmi/site.yml
 ```
 
 See [Troubleshooting Guide](docs/user/troubleshooting.md) for more details.

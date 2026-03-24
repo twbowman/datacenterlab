@@ -18,9 +18,18 @@ This guide provides step-by-step instructions for setting up the Production Netw
 
 ### Remote Server (x86_64 Linux)
 
-Recommended: Hetzner Cloud CPX31 or CPX41 (Ubuntu 22.04+)
+Provisioned automatically via Terraform (Hetzner Cloud), or set up any x86_64 Linux server manually.
 
-The `./lab setup` command installs everything automatically:
+**Terraform (recommended):**
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+./create-lab.sh              # provisions server + generates .env
+```
+
+**Manual:** Any x86_64 Ubuntu 22.04+ server. Set up `.env` by hand and run `./scripts/lab setup`.
+
+The `./scripts/lab setup` command installs everything automatically:
 - Docker
 - Containerlab
 - gNMIc
@@ -35,17 +44,36 @@ The `./lab setup` command installs everything automatically:
 
 ## Quick Start
 
-### 1. Configure Remote Server Connection
+### 1. Provision the Lab Server
 
+**Option A: Terraform (Hetzner Cloud)**
+```bash
+# Install hcloud CLI and authenticate
+brew install hcloud
+hcloud context create dclab   # paste your API token
+
+# Provision
+cd terraform
+cp terraform.tfvars.example terraform.tfvars   # edit if needed
+./create-lab.sh                                 # creates server + .env
+cd ..
+```
+
+If a location is out of capacity, override:
+```bash
+cd terraform && terraform apply -auto-approve -var="location=hel1"
+```
+
+**Option B: Manual**
 ```bash
 cp .env.example .env
 # Edit .env with your server IP, SSH key, etc.
 ```
 
-### 2. Provision the Remote Server
+### 2. Set Up the Remote Server
 
 ```bash
-./lab setup
+./scripts/lab setup
 ```
 
 This runs `scripts/remote-setup.sh` on the server, installing Docker, containerlab, gnmic, Ansible, and Python deps.
@@ -53,39 +81,39 @@ This runs `scripts/remote-setup.sh` on the server, installing Docker, containerl
 ### 3. Deploy the Lab
 
 ```bash
-./lab deploy              # default vendor (from .env)
-./lab deploy srlinux      # SR Linux topology
-./lab deploy sonic        # SONiC topology
+./scripts/lab deploy              # default vendor (from .env)
+./scripts/lab deploy srlinux      # SR Linux topology
+./scripts/lab deploy sonic        # SONiC topology
 ```
 
 ### 4. Check Status
 
 ```bash
-./lab status
+./scripts/lab status
 ```
 
 ### 5. Configure the Fabric
 
 ```bash
-./lab configure
+./scripts/lab configure
 ```
 
 ### 6. Access Monitoring
 
 ```bash
-./lab tunnel
+./scripts/lab tunnel
 # Then open http://localhost:3000 (Grafana)
 ```
 
 ## Verification
 
-After `./lab setup`, verify the remote server:
+After `./scripts/lab setup`, verify the remote server:
 
 ```bash
-./lab exec "docker --version"
-./lab exec "containerlab version"
-./lab exec "gnmic version"
-./lab exec "ansible --version"
+./scripts/lab exec "docker --version"
+./scripts/lab exec "containerlab version"
+./scripts/lab exec "gnmic version"
+./scripts/lab exec "ansible --version"
 ```
 
 ## Platform-Specific Notes
@@ -94,24 +122,28 @@ After `./lab setup`, verify the remote server:
 
 SONiC VS images and some NOS containers are x86_64 only. The remote execution model solves this — you develop locally and the lab runs on a remote x86_64 server.
 
-All lab commands go through `./lab`:
+All lab commands go through `./scripts/lab`:
 ```bash
-./lab deploy          # deploy topology
-./lab configure       # run Ansible
-./lab validate        # run validation
-./lab ssh             # SSH to server
-./lab exec "cmd"      # run arbitrary command
+./scripts/lab deploy          # deploy topology
+./scripts/lab configure       # run Ansible
+./scripts/lab validate        # run validation
+./scripts/lab ssh             # SSH to server
+./scripts/lab exec "cmd"      # run arbitrary command
 ```
 
 ### Linux x86_64
 
-Same workflow via `./lab`, or you can run commands directly on the server.
+Same workflow via `./scripts/lab`, or you can run commands directly on the server.
 
 ## Troubleshooting
 
 ### Issue: "./lab" fails with "Missing .env file"
 
 ```bash
+# Option A: Generate from Terraform
+cd terraform && ./generate-env.sh && cd ..
+
+# Option B: Manual
 cp .env.example .env
 # Edit .env with your server details
 ```
@@ -125,13 +157,13 @@ cp .env.example .env
 ### Issue: "containerlab: command not found" on remote
 
 ```bash
-./lab setup   # re-run provisioning
+./scripts/lab setup   # re-run provisioning
 ```
 
 ### Issue: SR Linux image pull fails
 
 ```bash
-./lab exec "docker pull ghcr.io/nokia/srlinux:latest"
+./scripts/lab exec "docker pull ghcr.io/nokia/srlinux:latest"
 ```
 
 ### Issue: Devices fail to boot
@@ -139,15 +171,15 @@ cp .env.example .env
 SR Linux can take 2-3 minutes to fully boot.
 
 ```bash
-./lab exec "docker logs clab-gnmi-clos-spine1"
+./scripts/lab exec "docker logs clab-gnmi-clos-spine1"
 # Look for "All applications started successfully"
 ```
 
 ### Issue: Disk space on remote server
 
 ```bash
-./lab exec "df -h"
-./lab exec "docker system prune -a"
+./scripts/lab exec "df -h"
+./scripts/lab exec "docker system prune -a"
 ```
 
 ## Hardware Requirements
@@ -158,6 +190,7 @@ SR Linux can take 2-3 minutes to fully boot.
 - **RAM**: 8 GB (16 GB recommended)
 - **Disk**: 40 GB+ SSD
 - Hetzner CPX31 (4 vCPU, 8 GB) or CPX41 (8 vCPU, 16 GB)
+- Provisioned via `terraform/create-lab.sh` or any x86_64 Linux server
 
 ### Resource Usage
 
@@ -179,11 +212,12 @@ Lab uses default credentials (for isolated lab environments only):
 
 ### Network Isolation
 
-Lab containers run on isolated Docker networks on the remote server. Access monitoring via SSH tunnels (`./lab tunnel`).
+Lab containers run on isolated Docker networks on the remote server. Access monitoring via SSH tunnels (`./scripts/lab tunnel`).
 
 ## Next Steps
 
-1. **Configure devices**: `./lab configure`
-2. **Set up monitoring**: Included in topology, access via `./lab tunnel`
-3. **Run validation**: `./lab validate`
-4. **Explore dashboards**: http://localhost:3000 (after `./lab tunnel`)
+1. **Configure devices**: `./scripts/lab configure`
+2. **Set up monitoring**: Included in topology, access via `./scripts/lab tunnel`
+3. **Run validation**: `./scripts/lab validate`
+4. **Explore dashboards**: http://localhost:3000 (after `./scripts/lab tunnel`)
+5. **Tear down server**: `cd terraform && ./destroy-lab.sh`
