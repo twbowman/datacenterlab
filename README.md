@@ -416,4 +416,4 @@ See [Troubleshooting Guide](docs/user/troubleshooting.md) for more details.
 
 ## License
 
-This project is provided as-is for educational and testing purposes.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
